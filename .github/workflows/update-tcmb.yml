@@ -1,0 +1,37 @@
+name: TCMB Günlük Kur Senkronizasyonu
+
+on:
+  schedule:
+    # Pazartesi - Cuma her gün saat 15:35 TR (12:35 UTC)
+    - cron: '35 12 * * 1-5'
+  workflow_dispatch: # Manuel tetikleme imkanı
+
+permissions:
+  contents: write
+
+jobs:
+  sync-tcmb:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Depoyu Çek
+        uses: actions/checkout@v4
+
+      - name: TCMB today.xml İndir
+        run: |
+          curl -s --max-time 20 -H "User-Agent: Mozilla/5.0" "https://www.tcmb.gov.tr/kurlar/today.xml" -o tcmb.xml
+          # Dosyanın boş veya geçersiz olmadığını kontrol et
+          if grep -q "Tarih_Date" tcmb.xml; then
+            echo "TCMB XML başarıyla indirildi."
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git add tcmb.xml
+            if ! git diff --staged --quiet; then
+              git commit -m "chore(tcmb): Günlük resmi kurlar güncellendi [skip ci]"
+              git push
+            else
+              echo "Kur dosyasında değişiklik yok."
+            fi
+          else
+            echo "TCMB verisi alınamadı, mevcut dosya korundu."
+            exit 1
+          fi
