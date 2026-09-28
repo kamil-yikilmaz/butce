@@ -2,47 +2,46 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data: blob:; script-src 'self' 'unsafe-inline' https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; connect-src 'self' https://*.supabase.co https://www.tcmb.gov.tr https://*.allorigins.win https://corsproxy.io https://api.codetabs.com https://open.er-api.com https://api.frankfurter.app; img-src 'self' data: blob: https:; frame-src 'self' blob: data: https://*.supabase.co;">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Birikim ve Bütçe Defteri</title>
-<link id="app-fonts" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap">
+<link id="app-fonts" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap">
 <style id="app-style">
 :root{
-  --ground:#F0F2F6; --surface:#FFFFFF; --surface-2:#F6F8FB;
-  --line:#D5DAE5; --line-soft:#E4E8F1;
-  --ink:#121722; --ink-2:#353F52; --muted:#646E82;
-  --accent:#204DB3; --accent-soft:#EBF1FD;
-  --brass:#946316; --brass-soft:#FAF2E3;
-  --gain:#0E7550; --gain-soft:#E4F5EE;
-  --loss:#B82B1B; --loss-soft:#FCEAE8;
+  --ground:#EEF0F4; --surface:#FFFFFF; --surface-2:#F6F7FA;
+  --line:#D7DCE7; --line-soft:#E7EAF1;
+  --ink:#141A27; --ink-2:#3D4657; --muted:#6B7488;
+  --accent:#2A3F7E; --accent-soft:#E6EAF6;
+  --brass:#8F6620; --brass-soft:#F4EDDE;
+  --gain:#146C4E; --gain-soft:#E1F0E9;
+  --loss:#A8382A; --loss-soft:#F7E7E4;
   --on-accent:#FFFFFF;
-  --shadow:0 1px 3px rgba(18,23,34,.07), 0 10px 28px -16px rgba(18,23,34,.22);
-  --radius:11px;
+  --shadow:0 1px 2px rgba(20,26,39,.06), 0 10px 28px -16px rgba(20,26,39,.28);
+  --radius:10px;
 }
 :root:not([data-theme="light"]){ }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --ground:#0C1017; --surface:#151B26; --surface-2:#1B2332;
-    --line:#283244; --line-soft:#202837;
-    --ink:#EAEFF8; --ink-2:#C2CBE0; --muted:#8B95AC;
-    --accent:#8DA7F4; --accent-soft:#1C2744;
-    --brass:#E2B86E; --brass-soft:#2E2416;
-    --gain:#52D6A1; --gain-soft:#112B21;
-    --loss:#F08B7A; --loss-soft:#331A17;
-    --on-accent:#0C1017;
-    --shadow:0 1px 3px rgba(0,0,0,.45), 0 10px 28px -16px rgba(0,0,0,.75);
+    --ground:#0E121A; --surface:#161B26; --surface-2:#1B2130;
+    --line:#2B3346; --line-soft:#222939;
+    --ink:#E7EAF2; --ink-2:#C2C9D8; --muted:#8A93A8;
+    --accent:#93A9EA; --accent-soft:#1E2740;
+    --brass:#D9AE63; --brass-soft:#2A2318;
+    --gain:#5DCFA0; --gain-soft:#12281F;
+    --loss:#E98A78; --loss-soft:#2B1A17;
+    --on-accent:#0E121A;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -16px rgba(0,0,0,.7);
   }
 }
 :root[data-theme="dark"]{
-  --ground:#0C1017; --surface:#151B26; --surface-2:#1B2332;
-  --line:#283244; --line-soft:#202837;
-  --ink:#EAEFF8; --ink-2:#C2CBE0; --muted:#8B95AC;
-  --accent:#8DA7F4; --accent-soft:#1C2744;
-  --brass:#E2B86E; --brass-soft:#2E2416;
-  --gain:#52D6A1; --gain-soft:#112B21;
-  --loss:#F08B7A; --loss-soft:#331A17;
-  --on-accent:#0C1017;
-  --shadow:0 1px 3px rgba(0,0,0,.45), 0 10px 28px -16px rgba(0,0,0,.75);
+  --ground:#0E121A; --surface:#161B26; --surface-2:#1B2130;
+  --line:#2B3346; --line-soft:#222939;
+  --ink:#E7EAF2; --ink-2:#C2C9D8; --muted:#8A93A8;
+  --accent:#93A9EA; --accent-soft:#1E2740;
+  --brass:#D9AE63; --brass-soft:#2A2318;
+  --gain:#5DCFA0; --gain-soft:#12281F;
+  --loss:#E98A78; --loss-soft:#2B1A17;
+  --on-accent:#0E121A;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -16px rgba(0,0,0,.7);
 }
 *,*::before,*::after{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -65,23 +64,23 @@ h2{font-size:19px}
 .masthead p{margin:6px 0 0; color:var(--muted); font-size:13.5px; max-width:58ch}
 .lede{margin:0; color:var(--muted); font-size:13.5px; max-width:64ch}
 .modpane{display:flex; flex-direction:column; gap:22px}
-.tabs{position:sticky; top:0; z-index:45; display:flex; gap:4px; background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:4px; box-shadow:0 2px 8px rgba(18,23,34,.05); backdrop-filter:blur(8px)}
-.tab{cursor:pointer; border:0; background:none; border-radius:8px; padding:9px 18px; font-size:14px; font-weight:600;
-  color:var(--muted); font-family:"IBM Plex Sans",system-ui,sans-serif; white-space:nowrap; transition:all .15s ease; min-height:42px; display:inline-flex; align-items:center; justify-content:center}
+.tabs{display:flex; gap:2px; background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:3px}
+.tab{cursor:pointer; border:0; background:none; border-radius:7px; padding:8px 16px; font-size:14px; font-weight:600;
+  color:var(--muted); font-family:"IBM Plex Sans",system-ui,sans-serif; white-space:nowrap}
 .tab:hover{color:var(--ink)}
-.tab.is-on{background:var(--surface); color:var(--accent); box-shadow:0 2px 6px rgba(18,23,34,.09); border:1px solid var(--line-soft)}
+.tab.is-on{background:var(--surface); color:var(--ink); box-shadow:0 1px 2px rgba(20,26,39,.10)}
 
 /* rate bar */
-.rates{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px 18px; display:flex; flex-wrap:wrap; gap:16px 20px; align-items:flex-end}
+.rates{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px 16px; display:flex; flex-wrap:wrap; gap:16px 22px; align-items:flex-end}
 .rates .field{display:flex; flex-direction:column; gap:5px}
-.rates .field label{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:600}
+.rates .field label{font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); font-weight:600}
 .rates .grow{flex:1 1 auto; min-width:1px}
-.tcmb-link{display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--accent); text-decoration:none; border-bottom:1px solid transparent; padding-bottom:1px}
+.tcmb-link{display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:500; color:var(--accent); text-decoration:none; border-bottom:1px solid transparent; padding-bottom:1px}
 .tcmb-link:hover{border-bottom-color:var(--accent)}
-.rate-note{font-size:12.5px; color:var(--muted); max-width:44ch; text-align:right}
+.rate-note{font-size:12.5px; color:var(--muted); max-width:40ch; text-align:right}
 
 input,select,button{font:inherit; color:inherit}
-input[type=text],input[type=number],input[type=email],input[type=password],select{
+input[type=text],input[type=number],select{
   background:var(--surface-2); border:1px solid var(--line); border-radius:8px;
   padding:8px 10px; min-width:0; width:100%;
   font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums; font-size:14px;
@@ -92,12 +91,9 @@ input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{ou
 
 /* summary */
 .headline{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow)}
-.hcell{background:var(--surface); padding:18px 20px; display:flex; flex-direction:column; gap:7px; border-top:3px solid transparent}
-.hcell:nth-child(1){border-top-color:var(--accent)}
-.hcell:nth-child(2){border-top-color:var(--ink-2)}
-.hcell:nth-child(3){border-top-color:var(--gain)}
+.hcell{background:var(--surface); padding:18px 20px; display:flex; flex-direction:column; gap:7px}
 .hcell .k{font-size:11px; letter-spacing:.11em; text-transform:uppercase; color:var(--muted); font-weight:600}
-.hcell .v{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-size:26px; font-weight:600; letter-spacing:-.02em}
+.hcell .v{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-size:26px; font-weight:500; letter-spacing:-.02em}
 .hcell .s{font-size:12.5px; color:var(--muted)}
 .hcell.result{background:var(--surface)}
 .pill{display:inline-flex; align-items:center; gap:5px; align-self:flex-start; padding:3px 9px; border-radius:999px; font-size:12px; font-weight:600; font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums}
@@ -177,38 +173,17 @@ form.entry{padding:16px 18px 18px; display:flex; flex-direction:column; gap:14px
 footer.note{color:var(--muted); font-size:12.5px; line-height:1.65}
 footer.note b{color:var(--ink-2); font-weight:600}
 
-@media (max-width:768px){
-  .masthead{gap:12px; padding-bottom:10px}
-  .masthead h1{font-size:22px}
+@media (max-width:720px){
+  .masthead{gap:12px}
   .tabs{width:100%; overflow-x:auto; -ms-overflow-style:none; scrollbar-width:none}
   .tabs::-webkit-scrollbar{display:none}
-  .tab{flex:1 1 0; padding:10px 8px; font-size:13px; text-align:center}
-  .wrap{padding:14px 12px 64px; gap:16px}
-  .headline{grid-template-columns:1fr; gap:8px; background:none; border:none; box-shadow:none}
-  .hcell{border-radius:var(--radius); border:1px solid var(--line-soft); box-shadow:var(--shadow); padding:16px}
-  .hcell .v{font-size:24px}
-  .chips{grid-template-columns:repeat(2,1fr)}
-  .rates{padding:14px 12px; gap:12px}
-  .rates .field{flex:1 1 calc(50% - 6px)}
-  .rates input{width:100%; font-size:15px}
-  .rates .grow{display:none}
-  .rate-info-box{width:100% !important; align-items:flex-start !important}
-  .rates .actions{width:100%; display:flex; flex-wrap:wrap; gap:8px}
-  .rates .actions .btn{flex:1 1 calc(50% - 4px); text-align:center; justify-content:center}
-  
-  /* Mobilde tablo: İlk kolon (Dönem) yapışkan kalsın, sağa kaydırırken ay kaybolmasın */
-  .tscroll{position:relative; overflow-x:auto; -webkit-overflow-scrolling:touch}
-  table thead tr.cols th.l,
-  table tbody td.l,
-  table tfoot td.l{
-    position:sticky; left:0; z-index:3;
-    border-right:2px solid var(--line);
-    box-shadow:2px 0 6px rgba(0,0,0,.06);
-  }
-  table tbody td.l{background:var(--surface)}
-  table thead tr.cols th.l,table tfoot td.l{background:var(--surface-2)}
-  tbody tr:hover td.l{background:var(--surface-2)}
-  tbody tr.editing td.l{background:var(--accent-soft)}
+  .tab{flex:1 1 auto; padding:8px 9px; font-size:12.5px}
+  .wrap{padding:22px 14px 56px}
+  h1{font-size:24px}
+  .headline{grid-template-columns:1fr}
+  .hcell .v{font-size:23px}
+  .rates input{width:100%}
+  .rates .field{flex:1 1 130px}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
 
@@ -219,36 +194,34 @@ footer.note b{color:var(--ink-2); font-weight:600}
 .monthbar select{width:auto; min-width:150px; font-weight:600}
 .monthbar .actions{flex-wrap:wrap}
 .navbtn{cursor:pointer; background:var(--surface-2); border:1px solid var(--line); border-radius:8px;
-  width:40px; height:40px; font-size:18px; line-height:1; font-weight:bold; color:var(--ink-2); flex:0 0 auto;
-  display:inline-flex; align-items:center; justify-content:center}
-.navbtn:hover{color:var(--accent); border-color:var(--accent); background:var(--surface)}
+  width:34px; height:34px; font-size:18px; line-height:1; color:var(--ink-2); flex:0 0 auto}
+.navbtn:hover{color:var(--accent); border-color:var(--accent)}
 .gelir{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; padding:14px 18px 18px}
 .rows{display:flex; flex-direction:column; padding-top:4px}
-.row2{display:grid; grid-template-columns:minmax(140px,1fr) 150px auto; gap:8px; align-items:center; padding:8px 18px}
+.row2{display:grid; grid-template-columns:minmax(140px,1fr) 150px auto; gap:8px; align-items:center; padding:6px 18px}
 .rowfoot{display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between;
   padding:12px 18px 16px; margin-top:6px; border-top:1px solid var(--line-soft)}
 .rowtot{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-size:13.5px; font-weight:600}
 table.mini{min-width:620px}
-.tag.warn{background:var(--brass-soft); color:var(--brass); border:1px solid rgba(148,99,22,.2)}
-.tag.ok{background:var(--gain-soft); color:var(--gain); border:1px solid rgba(14,117,80,.2)}
+.tag.warn{background:var(--brass-soft); color:var(--brass)}
+.tag.ok{background:var(--gain-soft); color:var(--gain)}
 .tag.done{background:var(--surface-2); color:var(--muted)}
 .trows{display:flex; flex-direction:column; min-width:1080px; padding-top:4px}
 .trow{display:grid; grid-template-columns:minmax(132px,1fr) 100px 22px 112px 66px 26px 112px 66px 150px 96px 46px;
-  gap:6px; align-items:center; padding:8px 18px; border-bottom:1px solid var(--line-soft)}
-.trow.off{opacity:.55; background:var(--surface-2)}
-.trow input,.trow select{padding:7px 9px; font-size:13.5px}
-.trow .mini-l{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; text-align:right}
+  gap:6px; align-items:center; padding:6px 18px}
+.trow.off{opacity:.5}
+.trow input,.trow select{padding:6px 8px; font-size:13px}
+.trow .mini-l{font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; text-align:right}
 .trow-badge{text-align:center}
 .chk{display:inline-flex; gap:6px; align-items:center; cursor:pointer}
 .chk input{width:auto; margin:0}
 @media (max-width:720px){
-  .row2{grid-template-columns:1fr 120px auto; padding:8px 12px}
-  .row2 .icobtn{min-height:36px; padding:6px 10px}
-  .monthbar{gap:8px; padding:10px}
-  .monthbar select{min-width:110px; flex:1 1 auto; font-size:14.5px; padding:8px 10px}
+  .row2{grid-template-columns:1fr 110px auto}
+  .monthbar{gap:8px}
+  .monthbar select{min-width:120px; flex:1 1 auto}
   .monthbar .grow{display:none}
-  .monthbar .actions{width:100%; gap:8px}
-  .monthbar .actions .btn{flex:1 1 calc(50% - 4px); text-align:center; justify-content:center}
+  .monthbar .actions{width:100%; gap:6px}
+  .monthbar .actions .btn{flex:1 1 auto}
   .monthbar .status{width:100%}
 }
 
@@ -260,36 +233,35 @@ table.mini{min-width:620px}
 .panel.collapsed .panel-body{display:none}
 .panel.collapsed .panel-head{border-bottom:0}
 td.odn,.odn{font-size:12.5px; white-space:nowrap}
-.prog{display:block; height:5px; margin-top:5px; background:var(--line-soft); border-radius:3px; overflow:hidden; min-width:80px}
-.prog i{display:block; height:100%; background:var(--accent); border-radius:3px}
+.prog{display:block; height:3px; margin-top:4px; background:var(--line-soft); border-radius:2px; overflow:hidden; min-width:78px}
+.prog i{display:block; height:100%; background:var(--accent); border-radius:2px}
 .trow .trow-odn{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; text-align:right}
 
 /* ---- bu ayın özeti: dar ekranda kart, geniş ekranda tablo ---- */
 .ozet{display:flex; flex-direction:column}
 .oz-head{display:none}
-.oz-grp{display:flex; align-items:baseline; gap:10px; padding:12px 16px 8px;
+.oz-grp{display:flex; align-items:baseline; gap:10px; padding:11px 16px 7px;
   background:var(--surface-2); border-bottom:1px solid var(--line); border-top:1px solid var(--line-soft)}
-.oz-grp .g-ad{font-size:11.5px; letter-spacing:.09em; text-transform:uppercase; font-weight:700; color:var(--ink)}
+.oz-grp .g-ad{font-size:11px; letter-spacing:.1em; text-transform:uppercase; font-weight:600; color:var(--ink-2)}
 .oz-grp .g-kal{font-size:11.5px; color:var(--muted); flex:1 1 auto}
-.oz-grp .g-tut{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-weight:600; font-size:14px}
-.oz-bos{padding:14px 16px; color:var(--muted); font-size:13.5px}
-.oz-row{display:grid; grid-template-columns:1fr auto; gap:4px 12px; padding:11px 16px;
+.oz-grp .g-tut{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-weight:600; font-size:13.5px}
+.oz-bos{padding:12px 16px; color:var(--muted); font-size:13px}
+.oz-row{display:grid; grid-template-columns:1fr auto; gap:3px 10px; padding:10px 16px;
   border-bottom:1px solid var(--line-soft); align-items:baseline}
-.oz-row:nth-child(even){background:rgba(0,0,0,.012)}
-.oz-row .oz-ad{font-size:14.5px; font-weight:600}
+.oz-row .oz-ad{font-size:14px; font-weight:500}
 .oz-row .oz-tut{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
-  font-size:14.5px; font-weight:600; text-align:right; white-space:nowrap}
+  font-size:14px; font-weight:600; text-align:right; white-space:nowrap}
 .oz-row .oz-donem,.oz-row .oz-tak{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
   font-size:12px; color:var(--muted); white-space:nowrap}
 .oz-row .oz-tak{text-align:right}
 .oz-row .oz-odn{grid-column:1/-1; font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
-  font-size:12.5px; margin-top:4px}
-.oz-row .oz-drm{grid-column:1/-1; font-size:12.5px; margin-top:3px}
-.oz-foot{display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:13px 16px;
-  border-top:2px solid var(--ink); background:var(--surface-2); font-weight:600; font-size:13.5px;
+  font-size:12.5px; margin-top:3px}
+.oz-row .oz-drm{grid-column:1/-1; font-size:12.5px; margin-top:2px}
+.oz-foot{display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:12px 16px;
+  border-top:2px solid var(--ink); background:var(--surface-2); font-weight:600; font-size:13px;
   text-transform:uppercase; letter-spacing:.04em}
-.oz-foot .v{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-size:16px; letter-spacing:0}
-.oz-foot.son{border-top:1px solid var(--line-soft); background:var(--gain-soft); color:var(--gain); font-weight:700}
+.oz-foot .v{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-size:15px; letter-spacing:0}
+.oz-foot.son{border-top:1px solid var(--line-soft); background:var(--surface); color:var(--gain)}
 @media (min-width:780px){
   .oz-head{display:grid; padding:9px 18px; background:var(--surface-2); border-bottom:1px solid var(--line)}
   .oz-head span{font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:600}
@@ -305,103 +277,60 @@ td.odn,.odn{font-size:12.5px; white-space:nowrap}
   .oz-grp{padding-left:18px; padding-right:18px}
   .oz-foot{padding-left:18px; padding-right:18px}
 }
-
-/* ---- taksit listesi: mobilde düzenli kart tasarımı ---- */
+/* ---- taksit listesi: dar ekranda satırlar alt alta ---- */
 @media (max-width:820px){
-  .trows{min-width:0; padding:10px 12px; gap:10px}
-  .trow{
-    display:grid;
-    grid-template-columns:repeat(6,1fr);
-    gap:8px 6px;
-    padding:14px;
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    background:var(--surface);
-    box-shadow:0 1px 3px rgba(18,23,34,.05);
-  }
-  .trow.off{opacity:.6; background:var(--surface-2)}
-  .trow>input[data-f="ad"]{grid-column:1 / 6; font-size:15px; font-weight:600}
-  .trow>button[data-tsil]{grid-column:6 / 7; justify-self:end; min-height:36px; padding:4px 10px}
-  .trow>input[data-f="tutar"]{grid-column:1 / 4; font-size:15px; font-weight:600}
-  .trow .trow-badge{grid-column:4 / 7; text-align:right; align-self:center}
-  
-  .trow .mini-l:nth-of-type(1){grid-column:1 / 2; align-self:center; font-weight:600; color:var(--muted); font-size:12px}
-  .trow select[data-f="bAy"]{grid-column:2 / 5; font-size:13.5px}
-  .trow input[data-f="bYil"]{grid-column:5 / 7; font-size:13.5px}
-  
-  .trow .mini-l:nth-of-type(2){grid-column:1 / 2; align-self:center; font-weight:600; color:var(--muted); font-size:12px}
-  .trow select[data-f="sAy"]{grid-column:2 / 5; font-size:13.5px}
-  .trow input[data-f="sYil"]{grid-column:5 / 7; font-size:13.5px}
-  
-  .trow .trow-odn{grid-column:1 / -1; text-align:left; margin-top:4px; padding-top:8px; border-top:1px dashed var(--line-soft)}
+  .trows{min-width:0}
+  .trow{grid-template-columns:34px 1fr 96px; gap:6px; padding:12px 14px; border-bottom:1px solid var(--line-soft)}
+  .trow>input[data-f="ad"]{grid-column:1/-1}
+  .trow>input[data-f="tutar"]{grid-column:1/-1}
+  .trow .trow-odn{grid-column:1/-1; text-align:left; margin-top:2px}
+  .trow .trow-badge{grid-column:1/3; text-align:left}
+  .trow>button{grid-column:3}
+  .trow .mini-l{text-align:left}
 }
 
 /* ---- modül 3: ödemeler ---- */
 .tab{position:relative}
-.tabdot{position:absolute; top:6px; right:8px; min-width:8px; height:8px; border-radius:999px; background:var(--loss)}
-.tabdot.badge{min-width:18px; height:18px; border-radius:999px; background:var(--loss); color:#fff; font-size:10px; font-weight:700; display:inline-flex; align-items:center; justify-content:center; padding:0 4px; border:2px solid var(--surface)}
+.tabdot{position:absolute; top:5px; right:6px; width:7px; height:7px; border-radius:50%; background:var(--loss)}
 .c-ok{color:var(--gain)} .c-due{color:var(--loss)} .c-wait{color:var(--brass)}
-.tag.ok{background:var(--gain); color:#ffffff; font-weight:600; border-radius:6px; padding:3px 8px}
-.tag.due{background:var(--loss); color:#ffffff; font-weight:600; border-radius:6px; padding:3px 8px}
-.tag.wait{background:var(--brass); color:#ffffff; font-weight:600; border-radius:6px; padding:3px 8px}
-
+.tag.ok{background:var(--gain-soft); color:var(--gain)}
+.tag.due{background:var(--loss-soft); color:var(--loss)}
+.tag.wait{background:var(--brass-soft); color:var(--brass)}
 .od-list{display:flex; flex-direction:column; padding-top:4px}
-.od-row{display:grid; gap:6px 12px; align-items:center; padding:12px 16px 12px 14px;
-  border-bottom:1px solid var(--line-soft); border-left:5px solid transparent;
-  grid-template-columns:30px minmax(130px,1fr) 130px auto auto 1fr auto; transition:background .15s}
+.od-row{display:grid; gap:6px 10px; align-items:center; padding:10px 16px 10px 12px;
+  border-bottom:1px solid var(--line-soft); border-left:4px solid transparent;
+  grid-template-columns:28px minmax(120px,1fr) 118px auto auto 1fr auto}
 .od-row.ok{border-left-color:var(--gain); background:var(--gain-soft)}
 .od-row.due{border-left-color:var(--loss); background:var(--loss-soft)}
 .od-row.wait{border-left-color:var(--brass); background:var(--brass-soft)}
-.od-row.ok .od-ad{text-decoration:line-through; text-decoration-color:var(--muted); opacity:.75}
-.od-row input[type=text]{background:var(--surface); padding:8px 10px; font-size:14px}
+.od-row.ok .od-ad{text-decoration:line-through; text-decoration-color:var(--muted)}
+.od-row input[type=text]{background:var(--surface); padding:7px 9px; font-size:13.5px}
 .od-row .od-ad{font-family:"IBM Plex Sans",system-ui,sans-serif}
 .od-row .od-tut{text-align:right; font-weight:600}
-.od-row .gun{width:48px; text-align:center}
-.od-row .od-gun,.od-row .od-bit{display:flex; align-items:center; gap:6px; white-space:nowrap}
-.od-row .od-bit select{width:auto; min-width:92px; padding:7px 8px; font-size:13px}
-.od-row .od-bit select:last-of-type{min-width:76px}
+.od-row .gun{width:46px; text-align:center}
+.od-row .od-gun,.od-row .od-bit{display:flex; align-items:center; gap:5px; white-space:nowrap}
+.od-row .od-bit select{width:auto; min-width:92px; padding:6px 8px; font-size:13px}
+.od-row .od-bit select:last-of-type{min-width:74px}
 .od-row .od-drm{text-align:right}
-.od-chk{display:flex; align-items:center; justify-content:center; cursor:pointer; min-width:32px; min-height:32px}
-.od-chk input{width:22px; height:22px; margin:0; accent-color:var(--gain); cursor:pointer}
+.od-chk{display:flex; align-items:center; justify-content:center; cursor:pointer}
+.od-chk input{width:19px; height:19px; margin:0; accent-color:var(--gain); cursor:pointer}
 .od-chk span{display:none}
-
 @media (max-width:860px){
-  .od-list{padding:8px 10px; gap:8px}
-  .od-row{
-    grid-template-columns:32px 1fr auto;
-    gap:8px 10px;
-    padding:13px 12px 13px 10px;
-    border-radius:var(--radius);
-    border-top:1px solid var(--line-soft);
-    border-right:1px solid var(--line-soft);
-    border-bottom:1px solid var(--line-soft);
-    border-left-width:6px;
-    box-shadow:0 1px 3px rgba(18,23,34,.04);
-  }
-  .od-row .od-chk{grid-column:1; grid-row:1; align-self:center}
-  .od-row .od-ad{grid-column:2; grid-row:1; font-weight:600; font-size:15px}
-  .od-row>button[data-osil]{grid-column:3; grid-row:1; justify-self:end; align-self:center; min-height:34px}
-  
-  .od-row .od-tut{grid-column:1 / 3; grid-row:2; text-align:left; font-size:15.5px; font-weight:700}
+  .od-row{grid-template-columns:26px minmax(0,1fr) auto; gap:7px 8px; padding:11px 12px 11px 9px}
+  .od-row .od-chk{grid-column:1; grid-row:1}
+  .od-row .od-ad{grid-column:2/-1; grid-row:1}
+  .od-row .od-tut{grid-column:2; grid-row:2}
   .od-row .od-drm{grid-column:3; grid-row:2; text-align:right; align-self:center}
-  
-  .od-row .od-gun{grid-column:1 / -1; grid-row:3; background:var(--surface); padding:7px 10px; border-radius:7px; border:1px solid var(--line-soft); display:flex; align-items:center; gap:8px}
-  .od-row .od-bit{grid-column:1 / -1; grid-row:4; background:var(--surface); padding:7px 10px; border-radius:7px; border:1px solid var(--line-soft); display:flex; align-items:center; gap:8px}
-  .od-row .od-bit select{min-width:0; flex:1 1 auto; font-size:13.5px}
-  .od-row .od-bit select:last-of-type{min-width:0; max-width:88px}
+  .od-row .od-gun{grid-column:2/-1; grid-row:3}
+  .od-row .od-bit{grid-column:2; grid-row:4}
+  .od-row>button{grid-column:3; grid-row:4; justify-self:end; align-self:center}
+  .od-row .od-bit select{min-width:0; flex:1 1 auto}
+  .od-row .od-bit select:last-of-type{min-width:0; max-width:86px}
 }
-
 .backup{display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center; justify-content:space-between;
-  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px 18px}
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:12px 16px}
 .backup .bk-note{font-size:12.5px; color:var(--muted); max-width:62ch}
-.backup .bk-acts{display:flex; gap:8px; flex-wrap:wrap}
-
-/* XML Modal */
-.xml-modal-box{width:min(580px,100%); background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:0 24px 60px -20px rgba(0,0,0,.5); padding:20px; display:flex; flex-direction:column; gap:14px}
-.xml-modal-box h3{margin:0; font-family:"IBM Plex Serif",serif; font-size:19px}
-.xml-modal-box p{margin:0; font-size:13px; color:var(--muted); line-height:1.55}
-.xml-modal-box textarea{width:100%; height:150px; font-family:"IBM Plex Mono",monospace; font-size:12px; padding:10px; border:1px solid var(--line); border-radius:8px; background:var(--surface-2); color:var(--ink); resize:vertical}
-.xml-modal-box .actions{display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end}
+.backup .bk-acts{display:flex; gap:8px}
 </style>
 </head>
 <body>
@@ -1761,10 +1690,8 @@ function tabRozet(){
   if(!tab) return;
   var h=hesap(CK), dot=tab.querySelector(".tabdot");
   if(h.geciken){
-    if(!dot){ dot=document.createElement("span"); tab.appendChild(dot); }
-    dot.className="tabdot badge";
-    dot.textContent=String(h.geciken);
-    dot.title=h.geciken+" ödemenin günü geldi veya gecikti";
+    if(!dot){ dot=document.createElement("span"); dot.className="tabdot"; tab.appendChild(dot); }
+    dot.title=h.geciken+" ödemenin günü geldi";
   } else if(dot) dot.remove();
 }
 function renderAll(){ selectleriDoldur(); renderSummary(); renderListe(); tabRozet(); }
@@ -1829,36 +1756,16 @@ renderAll();
 (function(){
   var uk=document.getElementById("uk"), ek=document.getElementById("ek"), kt=document.getElementById("kt");
   if(!uk||!ek||!kt) return;
-  var kf=window.TCMB_KUR;
-  var fromFile=!!(kf&&isFinite(Number(kf.usd))&&isFinite(Number(kf.eur))&&Number(kf.usd)>0);
   var noteEl=document.querySelector(".rates .rate-note");
   if(noteEl) noteEl.id="fetchNote";
-  
-  var actions=document.querySelector(".rates .actions");
-  
   var btn=document.createElement("button");
   btn.type="button"; btn.className="btn ghost"; btn.id="fetchTcmb"; btn.textContent="Kuru yenile";
-  
-  var pasteBtn=document.createElement("button");
-  pasteBtn.type="button"; pasteBtn.className="btn ghost"; pasteBtn.id="pasteXmlBtn"; pasteBtn.textContent="XML Yapıştır";
-  pasteBtn.title="TCMB XML içeriğini yapıştırarak veya dosya seçerek kuru aktar";
-  
-  if(actions){
-    actions.insertBefore(pasteBtn, actions.firstChild);
-    actions.insertBefore(btn, actions.firstChild);
-  } else {
-    var rBox = document.querySelector(".rates");
-    if(rBox){ rBox.appendChild(btn); rBox.appendChild(pasteBtn); }
-  }
+  var actions=document.querySelector(".rates .actions");
+  if(actions) actions.insertBefore(btn,actions.firstChild); else document.querySelector(".rates").appendChild(btn);
 
-  function note(t,warn){
-    var n=document.getElementById("fetchNote"); if(!n) return;
-    n.textContent=t; n.style.color = warn ? "var(--loss)" : "var(--muted)";
-  }
-  function setVal(el,v){
-    el.value=String(v).replace(".",",");
-    el.dispatchEvent(new Event("input",{bubbles:true}));
-  }
+  function note(t,warn){ var n=document.getElementById("fetchNote"); if(!n) return;
+    n.textContent=t; n.style.color = warn ? "var(--brass)" : "var(--muted)"; }
+  function setVal(el,v){ el.value=String(v).replace(".",","); el.dispatchEvent(new Event("input",{bubbles:true})); }
   function apply(u,e,d,kaynak){
     setVal(uk,u); setVal(ek,e);
     if(d){ kt.value=d; kt.dispatchEvent(new Event("input",{bubbles:true})); }
@@ -1866,137 +1773,29 @@ renderAll();
   }
   function parseXml(txt){
     var doc=new DOMParser().parseFromString(txt,"text/xml");
-    function rate(code){
-      var n=doc.querySelector('Currency[CurrencyCode="'+code+'"] ForexBuying');
-      if(!n) n=doc.querySelector('Currency[CurrencyCode="'+code+'"] BanknoteBuying');
-      return n ? parseFloat(n.textContent.trim().replace(",",".")) : NaN;
-    }
+    function rate(code){ var n=doc.querySelector('Currency[CurrencyCode="'+code+'"] ForexBuying');
+      return n ? parseFloat(n.textContent) : NaN; }
     var td=doc.querySelector("Tarih_Date");
-    return {
-      usd:rate("USD"),
-      eur:rate("EUR"),
-      tarih: td ? (td.getAttribute("Tarih")||td.getAttribute("Date")||"") : ""
-    };
+    return {usd:rate("USD"), eur:rate("EUR"), tarih: td ? (td.getAttribute("Tarih")||"") : ""};
   }
-
-  /* Çoklu kaynak üzerinden sırayla kur çekimi */
+  var kf=window.TCMB_KUR;
+  var fromFile=!!(kf&&isFinite(Number(kf.usd))&&isFinite(Number(kf.eur))&&Number(kf.usd)>0);
   function pull(manual){
     note("TCMB kuru alınıyor…",false);
-    var sources = [
-      { url: "https://www.tcmb.gov.tr/kurlar/today.xml", name: "TCMB Canlı XML", type: "xml" },
-      { url: "./tcmb.xml?_="+Date.now(), name: "Depo TCMB XML", type: "xml" },
-      { url: "/tcmb?_="+Date.now(), name: "Vekil /tcmb", type: "xml" },
-      { url: "https://api.allorigins.win/raw?url="+encodeURIComponent("https://www.tcmb.gov.tr/kurlar/today.xml"), name: "TCMB (AllOrigins)", type: "xml" },
-      { url: "https://corsproxy.io/?url="+encodeURIComponent("https://www.tcmb.gov.tr/kurlar/today.xml"), name: "TCMB (CORS Proxy)", type: "xml" },
-      { url: "https://api.codetabs.com/v1/proxy?quest="+encodeURIComponent("https://www.tcmb.gov.tr/kurlar/today.xml"), name: "TCMB (CodeTabs)", type: "xml" },
-      { url: "https://open.er-api.com/v6/latest/USD", name: "Döviz API", type: "erapi" }
-    ];
-
-    function fetchWithTimeout(url, ms){
-      var controller = new AbortController();
-      var timer = setTimeout(function(){ controller.abort(); }, ms||4500);
-      return fetch(url, {cache:"no-store", signal:controller.signal})
-        .then(function(r){ clearTimeout(timer); if(!r.ok) throw new Error("HTTP "+r.status); return r; })
-        .catch(function(e){ clearTimeout(timer); throw e; });
-    }
-
-    var i = 0;
-    function tryNext(){
-      if(i >= sources.length){
-        note("TCMB kuruna otomatik ulaşılamadı — XML Yapıştır düğmesini veya elle girişi kullanabilirsin.", !!manual);
-        return;
-      }
-      var s = sources[i++];
-      fetchWithTimeout(s.url, 4500)
-        .then(function(r){
-          if(s.type === "xml"){
-            return r.text().then(function(txt){
-              var k = parseXml(txt);
-              if(!isFinite(k.usd) || !isFinite(k.eur) || k.usd <= 0 || k.eur <= 0) throw new Error("geçersiz xml");
-              apply(k.usd, k.eur, k.tarih, s.name);
-            });
-          } else if(s.type === "erapi"){
-            return r.json().then(function(data){
-              var usdTry = data && data.rates && data.rates.TRY;
-              var eurTry = usdTry && data.rates.EUR ? (usdTry / data.rates.EUR) : null;
-              if(!usdTry || !eurTry) throw new Error("oran yok");
-              var d = new Date().toLocaleDateString("tr-TR");
-              apply(usdTry.toFixed(4), eurTry.toFixed(4), d, s.name);
-            });
-          }
-        })
-        .catch(function(){
-          tryNext();
-        });
-    }
-
-    tryNext();
+    var sig;
+    try{ var c=new AbortController(); sig=c.signal; setTimeout(function(){ c.abort(); },8000); }catch(e){}
+    fetch("https://www.tcmb.gov.tr/kurlar/today.xml",{cache:"no-store",signal:sig})
+      .then(function(r){ if(!r.ok) throw new Error(r.status); return r.text(); })
+      .then(function(txt){
+        var k=parseXml(txt);
+        if(!isFinite(k.usd)||!isFinite(k.eur)) throw new Error("kur yok");
+        apply(k.usd,k.eur,k.tarih,"doğrudan TCMB");
+      })
+      .catch(function(){ if(fromFile) note("TCMB "+(kf.tarih||"")+" · kur.js — yenilemek için Kur-guncelle.bat",false);
+        else note("TCMB'ye doğrudan erişilemiyor · Kur-guncelle.bat çalıştır",!!manual); });
   }
-
   btn.addEventListener("click",function(){ pull(true); });
   if(fromFile) apply(Number(kf.usd),Number(kf.eur),String(kf.tarih||""),"kur.js"); else pull(false);
-
-  /* XML Yapıştır / Dosya Yükle Modalı */
-  pasteBtn.addEventListener("click",function(){
-    var D = window.DEFTER;
-    var inner = 
-      '<div class="xml-modal-box">'+
-        '<h3>TCMB XML\'den Kur Aktar</h3>'+
-        '<p>TCMB resmi XML sayfasını açıp içeriği kopyalayarak buraya yapıştırabilir veya indirdiğiniz <b>today.xml</b> dosyasını seçebilirsiniz.</p>'+
-        '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+
-          '<a class="btn ghost sm" href="https://www.tcmb.gov.tr/kurlar/today.xml" target="_blank" rel="noopener">TCMB today.xml Aç ↗</a>'+
-          '<label class="btn ghost sm" style="cursor:pointer;margin:0">XML Dosyası Seç<input type="file" id="xmlFilePick" accept=".xml,text/xml" style="display:none"></label>'+
-        '</div>'+
-        '<textarea id="xmlPasteArea" placeholder="TCMB XML kodunu buraya yapıştırın (<Tarih_Date...>)..."></textarea>'+
-        '<div id="xmlParseErr" style="font-size:12.5px;color:var(--loss);min-height:16px"></div>'+
-        '<div class="actions">'+
-          '<button type="button" class="btn ghost sm" data-close>Vazgeç</button>'+
-          '<button type="button" class="btn sm" id="xmlApplyBtn">Kurları Aktar</button>'+
-        '</div>'+
-      '</div>';
-      
-    var sheetEl = (D && D.sheet) ? D.sheet(inner) : null;
-    if(!sheetEl) return;
-
-    function applyXmlText(txt){
-      var errEl = document.getElementById("xmlParseErr");
-      try{
-        var k = parseXml(txt);
-        if(!isFinite(k.usd) || !isFinite(k.eur) || k.usd <= 0 || k.eur <= 0){
-          if(errEl) errEl.textContent = "XML içinde USD/EUR ForexBuying kuru bulunamadı.";
-          return;
-        }
-        apply(k.usd, k.eur, k.tarih, "XML Yapıştırma");
-        if(D && D.closeSheet) D.closeSheet();
-      }catch(e){
-        if(errEl) errEl.textContent = "XML okunamadı: " + (e&&e.message||"");
-      }
-    }
-
-    var xmlApply = document.getElementById("xmlApplyBtn");
-    if(xmlApply){
-      xmlApply.addEventListener("click",function(){
-        var txt = (document.getElementById("xmlPasteArea")||{}).value || "";
-        applyXmlText(txt);
-      });
-    }
-
-    var filePick = document.getElementById("xmlFilePick");
-    if(filePick){
-      filePick.addEventListener("change",function(){
-        var file = this.files && this.files[0];
-        if(!file) return;
-        var reader = new FileReader();
-        reader.onload = function(e){
-          var txt = String(e.target.result || "");
-          var area = document.getElementById("xmlPasteArea");
-          if(area) area.value = txt;
-          applyXmlText(txt);
-        };
-        reader.readAsText(file);
-      });
-    }
-  });
 })();
 </script>
 <script id="backup-tools">
@@ -2068,12 +1867,7 @@ renderAll();
     var r=new FileReader();
     r.onload=function(){
       var pack;
-      try{
-        pack=JSON.parse(String(r.result),function(k,v){
-          if(k==="__proto__"||k==="constructor"||k==="prototype") return undefined;
-          return v;
-        });
-      }catch(e){ D.setStatus("Dosya okunamadı — geçerli bir yedek değil.","warn"); return; }
+      try{ pack=JSON.parse(String(r.result)); }catch(e){ D.setStatus("Dosya okunamadı — geçerli bir yedek değil.","warn"); return; }
       if(!pack||pack.format!=="doviz-defteri"||!pack.state){ D.setStatus("Bu dosya bu defterin yedeği değil.","warn"); return; }
       var n=(pack.state.rows||[]).length, nd=Object.keys(pack.docs||{}).length;
       var mevcut=(D.getState().rows||[]).length;
@@ -2183,9 +1977,8 @@ function sesKur(j){
        uid:(j.user&&j.user.id)||(ses&&ses.uid)||null};
   sesYaz(); return ses;
 }
-function giris(parola,eposta){
-  var m = eposta || MAIL;
-  return authPost("grant_type=password",{email:m,password:parola}).then(sesKur);
+function giris(parola){
+  return authPost("grant_type=password",{email:MAIL,password:parola}).then(sesKur);
 }
 function tazele(){
   if(!ses||!ses.refresh_token) return Promise.reject(new Error("oturum yok"));
@@ -2403,9 +2196,8 @@ function dosyaSil(yol){
   });
 }
 
-function sina(eposta){
-  var m = eposta || MAIL;
-  var sonuc={url:URL_, anahtar:KEY?(KEY.slice(0,18)+"… ("+KEY.length+" karakter)"):"YOK", eposta:m};
+function sina(){
+  var sonuc={url:URL_, anahtar:KEY?(KEY.slice(0,18)+"… ("+KEY.length+" karakter)"):"YOK", eposta:MAIL};
   return fetch(URL_+"/auth/v1/health",{headers:{"apikey":KEY,"Authorization":"Bearer "+KEY}})
     .then(function(r){ sonuc.health="HTTP "+r.status; return r.text(); })
     .then(function(t){ sonuc.healthYanit=String(t).slice(0,120); })
@@ -2461,94 +2253,21 @@ var API={aktif:aktif, sina:sina, girisli:girisli, uid:uid, eposta:function(){ re
 
   var ov=document.createElement("div");
   ov.className="giris-ov"; ov.id="girisOv";
-  
-  var kayitliMail = "";
-  try{ kayitliMail = localStorage.getItem("defter-eposta") || ""; }catch(e){}
-  var baslangicMail = kayitliMail || MAIL;
-
   ov.innerHTML=
     '<form class="giris-kutu" id="girisForm" autocomplete="on">'+
       '<div class="eyebrow">Birikim ve Bütçe Defteri</div>'+
-      '<h2>Giriş Yap</h2>'+
-      '<p>Verileriniz Supabase veritabanında uçtan uca güvenli olarak saklanmaktadır.</p>'+
-      '<div class="field" style="margin-top:4px">'+
-        '<label for="girisEmail" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600">E-Posta</label>'+
-        '<input type="email" id="girisEmail" value="'+attr(baslangicMail)+'" placeholder="ornek@domain.com" autocomplete="username" required>'+
-      '</div>'+
-      '<div class="field">'+
-        '<label for="girisParola" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600">Parola</label>'+
-        '<input type="password" id="girisParola" placeholder="Parola" autocomplete="current-password" required>'+
-      '</div>'+
-      '<button class="btn" type="submit" id="girisBtn">Giriş Yap</button>'+
+      '<h2>Parola</h2>'+
+      '<p>Kayıtlar veritabanında tutuluyor. Devam etmek için parolanı gir.</p>'+
+      '<p class="giris-hesap">Hesap: <b>'+MAIL+'</b></p>'+
+      '<input type="password" id="girisParola" placeholder="Parola" autocomplete="current-password">'+
+      '<button class="btn" type="submit" id="girisBtn">Gir</button>'+
       '<button type="button" class="btn ghost sm" id="girisSina">Bağlantıyı sına</button>'+
       '<span class="giris-hata" id="girisHata"></span>'+
       '<span class="giris-ayrinti" id="girisAyrinti"></span>'+
     '</form>';
   document.body.appendChild(ov);
 
-  /* Brute-force (kaba kuvvet saldırısı) koruması */
-  var KILIT_KEY="defter-giris-kilit", DENEME_KEY="defter-giris-deneme";
-  var kilitTimer=null;
-
-  function kilitliMi(){
-    try{
-      var k=parseInt(localStorage.getItem(KILIT_KEY),10);
-      if(k && k > Date.now()){
-        return Math.ceil((k - Date.now()) / 1000);
-      }
-      localStorage.removeItem(KILIT_KEY);
-    }catch(e){}
-    return 0;
-  }
-  function basarisizKaydet(){
-    try{
-      var d=(parseInt(localStorage.getItem(DENEME_KEY),10)||0)+1;
-      localStorage.setItem(DENEME_KEY,d);
-      if(d>=5){
-        localStorage.setItem(KILIT_KEY, Date.now() + 60000); // 60 sn kilit
-        localStorage.removeItem(DENEME_KEY);
-        return 60;
-      }
-    }catch(e){}
-    return 0;
-  }
-  function basariliSifirla(){
-    try{ localStorage.removeItem(DENEME_KEY); localStorage.removeItem(KILIT_KEY); }catch(e){}
-    if(kilitTimer){ clearInterval(kilitTimer); kilitTimer=null; }
-  }
-
-  function kilitKontrol(){
-    var sn=kilitliMi();
-    var b=document.getElementById("girisBtn");
-    if(sn>0){
-      if(b) b.disabled=true;
-      hata("Güvenlik: Çok fazla hatalı deneme yapıldı. Lütfen "+sn+" saniye bekleyin.");
-      if(!kilitTimer){
-        kilitTimer=setInterval(function(){
-          var s=kilitliMi();
-          if(s<=0){
-            clearInterval(kilitTimer); kilitTimer=null;
-            if(b) b.disabled=false;
-            hata("");
-          } else {
-            hata("Güvenlik: Çok fazla hatalı deneme yapıldı. Lütfen "+s+" saniye bekleyin.");
-          }
-        },1000);
-      }
-      return true;
-    }
-    if(b && !b.getAttribute("data-loading")) b.disabled=false;
-    return false;
-  }
-
-  function goster(v){
-    ov.style.display = v?"flex":"none";
-    if(v){
-      kilitKontrol();
-      var i=document.getElementById("girisParola");
-      if(i) setTimeout(function(){ i.focus(); },50);
-    }
-  }
+  function goster(v){ ov.style.display = v?"flex":"none"; if(v){ var i=document.getElementById("girisParola"); if(i) setTimeout(function(){ i.focus(); },50); } }
   function hata(t){ var e=document.getElementById("girisHata"); if(e) e.textContent=t||""; }
 
   function cip(){
@@ -2579,62 +2298,34 @@ var API={aktif:aktif, sina:sina, girisli:girisli, uid:uid, eposta:function(){ re
 
   document.getElementById("girisForm").addEventListener("submit",function(e){
     e.preventDefault();
-    if(kilitKontrol()) return;
-
-    var b=document.getElementById("girisBtn");
-    var pwEl=document.getElementById("girisParola");
-    var emailEl=document.getElementById("girisEmail");
-    var pw=pwEl?pwEl.value:"";
-    var mail=emailEl?emailEl.value.trim():MAIL;
-
-    if(!mail){ hata("E-posta boş olamaz."); return; }
+    var b=document.getElementById("girisBtn"), pw=document.getElementById("girisParola").value;
     if(!pw){ hata("Parola boş olamaz."); return; }
-
-    b.disabled=true; b.setAttribute("data-loading","1"); hata("Kontrol ediliyor…");
-    
-    giris(pw, mail).then(function(){
-      basariliSifirla();
-      try{ localStorage.setItem("defter-eposta", mail); }catch(e){}
-      return veriyiAl();
-    }).then(function(){
-      hata("");
-    }).catch(function(err){
-      var sn = basarisizKaydet();
-      if(pwEl) pwEl.value=""; // Güvenlik: hatalı parolayı temizle
-
-      if(sn>0){
-        kilitKontrol();
-        return;
-      }
-
-      var m=String(err&&err.message||""), kod=String(err&&err.kod||""), st=err&&err.status;
-      var t;
-      if(/email_not_confirmed|not confirmed/i.test(kod+m))
-        t="Kullanıcı onaylanmamış. Supabase panelinde Authentication → Users → Confirm email.";
-      else if(/invalid_credentials|invalid login credentials|invalid_grant/i.test(kod+m))
-        t="E-posta ya da parola eşleşmedi. Girdiğiniz e-postanın ("+mail+") Supabase panelinde kayıtlı olduğunu kontrol edin.";
-      else if(st===401||/api key|apikey|jwt/i.test(m))
-        t="Anahtar kabul edilmedi. Sayfadaki publishable anonKey anahtarını kontrol edin.";
-      else if(/failed to fetch|networkerror|load failed/i.test(m))
-        t="Sunucuya ulaşılamadı. İnternet bağlantınızı ve Supabase proje adresini kontrol edin.";
-      else t="Bağlanılamadı: " + (m || "Bilinmeyen hata");
-      hata(t);
-
-      var d=document.getElementById("girisAyrinti");
-      if(d) d.textContent="ayrıntı: "+(st?("HTTP "+st+" · "):"")+(kod?(kod+" · "):"")+m;
-    }).then(function(){
-      b.removeAttribute("data-loading");
-      if(!kilitliMi()) b.disabled=false;
-    });
+    b.disabled=true; hata("Kontrol ediliyor…");
+    giris(pw).then(veriyiAl).then(function(){ hata(""); })
+      .catch(function(err){
+        var m=String(err&&err.message||""), kod=String(err&&err.kod||""), st=err&&err.status;
+        var t;
+        if(/email_not_confirmed|not confirmed/i.test(kod+m))
+          t="Kullanıcı onaylanmamış. Panelde Authentication → Users → kullanıcıyı aç → Confirm email.";
+        else if(/invalid_credentials|invalid login credentials|invalid_grant/i.test(kod+m))
+          t="E-posta ya da parola eşleşmedi. Paneldeki kullanıcının e-postası tam olarak "+MAIL+" mi? Değilse kullanıcıyı bu adresle oluştur; doğruysa panelden parolayı yenile.";
+        else if(st===401||/api key|apikey|jwt/i.test(m))
+          t="Anahtar kabul edilmedi. Sayfadaki publishable anahtarı kontrol et.";
+        else if(/failed to fetch|networkerror|load failed/i.test(m))
+          t="Sunucuya ulaşılamadı. İnternet bağlantısını ve proje adresini kontrol et.";
+        else t="Bağlanılamadı.";
+        hata(t);
+        var d=document.getElementById("girisAyrinti");
+        if(d) d.textContent="ayrıntı: "+(st?("HTTP "+st+" · "):"")+(kod?(kod+" · "):"")+m;
+      })
+      .then(function(){ b.disabled=false; });
   });
 
   document.getElementById("girisSina").addEventListener("click",function(){
     hata("Sınanıyor…");
-    var emailEl=document.getElementById("girisEmail");
-    var mail=emailEl?emailEl.value.trim():MAIL;
     var d=document.getElementById("girisAyrinti");
-    sina(mail).then(function(r){
-      hata("Sonuç aşağıda. 401/Invalid API key varsa anahtar yanlış ya da eksik.");
+    sina().then(function(r){
+      hata("Sonuç aşağıda. 401/Invalid API key varsa anahtar yanlış ya da eksik kopyalanmış.");
       if(d) d.textContent =
         "adres: "+r.url+"\n"+
         "anahtar: "+r.anahtar+"\n"+
