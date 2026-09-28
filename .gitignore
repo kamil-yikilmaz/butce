@@ -1,0 +1,13 @@
+# Kişisel veri — depoya asla girmemeli
+veri*.json
+doviz-defteri-*.json
+*yedek*.json
+*.backup.json
+
+# Yerel kur dosyası (Kur-guncelle.bat üretir)
+kur.js
+
+# Sistem
+.DS_Store
+Thumbs.db
+node_modules/
