@@ -55,9 +55,16 @@ ve kimse başkasının satırını yazamaz.
 - Depoyu **private** tutmak, e-postanın ve proje adresinin indekslenmemesi
   açısından tercih edilir.
 
-## Veri taşıma
+## Veri taşıma ve Otomatik Yedekleme
 
-Uygulamanın altındaki **Yedek al** düğmesi tüm modülleri ve dekontları tek bir
-JSON dosyasına indirir. **Yedeği yükle** aynı dosyayı geri alır ve veritabanına
-yazar; dekontlar Storage'a yüklenir. Cihaz değiştirirken veya veritabanını
-sıfırdan kurarken kullanılır.
+- **Manuel Yedek:** Uygulamanın altındaki **Yedek al** düğmesi tüm modülleri ve dekontları tek bir JSON dosyasına indirir. **Yedeği yükle** aynı dosyayı geri alır ve veritabanına yazar.
+- **Otomatik Günlük E-Posta Yedeği:** GitHub Actions iş akışı (`.github/workflows/gunluk-yedek.yml`) her gece Türkiye saatiyle 00:00'da Supabase veritabanını okur, `butce-yedek-YYYY-AA-GG.json` dosyası oluşturup hem GitHub'da 90 gün saklar hem de e-postanıza ekli dosya olarak gönderir.
+
+### Otomatik Yedekleme İçin GitHub Secrets Ayarları
+
+GitHub reponuzda **Settings → Secrets and variables → Actions** bölümüne şu değişkenleri ekleyin:
+1. `SUPABASE_URL`: `https://vvsoyooedstcrsohqnfj.supabase.co`
+2. `SUPABASE_SERVICE_ROLE_KEY`: Supabase *Project Settings → API → service_role* anahtarı.
+3. `MAIL_USERNAME`: E-posta adresiniz (`kmlyklmz@gmail.com`).
+4. `MAIL_PASSWORD`: Google Hesap Güvenliği'nden üretilen 16 haneli Gmail **Uygulama Şifresi**.
+

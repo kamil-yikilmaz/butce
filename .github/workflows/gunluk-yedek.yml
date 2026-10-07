@@ -1,0 +1,61 @@
+name: Günlük Veritabanı Yedeği
+
+on:
+  schedule:
+    # Her gece Türkiye saatiyle 00:00'da (UTC 21:00) çalışır
+    - cron: '0 21 * * *'
+  workflow_dispatch: # GitHub arayüzünden elle anında çalıştırma imkanı
+
+jobs:
+  yedekle-ve-gonder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Depoyu Çek
+        uses: actions/checkout@v4
+
+      - name: Node.js Ortamını Kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Tarih Bilgisini Al
+        id: tarih
+        run: echo "bugun=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
+      - name: Supabase Veritabanından Yedeği Al
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/yedekle.js
+
+      - name: Yedeği GitHub Artifact Olarak Sakla (90 Gün)
+        uses: actions/upload-artifact@v4
+        with:
+          name: butce-yedek-${{ steps.tarih.outputs.bugun }}
+          path: butce-yedek-*.json
+          retention-days: 90
+
+      - name: E-Posta ile Yedeği Gönder
+        if: env.MAIL_PASSWORD != ''
+        uses: dawidd6/action-send-mail@v3
+        env:
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME || 'kmlyklmz@gmail.com' }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "📊 Bütçe Defteri Günlük Yedeği (${{ steps.tarih.outputs.bugun }})"
+          body: |
+            Merhaba,
+
+            Bütçe ve Birikim Defteri uygulamanızın günlük otomatik veritabanı yedeği ekte yer almaktadır.
+
+            Tarih: ${{ steps.tarih.outputs.bugun }}
+            Dosya: butce-yedek-${{ steps.tarih.outputs.bugun }}.json
+
+            Olası bir veri kaybı durumunda bu dosyayı uygulamanızın altındaki "Yedeği yükle" butonundan tek tıkla geri yükleyebilirsiniz.
+          to: ${{ secrets.MAIL_TO || 'kmlyklmz@gmail.com' }}
+          from: "Bütçe Yedek Sistemi <${{ secrets.MAIL_USERNAME || 'kmlyklmz@gmail.com' }}>"
+          attachments: butce-yedek-${{ steps.tarih.outputs.bugun }}.json
