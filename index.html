@@ -1916,7 +1916,11 @@ renderAll();
    koruma veritabanındaki RLS politikalarıdır.  GİZLİ (secret) anahtarı
    buraya ASLA yazma.
    --------------------------------------------------------------------------- */
-window.SUPABASE_AYAR = {};
+window.SUPABASE_AYAR = {
+  url:     "https://vvsoyooedstcrsohqnfj.supabase.co",
+  anonKey: "sb_publishable_xV8OnKCk-OYwDVDV6et6fw_669TJ9KQ",
+  email:   "kmlyklmz@gmail.com"
+};
 </script>
 
 <script id="db-code">
@@ -2282,7 +2286,15 @@ var API={aktif:aktif, sina:sina, girisli:girisli, uid:uid, eposta:function(){ re
   function veriyiAl(){
     window.DB_DURUM && DB_DURUM("yükleniyor…");
     return yukle().then(function(st){
-      D.setState(st);
+      var local = D.getState();
+      var dbDolu = st && ((st.rows&&st.rows.length) || (st.butce&&st.butce.taksitler&&st.butce.taksitler.length));
+      var localDolu = local && ((local.rows&&local.rows.length) || (local.butce&&local.butce.taksitler&&local.butce.taksitler.length));
+
+      if(!dbDolu && localDolu){
+        D.save("İlk senkronizasyon");
+      } else {
+        D.setState(st);
+      }
       goster(false); cip();
       window.DB_DURUM && DB_DURUM("bağlandı","ok");
     });
