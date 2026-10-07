@@ -5,43 +5,42 @@ const fs = require('fs');
 const path = require('path');
 
 const URL = (process.env.SUPABASE_URL || 'https://vvsoyooedstcrsohqnfj.supabase.co').trim().replace(/\/+$/, '');
-const KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '').trim();
-
-if (!KEY) {
-  console.error('HATA: SUPABASE_SERVICE_ROLE_KEY tanımlanmamış!');
-  process.exit(1);
-}
+const DEFAULT_KEY = 'sb_publishable_xV8OnKCk-OYwDVDV6et6fw_669TJ9KQ';
+const ENV_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '').trim();
 
 async function get(tablo) {
   const url = `${URL}/rest/v1/${tablo}?select=*`;
-  try {
-    const res = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'apikey': KEY,
-        'Authorization': `Bearer ${KEY}`,
-        'Content-Type': 'application/json'
-      }
-    });
+  const keysToTry = ENV_KEY ? [ENV_KEY, DEFAULT_KEY] : [DEFAULT_KEY];
 
-    const text = await res.text();
-    if (!res.ok) {
-      console.warn(`[UYARI] ${tablo} okunamadı (HTTP ${res.status}): ${text}`);
-      return [];
+  for (const k of keysToTry) {
+    try {
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'apikey': k,
+          'Authorization': `Bearer ${k}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const text = await res.text();
+      if (res.ok) {
+        const data = JSON.parse(text);
+        const rows = Array.isArray(data) ? data : [];
+        console.log(`- ${tablo}: ${rows.length} satır okundu (HTTP ${res.status})`);
+        return rows;
+      } else {
+        console.warn(`[UYARI] ${tablo} okunamadı (HTTP ${res.status}): ${text.slice(0, 100)}`);
+      }
+    } catch (e) {
+      console.warn(`[UYARI] ${tablo} hatası:`, e.message);
     }
-    const data = JSON.parse(text);
-    const rows = Array.isArray(data) ? data : [];
-    console.log(`- ${tablo}: ${rows.length} satır okundu (HTTP ${res.status})`);
-    return rows;
-  } catch (e) {
-    console.warn(`[UYARI] ${tablo} hatası:`, e.message);
-    return [];
   }
+  return [];
 }
 
 async function calistir() {
   console.log(`Supabase URL: ${URL}`);
-  console.log(`Anahtar: ${KEY.slice(0, 15)}... (toplam ${KEY.length} karakter)`);
 
   console.log('Tablolar okunuyor:');
   const [ayarRows, dvRows, tkRows, baRows, bkRows, odRows, oddRows, odtRows] = await Promise.all([
@@ -66,6 +65,11 @@ async function calistir() {
 
   console.log(`\nToplam Veri Özeti:`);
   console.log(`Döviz: ${dv.length}, Taksit: ${tk.length}, Bütçe Ay: ${ba.length}, Kalem: ${bk.length}, Ödeme: ${od.length}`);
+
+  const toplamSatir = dv.length + tk.length + ba.length + bk.length + od.length;
+  if (toplamSatir === 0) {
+    throw new Error('Veritabanında hiç satır bulunamadı veya yetkilendirme başarısız oldu!');
+  }
 
   const state = {
     savedAt: Date.now(),
@@ -154,6 +158,6 @@ async function calistir() {
 }
 
 calistir().catch(err => {
-  console.error('Kritik hata:', err);
+  console.error('Kritik hata:', err.message || err);
   process.exit(1);
 });
