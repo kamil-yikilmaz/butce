@@ -4,7 +4,18 @@
 const fs = require('fs');
 const path = require('path');
 
-const URL = (process.env.SUPABASE_URL || 'https://vvsoyooedstcrsohqnfj.supabase.co').trim().replace(/\/+$/, '');
+// URL Düzeltme: Kullanıcı Supabase panel adresini (dashboard) yapıştırmışsa otomatik API adresine çevir
+let rawUrl = (process.env.SUPABASE_URL || 'https://vvsoyooedstcrsohqnfj.supabase.co').trim().replace(/\/+$/, '');
+if (rawUrl.includes('supabase.com') || !rawUrl.includes('.supabase.co')) {
+  const match = rawUrl.match(/project\/([a-z0-9]+)/i);
+  if (match) {
+    rawUrl = `https://${match[1]}.supabase.co`;
+  } else {
+    rawUrl = 'https://vvsoyooedstcrsohqnfj.supabase.co';
+  }
+}
+const URL = rawUrl;
+
 const DEFAULT_KEY = 'sb_publishable_xV8OnKCk-OYwDVDV6et6fw_669TJ9KQ';
 const ENV_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '').trim();
 
@@ -24,13 +35,13 @@ async function get(tablo) {
       });
 
       const text = await res.text();
-      if (res.ok) {
+      if (res.ok && !text.trim().startsWith('<')) {
         const data = JSON.parse(text);
         const rows = Array.isArray(data) ? data : [];
         console.log(`- ${tablo}: ${rows.length} satır okundu (HTTP ${res.status})`);
         return rows;
       } else {
-        console.warn(`[UYARI] ${tablo} okunamadı (HTTP ${res.status}): ${text.slice(0, 100)}`);
+        console.warn(`[UYARI] ${tablo} okunamadı (HTTP ${res.status}): ${text.slice(0, 80)}`);
       }
     } catch (e) {
       console.warn(`[UYARI] ${tablo} hatası:`, e.message);
@@ -40,7 +51,7 @@ async function get(tablo) {
 }
 
 async function calistir() {
-  console.log(`Supabase URL: ${URL}`);
+  console.log(`Hedef Supabase API: ${URL}`);
 
   console.log('Tablolar okunuyor:');
   const [ayarRows, dvRows, tkRows, baRows, bkRows, odRows, oddRows, odtRows] = await Promise.all([
@@ -68,7 +79,7 @@ async function calistir() {
 
   const toplamSatir = dv.length + tk.length + ba.length + bk.length + od.length;
   if (toplamSatir === 0) {
-    throw new Error('Veritabanında hiç satır bulunamadı veya yetkilendirme başarısız oldu!');
+    throw new Error('Veritabanında hiç satır bulunamadı veya adres hatalı!');
   }
 
   const state = {
