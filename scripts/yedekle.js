@@ -12,8 +12,8 @@ if (!KEY) {
   process.exit(1);
 }
 
-async function get(tablo, query = '') {
-  const url = `${URL}/rest/v1/${tablo}?select=*${query ? '&' + query : ''}`;
+async function get(tablo) {
+  const url = `${URL}/rest/v1/${tablo}?select=*`;
   try {
     const res = await fetch(url, {
       method: 'GET',
@@ -24,49 +24,48 @@ async function get(tablo, query = '') {
       }
     });
 
+    const text = await res.text();
     if (!res.ok) {
-      const errText = await res.text();
-      console.warn(`[UYARI] ${tablo} okunamadı (${res.status}): ${errText}`);
+      console.warn(`[UYARI] ${tablo} okunamadı (HTTP ${res.status}): ${text}`);
       return [];
     }
-    const data = await res.json();
-    return Array.isArray(data) ? data : [];
+    const data = JSON.parse(text);
+    const rows = Array.isArray(data) ? data : [];
+    console.log(`- ${tablo}: ${rows.length} satır okundu (HTTP ${res.status})`);
+    return rows;
   } catch (e) {
-    console.warn(`[UYARI] ${tablo} isteğinde hata:`, e.message);
+    console.warn(`[UYARI] ${tablo} hatası:`, e.message);
     return [];
   }
 }
 
 async function calistir() {
   console.log(`Supabase URL: ${URL}`);
-  console.log(`Anahtar uzunluğu: ${KEY.length} karakter`);
+  console.log(`Anahtar: ${KEY.slice(0, 15)}... (toplam ${KEY.length} karakter)`);
 
+  console.log('Tablolar okunuyor:');
   const [ayarRows, dvRows, tkRows, baRows, bkRows, odRows, oddRows, odtRows] = await Promise.all([
     get('ayarlar'),
-    get('doviz_aylar', 'order=yil.asc,ay.asc'),
-    get('taksitler', 'order=bas_yil.asc,bas_ay.asc'),
-    get('butce_aylar', 'order=yil.asc,ay.asc'),
-    get('butce_kalemler', 'order=sira.asc'),
-    get('odemeler', 'order=gun.asc'),
+    get('doviz_aylar'),
+    get('taksitler'),
+    get('butce_aylar'),
+    get('butce_kalemler'),
+    get('odemeler'),
     get('odeme_durum'),
     get('odeme_tutar')
   ]);
 
   const a = (ayarRows && ayarRows[0]) || {};
-  const dv = dvRows || [];
-  const tk = tkRows || [];
-  const ba = baRows || [];
-  const bk = bkRows || [];
-  const od = odRows || [];
+  const dv = (dvRows || []).sort((x, y) => ((x.yil || 0) * 12 + (x.ay || 0)) - ((y.yil || 0) * 12 + (y.ay || 0)));
+  const tk = (tkRows || []).sort((x, y) => ((x.bas_yil || 0) * 12 + (x.bas_ay || 0)) - ((y.bas_yil || 0) * 12 + (y.bas_ay || 0)));
+  const ba = (baRows || []).sort((x, y) => ((x.yil || 0) * 12 + (x.ay || 0)) - ((y.yil || 0) * 12 + (y.ay || 0)));
+  const bk = (bkRows || []).sort((x, y) => (x.sira || 0) - (y.sira || 0));
+  const od = (odRows || []).sort((x, y) => (x.gun || 0) - (y.gun || 0));
   const odd = oddRows || [];
   const odt = odtRows || [];
 
-  console.log(`Veri özeti:`);
-  console.log(`- Döviz kayıtları: ${dv.length}`);
-  console.log(`- Taksitler: ${tk.length}`);
-  console.log(`- Bütçe ayları: ${ba.length}`);
-  console.log(`- Bütçe kalemleri: ${bk.length}`);
-  console.log(`- Ödemeler: ${od.length}`);
+  console.log(`\nToplam Veri Özeti:`);
+  console.log(`Döviz: ${dv.length}, Taksit: ${tk.length}, Bütçe Ay: ${ba.length}, Kalem: ${bk.length}, Ödeme: ${od.length}`);
 
   const state = {
     savedAt: Date.now(),
