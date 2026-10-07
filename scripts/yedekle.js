@@ -4,34 +4,42 @@
 const fs = require('fs');
 const path = require('path');
 
-const URL = (process.env.SUPABASE_URL || 'https://vvsoyooedstcrsohqnfj.supabase.co').replace(/\/+$/, '');
-const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
+const URL = (process.env.SUPABASE_URL || 'https://vvsoyooedstcrsohqnfj.supabase.co').trim().replace(/\/+$/, '');
+const KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '').trim();
 
 if (!KEY) {
-  console.error('HATA: SUPABASE_SERVICE_ROLE_KEY veya SUPABASE_KEY ortam değişkeni tanımlanmamış!');
+  console.error('HATA: SUPABASE_SERVICE_ROLE_KEY tanımlanmamış!');
   process.exit(1);
 }
 
 async function get(tablo, query = '') {
   const url = `${URL}/rest/v1/${tablo}?select=*${query ? '&' + query : ''}`;
-  const res = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'apikey': KEY,
-      'Authorization': `Bearer ${KEY}`,
-      'Content-Type': 'application/json'
-    }
-  });
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'apikey': KEY,
+        'Authorization': `Bearer ${KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
 
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Tablo [${tablo}] okunamadı (HTTP ${res.status}): ${errText}`);
+    if (!res.ok) {
+      const errText = await res.text();
+      console.warn(`[UYARI] ${tablo} okunamadı (${res.status}): ${errText}`);
+      return [];
+    }
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch (e) {
+    console.warn(`[UYARI] ${tablo} isteğinde hata:`, e.message);
+    return [];
   }
-  return res.json();
 }
 
 async function calistir() {
-  console.log(`Supabase bağlantısı kuruluyor: ${URL}`);
+  console.log(`Supabase URL: ${URL}`);
+  console.log(`Anahtar uzunluğu: ${KEY.length} karakter`);
 
   const [ayarRows, dvRows, tkRows, baRows, bkRows, odRows, oddRows, odtRows] = await Promise.all([
     get('ayarlar'),
@@ -53,7 +61,12 @@ async function calistir() {
   const odd = oddRows || [];
   const odt = odtRows || [];
 
-  console.log(`Veriler alındı: ${dv.length} döviz ayı, ${tk.length} taksit, ${ba.length} bütçe ayı, ${od.length} ödeme.`);
+  console.log(`Veri özeti:`);
+  console.log(`- Döviz kayıtları: ${dv.length}`);
+  console.log(`- Taksitler: ${tk.length}`);
+  console.log(`- Bütçe ayları: ${ba.length}`);
+  console.log(`- Bütçe kalemleri: ${bk.length}`);
+  console.log(`- Ödemeler: ${od.length}`);
 
   const state = {
     savedAt: Date.now(),
@@ -138,15 +151,10 @@ async function calistir() {
   const ciktiDosyasi = path.resolve(process.cwd(), `butce-yedek-${bugun}.json`);
   fs.writeFileSync(ciktiDosyasi, JSON.stringify(paket, null, 2), 'utf8');
 
-  // En son yedek kopyası (sabit isimli)
-  const sonDosya = path.resolve(process.cwd(), 'butce-yedek-son.json');
-  fs.writeFileSync(sonDosya, JSON.stringify(paket, null, 2), 'utf8');
-
-  console.log(`✅ Yedek başarıyla oluşturuldu: ${ciktiDosyasi}`);
-  console.log(`Dosya boyutu: ${fs.statSync(ciktiDosyasi).size} bayt`);
+  console.log(`✅ Yedek başarıyla kaydedildi: ${ciktiDosyasi} (${fs.statSync(ciktiDosyasi).size} bayt)`);
 }
 
 calistir().catch(err => {
-  console.error('Yedek alma sırasında hata oluştu:', err);
+  console.error('Kritik hata:', err);
   process.exit(1);
 });

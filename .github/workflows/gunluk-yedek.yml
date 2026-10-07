@@ -4,7 +4,7 @@ on:
   schedule:
     # Her gece Türkiye saatiyle 00:00'da (UTC 21:00) çalışır
     - cron: '0 21 * * *'
-  workflow_dispatch: # GitHub arayüzünden elle anında çalıştırma imkanı
+  workflow_dispatch: # GitHub Actions arayüzündeki "Run workflow" butonu ile elle anında çalıştırabilme
 
 jobs:
   yedekle-ve-gonder:
@@ -13,12 +13,12 @@ jobs:
       - name: Depoyu Çek
         uses: actions/checkout@v4
 
-      - name: Node.js Ortamını Kur
+      - name: Node.js Kur
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Tarih Bilgisini Al
+      - name: Tarih Bilgisini Belirle
         id: tarih
         run: echo "bugun=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
@@ -36,15 +36,12 @@ jobs:
           retention-days: 90
 
       - name: E-Posta ile Yedeği Gönder
-        if: env.MAIL_PASSWORD != ''
         uses: dawidd6/action-send-mail@v3
-        env:
-          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
         with:
           server_address: smtp.gmail.com
           server_port: 465
           secure: true
-          username: ${{ secrets.MAIL_USERNAME || 'kmlyklmz@gmail.com' }}
+          username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
           subject: "📊 Bütçe Defteri Günlük Yedeği (${{ steps.tarih.outputs.bugun }})"
           body: |
@@ -55,7 +52,7 @@ jobs:
             Tarih: ${{ steps.tarih.outputs.bugun }}
             Dosya: butce-yedek-${{ steps.tarih.outputs.bugun }}.json
 
-            Olası bir veri kaybı durumunda bu dosyayı uygulamanızın altındaki "Yedeği yükle" butonundan tek tıkla geri yükleyebilirsiniz.
-          to: ${{ secrets.MAIL_TO || 'kmlyklmz@gmail.com' }}
-          from: "Bütçe Yedek Sistemi <${{ secrets.MAIL_USERNAME || 'kmlyklmz@gmail.com' }}>"
+            Olası bir durumda bu dosyayı uygulamanızın altındaki "Yedeği yükle" butonundan tek tıkla geri yükleyebilirsiniz.
+          to: ${{ secrets.MAIL_USERNAME }}
+          from: "Bütçe Yedek Botu <${{ secrets.MAIL_USERNAME }}>"
           attachments: butce-yedek-${{ steps.tarih.outputs.bugun }}.json
