@@ -1751,7 +1751,6 @@ renderAll();
 })();
 </script>
 
-<script src="kur.js"></script>
 <script id="tcmb-kur">
 (function(){
   var uk=document.getElementById("uk"), ek=document.getElementById("ek"), kt=document.getElementById("kt");
@@ -1769,7 +1768,7 @@ renderAll();
   function apply(u,e,d,kaynak){
     setVal(uk,u); setVal(ek,e);
     if(d){ kt.value=d; kt.dispatchEvent(new Event("input",{bubbles:true})); }
-    note("TCMB "+(d||"")+" · "+kaynak+" — Kuru kaydet'e bas",false);
+    note("TCMB "+(d||"")+" \u00b7 "+kaynak+" \u2014 Kuru kaydet'e bas",false);
   }
   function parseXml(txt){
     var doc=new DOMParser().parseFromString(txt,"text/xml");
@@ -1778,24 +1777,21 @@ renderAll();
     var td=doc.querySelector("Tarih_Date");
     return {usd:rate("USD"), eur:rate("EUR"), tarih: td ? (td.getAttribute("Tarih")||"") : ""};
   }
-  var kf=window.TCMB_KUR;
-  var fromFile=!!(kf&&isFinite(Number(kf.usd))&&isFinite(Number(kf.eur))&&Number(kf.usd)>0);
   function pull(manual){
-    note("TCMB kuru alınıyor…",false);
+    note("TCMB kuru al\u0131n\u0131yor\u2026",false);
     var sig;
-    try{ var c=new AbortController(); sig=c.signal; setTimeout(function(){ c.abort(); },8000); }catch(e){}
-    fetch("https://www.tcmb.gov.tr/kurlar/today.xml",{cache:"no-store",signal:sig})
+    try{ var c=new AbortController(); sig=c.signal; setTimeout(function(){ c.abort(); },12000); }catch(e){}
+    fetch("/tcmb?_="+Date.now(),{cache:"no-store",signal:sig})
       .then(function(r){ if(!r.ok) throw new Error(r.status); return r.text(); })
       .then(function(txt){
         var k=parseXml(txt);
         if(!isFinite(k.usd)||!isFinite(k.eur)) throw new Error("kur yok");
-        apply(k.usd,k.eur,k.tarih,"doğrudan TCMB");
+        apply(k.usd,k.eur,k.tarih,"canl\u0131");
       })
-      .catch(function(){ if(fromFile) note("TCMB "+(kf.tarih||"")+" · kur.js — yenilemek için Kur-guncelle.bat",false);
-        else note("TCMB'ye doğrudan erişilemiyor · Kur-guncelle.bat çalıştır",!!manual); });
+      .catch(function(){ note("TCMB kuruna ula\u015f\u0131lamad\u0131 \u2014 kuru elle girebilirsin.",!!manual); });
   }
   btn.addEventListener("click",function(){ pull(true); });
-  if(fromFile) apply(Number(kf.usd),Number(kf.eur),String(kf.tarih||""),"kur.js"); else pull(false);
+  pull(false);
 })();
 </script>
 <script id="backup-tools">
@@ -1922,8 +1918,7 @@ renderAll();
    --------------------------------------------------------------------------- */
 window.SUPABASE_AYAR = {
   url:     "https://vvsoyooedstcrsohqnfj.supabase.co",
-  anonKey: "sb_publishable_xV8OnKCk-OYwDVDV6et6fw_669TJ9KQ",
-  email:   "kmlyklmz@gmail.com"
+  anonKey: "sb_publishable_xV8OnKCk-OYwDVDV6et6fw_669TJ9KQ"
 };
 </script>
 
@@ -1938,17 +1933,19 @@ window.DEFTER_DB = (function(){
 var C = window.SUPABASE_AYAR || {};
 var URL_ = String(C.url||"").replace(/\/+$/,"");
 var KEY  = String(C.anonKey||"");
-var MAIL = String(C.email||"");
-var ON   = !!(URL_ && KEY && MAIL);
+var ON   = !!(URL_ && KEY);
 
 var OTURUM="defter-oturum";
-var ses=null;            /* {access_token, refresh_token, expires_at, uid} */
+var ses=null;            /* {access_token, refresh_token, expires_at, uid, email} */
 var snap=null;           /* en son bilinen DB hali */
 var zincir=Promise.resolve();
 
 function aktif(){ return ON; }
 function girisli(){ return !!(ses && ses.access_token); }
 function uid(){ return ses?ses.uid:null; }
+function aktifEposta(){
+  return (ses && ses.email) || localStorage.getItem("defter-son-eposta") || "kmlyklmz@gmail.com";
+}
 
 /* ---------- oturum saklama ---------- */
 function sesYaz(){ try{ localStorage.setItem(OTURUM,JSON.stringify(ses)); }catch(e){} }
@@ -1971,18 +1968,27 @@ function authPost(qs,body){
     });
   });
 }
-function sesKur(j){
+function sesKur(j, mail){
   ses={access_token:j.access_token, refresh_token:j.refresh_token,
        expires_at: Date.now()+((j.expires_in||3600)*1000),
-       uid:(j.user&&j.user.id)||(ses&&ses.uid)||null};
+       uid:(j.user&&j.user.id)||(ses&&ses.uid)||null,
+       email:(j.user&&j.user.email)||mail||(ses&&ses.email)||""};
+  if(ses.email){
+    try{ localStorage.setItem("defter-son-eposta", ses.email); }catch(e){}
+  }
   sesYaz(); return ses;
 }
-function giris(parola){
-  return authPost("grant_type=password",{email:MAIL,password:parola}).then(sesKur);
+function giris(mail, parola){
+  mail = (mail||"").trim();
+  return authPost("grant_type=password",{email:mail,password:parola}).then(function(j){
+    return sesKur(j, mail);
+  });
 }
 function tazele(){
   if(!ses||!ses.refresh_token) return Promise.reject(new Error("oturum yok"));
-  return authPost("grant_type=refresh_token",{refresh_token:ses.refresh_token}).then(sesKur);
+  return authPost("grant_type=refresh_token",{refresh_token:ses.refresh_token}).then(function(j){
+    return sesKur(j, ses.email);
+  });
 }
 function token(){
   if(!ses) return Promise.reject(new Error("oturum yok"));
@@ -2197,7 +2203,8 @@ function dosyaSil(yol){
 }
 
 function sina(){
-  var sonuc={url:URL_, anahtar:KEY?(KEY.slice(0,18)+"… ("+KEY.length+" karakter)"):"YOK", eposta:MAIL};
+  var aktifMail = aktifEposta();
+  var sonuc={url:URL_, anahtar:KEY?(KEY.slice(0,18)+"… ("+KEY.length+" karakter)"):"YOK", eposta:aktifMail};
   return fetch(URL_+"/auth/v1/health",{headers:{"apikey":KEY,"Authorization":"Bearer "+KEY}})
     .then(function(r){ sonuc.health="HTTP "+r.status; return r.text(); })
     .then(function(t){ sonuc.healthYanit=String(t).slice(0,120); })
@@ -2213,7 +2220,7 @@ function sina(){
 }
 
 sesOku();
-var API={aktif:aktif, sina:sina, girisli:girisli, uid:uid, eposta:function(){ return MAIL; },
+var API={aktif:aktif, sina:sina, girisli:girisli, uid:uid, eposta:aktifEposta,
         giris:giris, cikis:cikis, tazele:tazele, yukle:yukle, kaydet:kaydet,
         dosyaYukle:dosyaYukle, dosyaLink:dosyaLink, dosyaSil:dosyaSil};
 
@@ -2256,31 +2263,54 @@ var API={aktif:aktif, sina:sina, girisli:girisli, uid:uid, eposta:function(){ re
   ov.innerHTML=
     '<form class="giris-kutu" id="girisForm" autocomplete="on">'+
       '<div class="eyebrow">Birikim ve Bütçe Defteri</div>'+
-      '<h2>Parola</h2>'+
-      '<p>Kayıtlar veritabanında tutuluyor. Devam etmek için parolanı gir.</p>'+
-      '<p class="giris-hesap">Hesap: <b>'+MAIL+'</b></p>'+
-      '<input type="password" id="girisParola" placeholder="Parola" autocomplete="current-password">'+
-      '<button class="btn" type="submit" id="girisBtn">Gir</button>'+
+      '<h2>Giriş Yap</h2>'+
+      '<p>Kayıtlar veritabanında tutuluyor. Devam etmek için hesabınla giriş yap.</p>'+
+      '<input type="email" id="girisEposta" placeholder="E-posta adresi" autocomplete="username" required>'+
+      '<input type="password" id="girisParola" placeholder="Parola" autocomplete="current-password" required>'+
+      '<button class="btn" type="submit" id="girisBtn">Giriş Yap</button>'+
       '<button type="button" class="btn ghost sm" id="girisSina">Bağlantıyı sına</button>'+
       '<span class="giris-hata" id="girisHata"></span>'+
       '<span class="giris-ayrinti" id="girisAyrinti"></span>'+
     '</form>';
   document.body.appendChild(ov);
 
-  function goster(v){ ov.style.display = v?"flex":"none"; if(v){ var i=document.getElementById("girisParola"); if(i) setTimeout(function(){ i.focus(); },50); } }
+  function goster(v){
+    ov.style.display = v ? "flex" : "none";
+    if(v){
+      var mailInp = document.getElementById("girisEposta");
+      var pwInp = document.getElementById("girisParola");
+      if(mailInp){
+        var sonMail = aktifEposta();
+        if(sonMail) mailInp.value = sonMail;
+      }
+      if(pwInp) pwInp.value = "";
+      setTimeout(function(){
+        if(mailInp && !mailInp.value) mailInp.focus();
+        else if(pwInp) pwInp.focus();
+      }, 50);
+    }
+  }
   function hata(t){ var e=document.getElementById("girisHata"); if(e) e.textContent=t||""; }
 
   function cip(){
     var host=document.querySelector(".masthead");
-    if(!host || document.getElementById("dbCip")) return;
-    var c=document.createElement("div");
-    c.className="dbcip"; c.id="dbCip";
-    c.innerHTML='<span class="dbdurum" id="dbDurum">bağlandı</span>'+
+    if(!host) return;
+    var c=document.getElementById("dbCip");
+    if(!c){
+      c=document.createElement("div");
+      c.className="dbcip"; c.id="dbCip";
+      host.appendChild(c);
+    }
+    var mailGoster = (ses && ses.email) || "bağlandı";
+    c.innerHTML='<span class="dbdurum ok" id="dbDurum" title="'+mailGoster+'">'+mailGoster+'</span>'+
                 '<button type="button" class="icobtn" id="dbCikis">Çıkış</button>';
-    host.appendChild(c);
-    document.getElementById("dbCikis").addEventListener("click",function(){
-      cikis(); goster(true); hata("Çıkış yapıldı.");
-    });
+    document.getElementById("dbCikis").onclick=function(){
+      cikis();
+      var cElem=document.getElementById("dbCip");
+      if(cElem) cElem.remove();
+      goster(true);
+      hata("Çıkış yapıldı.");
+    };
   }
   window.DB_DURUM=function(t,k){
     var e=document.getElementById("dbDurum");
@@ -2300,23 +2330,26 @@ var API={aktif:aktif, sina:sina, girisli:girisli, uid:uid, eposta:function(){ re
         D.setState(st);
       }
       goster(false); cip();
-      window.DB_DURUM && DB_DURUM("bağlandı","ok");
+      window.DB_DURUM && DB_DURUM((ses&&ses.email)||"bağlandı","ok");
     });
   }
 
   document.getElementById("girisForm").addEventListener("submit",function(e){
     e.preventDefault();
-    var b=document.getElementById("girisBtn"), pw=document.getElementById("girisParola").value;
+    var b=document.getElementById("girisBtn");
+    var mail=document.getElementById("girisEposta").value.trim();
+    var pw=document.getElementById("girisParola").value;
+    if(!mail){ hata("E-posta boş olamaz."); return; }
     if(!pw){ hata("Parola boş olamaz."); return; }
     b.disabled=true; hata("Kontrol ediliyor…");
-    giris(pw).then(veriyiAl).then(function(){ hata(""); })
+    giris(mail, pw).then(veriyiAl).then(function(){ hata(""); })
       .catch(function(err){
         var m=String(err&&err.message||""), kod=String(err&&err.kod||""), st=err&&err.status;
         var t;
         if(/email_not_confirmed|not confirmed/i.test(kod+m))
-          t="Kullanıcı onaylanmamış. Panelde Authentication → Users → kullanıcıyı aç → Confirm email.";
+          t="Kullanıcı onaylanmamış. Supabase panelinde Authentication → Users → kullanıcıyı aç → Confirm email.";
         else if(/invalid_credentials|invalid login credentials|invalid_grant/i.test(kod+m))
-          t="E-posta ya da parola eşleşmedi. Paneldeki kullanıcının e-postası tam olarak "+MAIL+" mi? Değilse kullanıcıyı bu adresle oluştur; doğruysa panelden parolayı yenile.";
+          t="E-posta ("+mail+") ya da parola eşleşmedi. Lütfen bilgilerinizi kontrol edin.";
         else if(st===401||/api key|apikey|jwt/i.test(m))
           t="Anahtar kabul edilmedi. Sayfadaki publishable anahtarı kontrol et.";
         else if(/failed to fetch|networkerror|load failed/i.test(m))
