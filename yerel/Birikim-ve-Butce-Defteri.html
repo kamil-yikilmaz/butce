@@ -348,7 +348,7 @@ td.odn,.odn{font-size:12.5px; white-space:nowrap}
   .od-row .od-drm{grid-column:3; grid-row:2; text-align:right; align-self:center}
   .od-row .od-gun{grid-column:2/-1; grid-row:3}
   .od-row .od-bit{grid-column:2; grid-row:4}
-  .od-row>button{grid-column:3; grid-row:4; justify-self:end; align-self:center}
+  .od-row>button, .od-row .row-acts{grid-column:3; grid-row:4; justify-self:end; align-self:center}
   .od-row .od-bit select{min-width:0; flex:1 1 auto}
   .od-row .od-bit select:last-of-type{min-width:0; max-width:86px}
 }
@@ -368,6 +368,23 @@ td.odn,.odn{font-size:12.5px; white-space:nowrap}
 <script id="app-code">
 (function(){
 "use strict";
+
+window.canAdminSort = function(){
+  try {
+    if(window.DEFTER_DB && typeof window.DEFTER_DB.isAdmin === "function"){
+      return window.DEFTER_DB.isAdmin();
+    }
+    var raw = localStorage.getItem("defter-oturum");
+    if(raw){
+      var s = JSON.parse(raw);
+      if(s && s.email) return (s.email||"").trim().toLowerCase() === "kmlyklmz@gmail.com";
+    }
+    var lastMail = localStorage.getItem("defter-son-eposta");
+    if(lastMail) return lastMail.trim().toLowerCase() === "kmlyklmz@gmail.com";
+  }catch(e){}
+  return true;
+};
+window.isAdmin = window.canAdminSort;
 
 var AYLAR=["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
 var DILIMLER=[15,20,27,35,40];
@@ -1370,6 +1387,7 @@ function renderOzet(){
 function listeHtml(key,baslik,ipucu,items,ekle){
   var listKey = (key==="fatura" ? "faturalar" : (key==="gider" ? "giderler" : "gonderimler"));
   var placeHolderAd = (key==="gonderim" ? "Gönderim açıklaması (örn: Kira, Yatırım)" : "Kalem adı");
+  var canSort = (typeof window.canAdminSort === "function") ? window.canAdminSort() : true;
   return accHead(key,baslik,ipucu)+
     '<div class="panel-body"><div class="rows">'+
       (items.length? items.map(function(it,i){
@@ -1377,8 +1395,8 @@ function listeHtml(key,baslik,ipucu,items,ekle){
           '<input type="text" data-l="'+listKey+'" data-i="'+i+'" data-f="ad" value="'+D.attr(it.ad||"")+'" placeholder="'+placeHolderAd+'">'+
           '<input type="text" inputmode="decimal" data-l="'+listKey+'" data-i="'+i+'" data-f="tutar" value="'+inp(it.tutar)+'" placeholder="0">'+
           '<div class="row-acts">'+
-            '<button type="button" class="icobtn" data-up="'+listKey+'" data-i="'+i+'" title="Yukarı taşı"'+(i===0?' disabled':'')+'>↑</button>'+
-            '<button type="button" class="icobtn" data-down="'+listKey+'" data-i="'+i+'" title="Aşağı taşı"'+(i===items.length-1?' disabled':'')+'>↓</button>'+
+            (canSort ? '<button type="button" class="icobtn" data-up="'+listKey+'" data-i="'+i+'" title="Yukarı taşı"'+(i===0?' disabled':'')+'>↑</button>'+
+                       '<button type="button" class="icobtn" data-down="'+listKey+'" data-i="'+i+'" title="Aşağı taşı"'+(i===items.length-1?' disabled':'')+'>↓</button>' : '')+
             '<button type="button" class="icobtn danger" data-sil="'+listKey+'" data-i="'+i+'">Sil</button>'+
           '</div>'+
         '</div>';
@@ -1443,6 +1461,7 @@ function renderTaksitler(){
   var all=B().taksitler;
   var list=all.filter(function(t){ return gizleBitmis ? (tDurum(t,k)!=="bitti" || t.id===yeniId) : true; });
   var gizli=all.length-list.length;
+  var canSort = (typeof window.canAdminSort === "function") ? window.canAdminSort() : true;
   function aySel(t,f,val){
     var o="";
     for(var m=1;m<=12;m++) o+='<option value="'+m+'"'+(val===m?" selected":"")+'>'+AY[m-1]+'</option>';
@@ -1459,8 +1478,8 @@ function renderTaksitler(){
       '<span class="trow-odn odn">'+odenenHtml(t,k)+'</span>'+
       '<span class="trow-badge">'+rozetHtml(t,k)+'</span>'+
       '<div class="trow-acts">'+
-        '<button type="button" class="icobtn" data-t-up="'+t.id+'" title="Yukarı taşı"'+(idx===0?' disabled':'')+'>↑</button>'+
-        '<button type="button" class="icobtn" data-t-down="'+t.id+'" title="Aşağı taşı"'+(idx===list.length-1?' disabled':'')+'>↓</button>'+
+        (canSort ? '<button type="button" class="icobtn" data-t-up="'+t.id+'" title="Yukarı taşı"'+(idx===0?' disabled':'')+'>↑</button>'+
+                   '<button type="button" class="icobtn" data-t-down="'+t.id+'" title="Aşağı taşı"'+(idx===list.length-1?' disabled':'')+'>↓</button>' : '')+
         '<button type="button" class="icobtn danger" data-tsil="'+t.id+'">Sil</button>'+
       '</div>'+
     '</div>';
@@ -1549,6 +1568,7 @@ $("mod2").addEventListener("click",function(e){
     (a[key3]||[]).splice(i,1); renderListeler(); renderSummary(); renderOzet(); kaydet(); return;
   }
   if(b.hasAttribute("data-up") && a){
+    if(typeof window.canAdminSort === "function" && !window.canAdminSort()) return;
     var keyUp=b.getAttribute("data-up"), iUp=parseInt(b.getAttribute("data-i"),10);
     var arrUp=a[keyUp]||[];
     if(iUp>0 && iUp<arrUp.length){
@@ -1560,6 +1580,7 @@ $("mod2").addEventListener("click",function(e){
     return;
   }
   if(b.hasAttribute("data-down") && a){
+    if(typeof window.canAdminSort === "function" && !window.canAdminSort()) return;
     var keyDn=b.getAttribute("data-down"), iDn=parseInt(b.getAttribute("data-i"),10);
     var arrDn=a[keyDn]||[];
     if(iDn>=0 && iDn<arrDn.length-1){
@@ -1571,6 +1592,7 @@ $("mod2").addEventListener("click",function(e){
     return;
   }
   if(b.hasAttribute("data-t-up")){
+    if(typeof window.canAdminSort === "function" && !window.canAdminSort()) return;
     var idUp=b.getAttribute("data-t-up");
     var allT=B().taksitler;
     var cIdx=allT.findIndex(function(x){ return x.id===idUp; });
@@ -1590,6 +1612,7 @@ $("mod2").addEventListener("click",function(e){
     return;
   }
   if(b.hasAttribute("data-t-down")){
+    if(typeof window.canAdminSort === "function" && !window.canAdminSort()) return;
     var idDn=b.getAttribute("data-t-down");
     var allT2=B().taksitler;
     var cIdx2=allT2.findIndex(function(x){ return x.id===idDn; });
@@ -1710,8 +1733,7 @@ function odendiMi(o,k){ return !!(o.odendi && o.odendi[k]); }
 function setOdendi(o,k,v){ o.odendi=o.odendi||{}; if(v) o.odendi[k]=1; else delete o.odendi[k]; }
 
 function ayListesi(k){
-  return O().filter(function(o){ return aktif(o,k); })
-    .sort(function(a,b){ return (parseInt(a.gun,10)||0)-(parseInt(b.gun,10)||0); });
+  return O().filter(function(o){ return aktif(o,k); });
 }
 function durum(o,k){
   if(odendiMi(o,k)) return {s:"ok",t:"ödendi"};
@@ -1810,6 +1832,7 @@ function renderSummary(){
 function renderListe(){
   var list=ayListesi(mk), h=hesap(mk);
   var yillar=yilAralik();
+  var canSort = (typeof window.canAdminSort === "function") ? window.canAdminSort() : true;
   function aySel(o,val){
     var s='<option value="0">—</option>';
     for(var m=1;m<=12;m++) s+='<option value="'+m+'"'+(val===m?" selected":"")+'>'+AY[m-1]+'</option>';
@@ -1820,7 +1843,7 @@ function renderListe(){
     yillar.forEach(function(y){ s+='<option value="'+y+'"'+(val===y?" selected":"")+'>'+y+'</option>'; });
     return '<select data-o="'+o.id+'" data-f="sYil">'+s+'</select>';
   }
-  var rows=list.map(function(o){
+  var rows=list.map(function(o, idx){
     var d=durum(o,mk), t=ayTutar(o,mk), g=parseInt(o.gun,10)||1;
     return '<div class="od-row '+d.s+'" data-id="'+o.id+'">'+
       '<label class="od-chk" title="Ödendi işareti"><input type="checkbox" data-od="'+o.id+'"'+(odendiMi(o,mk)?" checked":"")+'><span></span></label>'+
@@ -1830,12 +1853,16 @@ function renderListe(){
         '<input class="gun" type="text" inputmode="numeric" data-o="'+o.id+'" data-f="gun" value="'+g+'"><span class="mini-l">günü</span></span>'+
       '<span class="od-bit"><span class="mini-l">bitiş</span>'+aySel(o,parseInt(o.sAy,10)||0)+yilSel(o,parseInt(o.sYil,10)||0)+'</span>'+
       '<span class="od-drm"><span class="tag '+d.s+'">'+d.t+'</span></span>'+
-      '<button type="button" class="icobtn danger" data-osil="'+o.id+'">Sil</button>'+
+      '<div class="row-acts">'+
+        (canSort ? '<button type="button" class="icobtn" data-o-up="'+o.id+'" title="Yukarı taşı"'+(idx===0?' disabled':'')+'>↑</button>'+
+                   '<button type="button" class="icobtn" data-o-down="'+o.id+'" title="Aşağı taşı"'+(idx===list.length-1?' disabled':'')+'>↓</button>' : '')+
+        '<button type="button" class="icobtn danger" data-osil="'+o.id+'">Sil</button>'+
+      '</div>'+
     '</div>';
   }).join("");
   $("oPanel").innerHTML=
     '<div class="panel-head"><h2>'+ymLabel(mk)+' ödemeleri</h2>'+
-      '<span class="hint">Ödeme gününe göre sıralı · kutuyu işaretleyince yeşile döner</span></div>'+
+      '<span class="hint">İstediğiniz sırada düzenleyebilirsiniz · kutuyu işaretleyince yeşile döner</span></div>'+
     '<div class="od-list">'+(rows||'<div class="empty">Bu ayda ödeme yok. Aşağıdan ekle.</div>')+'</div>'+
     '<div class="rowfoot"><button type="button" class="btn ghost sm" id="oEkle">+ Ödeme ekle</button>'+
     '<span class="rowtot">Toplam '+tl(h.toplam)+' · ödenen '+fmt(h.odenen,0)+' · kalan '+fmt(h.kalan,0)+' ₺</span></div>';
@@ -1902,18 +1929,57 @@ $("mod3").addEventListener("change",function(e){
   }
 });
 $("mod3").addEventListener("click",function(e){
-  var b=e.target.closest?e.target.closest("button[data-osil]"):null; if(!b) return;
-  var id=b.getAttribute("data-osil");
-  var o=O().filter(function(x){ return x.id===id; })[0];
-  D.sheet('<header><span class="nm">Ödemeyi sil</span><span class="acts">'+
-    '<button type="button" class="btn ghost sm" data-close>Vazgeç</button>'+
-    '<button type="button" class="btn sm" id="oSilGo">Sil</button></span></header>'+
-    '<div class="msg"><b>'+D.attr(o&&o.ad?o.ad:"Bu ödeme")+'</b> tüm aylardan silinecek, ödendi işaretleri de gider. Bu işlem geri alınamaz.</div>');
-  $("oSilGo").addEventListener("click",function(){
-    var st=D.getState();
-    st.odemeler=O().filter(function(x){ return x.id!==id; });
-    D.closeSheet(); renderAll(); kaydet("Ödeme silindi",true);
-  });
+  var b=e.target.closest?e.target.closest("button"):null; if(!b) return;
+  if(b.hasAttribute("data-o-up")){
+    if(typeof window.canAdminSort === "function" && !window.canAdminSort()) return;
+    var idUp=b.getAttribute("data-o-up");
+    var allO=O();
+    var cIdx=allO.findIndex(function(x){ return x.id===idUp; });
+    if(cIdx>0){
+      var targetP=-1;
+      for(var p=cIdx-1; p>=0; p--){
+        if(aktif(allO[p],mk)){ targetP=p; break; }
+      }
+      if(targetP!==-1){
+        var itemUp=allO.splice(cIdx,1)[0];
+        allO.splice(targetP,0,itemUp);
+        renderAll(); kaydet();
+      }
+    }
+    return;
+  }
+  if(b.hasAttribute("data-o-down")){
+    if(typeof window.canAdminSort === "function" && !window.canAdminSort()) return;
+    var idDn=b.getAttribute("data-o-down");
+    var allO2=O();
+    var cIdx2=allO2.findIndex(function(x){ return x.id===idDn; });
+    if(cIdx2>=0 && cIdx2<allO2.length-1){
+      var targetN=-1;
+      for(var n=cIdx2+1; n<allO2.length; n++){
+        if(aktif(allO2[n],mk)){ targetN=n; break; }
+      }
+      if(targetN!==-1){
+        var itemDn=allO2.splice(cIdx2,1)[0];
+        allO2.splice(targetN,0,itemDn);
+        renderAll(); kaydet();
+      }
+    }
+    return;
+  }
+  if(b.hasAttribute("data-osil")){
+    var id=b.getAttribute("data-osil");
+    var o=O().filter(function(x){ return x.id===id; })[0];
+    D.sheet('<header><span class="nm">Ödemeyi sil</span><span class="acts">'+
+      '<button type="button" class="btn ghost sm" data-close>Vazgeç</button>'+
+      '<button type="button" class="btn sm" id="oSilGo">Sil</button></span></header>'+
+      '<div class="msg"><b>'+D.attr(o&&o.ad?o.ad:"Bu ödeme")+'</b> tüm aylardan silinecek, ödendi işaretleri de gider. Bu işlem geri alınamaz.</div>');
+    $("oSilGo").addEventListener("click",function(){
+      var st=D.getState();
+      st.odemeler=O().filter(function(x){ return x.id!==id; });
+      D.closeSheet(); renderAll(); kaydet("Ödeme silindi",true);
+    });
+    return;
+  }
 });
 function git(step){ mk=Math.max(12,mk+step); renderAll(); }
 $("oPrev").addEventListener("click",function(){ git(-1); });
@@ -2365,15 +2431,30 @@ function yukle(){
   return Promise.all([
     rest("ayarlar?user_id=eq."+m.doviz+"&select=*"),
     rest("doviz_aylar?user_id=eq."+m.doviz+"&select=*"),
-    rest("taksitler?user_id=eq."+m.butce+"&select=*&order=bas_yil,bas_ay"),
+    rest("taksitler?user_id=eq."+m.butce+"&select=*"),
     rest("butce_aylar?user_id=eq."+m.butce+"&select=*&order=yil,ay"),
     rest("butce_kalemler?user_id=eq."+m.butce+"&select=*&order=sira"),
-    rest("odemeler?user_id=eq."+m.odemeler+"&select=*&order=gun"),
+    rest("odemeler?user_id=eq."+m.odemeler+"&select=*"),
     rest("odeme_durum?user_id=eq."+m.odemeler+"&select=*"),
     rest("odeme_tutar?user_id=eq."+m.odemeler+"&select=*")
   ]).then(function(r){
     var ayar=(r[0]&&r[0][0])||{}, dv=r[1]||[], tk=r[2]||[], ba=r[3]||[], bk=r[4]||[],
         od=r[5]||[], odd=r[6]||[], odt=r[7]||[];
+
+    tk.sort(function(a,b){
+      if(a.sira !== undefined && b.sira !== undefined && a.sira !== b.sira){
+        return (a.sira||0) - (b.sira||0);
+      }
+      return ((a.bas_yil||0)*12 + (a.bas_ay||0)) - ((b.bas_yil||0)*12 + (b.bas_ay||0));
+    });
+
+    od.sort(function(a,b){
+      if(a.sira !== undefined && b.sira !== undefined && a.sira !== b.sira){
+        return (a.sira||0) - (b.sira||0);
+      }
+      return (a.gun||0) - (b.gun||0);
+    });
+
     var st={
       savedAt:Date.now(),
       usdRate:n(ayar.usd_kur), eurRate:n(ayar.eur_kur), rateDate:String(ayar.kur_tarihi||""),
@@ -2387,7 +2468,9 @@ function yukle(){
           var gonderimler = Array.isArray(x.gonderimler) ? x.gonderimler : (n(x.hesaba)>0 ? [{ad:"Hesaba Gönderim", tutar:n(x.hesaba)}] : []);
           var f=[],g=[];
           bk.forEach(function(k){ if(k.ay_id!==x.id) return;
-            (k.tur==="fatura"?f:g).push({id:k.id,ad:k.ad,tutar:n(k.tutar)}); });
+            (k.tur==="fatura"?f:g).push({id:k.id,ad:k.ad,tutar:n(k.tutar),sira:n(k.sira)}); });
+          f.sort(function(a,b){ return (a.sira||0) - (b.sira||0); });
+          g.sort(function(a,b){ return (a.sira||0) - (b.sira||0); });
           return {id:x.id,yil:x.yil,ay:x.ay,maas:n(x.maas),hesaba:n(x.hesaba),gonderimler:gonderimler,faturalar:f,giderler:g};
         })
       },
@@ -2417,10 +2500,10 @@ function satirlar(st){
       usd_dekont:r.usdDoc||null,eur_dekont:r.eurDoc||null};
   });
   var b=(st.butce||{});
-  (b.taksitler||[]).forEach(function(t){
+  (b.taksitler||[]).forEach(function(t, i){
     if(!t.id) t.id=yeniId("t");
     out.taksit[t.id]={id:t.id,user_id:m.butce,ad:String(t.ad||""),tutar:n(t.tutar),
-      bas_yil:t.bYil,bas_ay:t.bAy,bit_yil:t.sYil,bit_ay:t.sAy};
+      bas_yil:t.bYil,bas_ay:t.bAy,bit_yil:t.sYil,bit_ay:t.sAy,sira:i};
   });
   (b.aylar||[]).forEach(function(a){
     if(!a.id) a.id=yeniId("a");
@@ -2432,11 +2515,11 @@ function satirlar(st){
       });
     });
   });
-  (st.odemeler||[]).forEach(function(o){
+  (st.odemeler||[]).forEach(function(o, i){
     if(!o.id) o.id=yeniId("o");
     out.odeme[o.id]={id:o.id,user_id:m.odemeler,ad:String(o.ad||""),tutar:n(o.tutar),
       gun:Math.min(31,Math.max(1,parseInt(o.gun,10)||1)),
-      bas_yil:o.bYil,bas_ay:o.bAy,bit_yil:parseInt(o.sYil,10)||0,bit_ay:parseInt(o.sAy,10)||0};
+      bas_yil:o.bYil,bas_ay:o.bAy,bit_yil:parseInt(o.sYil,10)||0,bit_ay:parseInt(o.sAy,10)||0,sira:i};
     var d=o.odendi||{};
     for(var k in d){ if(!d[k]) continue; var kk=parseInt(k,10);
       out.oddurum[o.id+"|"+kk]={odeme_id:o.id,yil:kYil(kk),ay:kAy(kk),user_id:m.odemeler,odendi:true}; }
@@ -2477,7 +2560,19 @@ function yaz(st){
   /* sonra eklemeler: üst tablolar önce */
   p=p.then(function(){ return upsert("ayarlar",f.ayarlar.ekle,"user_id"); });
   p=p.then(function(){ return upsert("doviz_aylar",f.doviz.ekle,"id"); });
-  p=p.then(function(){ return upsert("taksitler",f.taksit.ekle,"id"); });
+  p=p.then(function(){
+    return upsert("taksitler",f.taksit.ekle,"id").catch(function(err){
+      if(/sira|column.*does not exist/i.test(err && err.message)){
+        var stripped = f.taksit.ekle.map(function(item){
+          var cp = Object.assign({}, item);
+          delete cp.sira;
+          return cp;
+        });
+        return upsert("taksitler", stripped, "id");
+      }
+      throw err;
+    });
+  });
   p=p.then(function(){
     return upsert("butce_aylar",f.bay.ekle,"id").catch(function(err){
       if(/gonderimler|column.*does not exist/i.test(err && err.message)){
@@ -2492,7 +2587,19 @@ function yaz(st){
     });
   });
   p=p.then(function(){ return upsert("butce_kalemler",f.bkalem.ekle,"id"); });
-  p=p.then(function(){ return upsert("odemeler",f.odeme.ekle,"id"); });
+  p=p.then(function(){
+    return upsert("odemeler",f.odeme.ekle,"id").catch(function(err){
+      if(/sira|column.*does not exist/i.test(err && err.message)){
+        var stripped = f.odeme.ekle.map(function(item){
+          var cp = Object.assign({}, item);
+          delete cp.sira;
+          return cp;
+        });
+        return upsert("odemeler", stripped, "id");
+      }
+      throw err;
+    });
+  });
   p=p.then(function(){ return upsert("odeme_durum",f.oddurum.ekle,"odeme_id,yil,ay"); });
   p=p.then(function(){ return upsert("odeme_tutar",f.odtutar.ekle,"odeme_id,yil,ay"); });
   return p.then(function(){
@@ -2562,9 +2669,10 @@ function sina(){
 }
 
 sesOku();
-var API={aktif:aktif, sina:sina, girisli:girisli, uid:uid, eposta:aktifEposta,
+var API={aktif:aktif, sina:sina, girisli:girisli, uid:uid, eposta:aktifEposta, isAdmin:isAdmin,
         giris:giris, cikis:cikis, tazele:tazele, yukle:yukle, kaydet:kaydet,
         dosyaYukle:dosyaYukle, dosyaLink:dosyaLink, dosyaSil:dosyaSil};
+window.isAdmin=isAdmin;
 
 
 /* ============================================================================

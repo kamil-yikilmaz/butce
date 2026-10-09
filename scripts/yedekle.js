@@ -67,10 +67,16 @@ async function calistir() {
 
   const a = (ayarRows && ayarRows[0]) || {};
   const dv = (dvRows || []).sort((x, y) => ((x.yil || 0) * 12 + (x.ay || 0)) - ((y.yil || 0) * 12 + (y.ay || 0)));
-  const tk = (tkRows || []).sort((x, y) => ((x.bas_yil || 0) * 12 + (x.bas_ay || 0)) - ((y.bas_yil || 0) * 12 + (y.bas_ay || 0)));
+  const tk = (tkRows || []).sort((x, y) => {
+    if (x.sira !== undefined && y.sira !== undefined && x.sira !== y.sira) return (x.sira || 0) - (y.sira || 0);
+    return ((x.bas_yil || 0) * 12 + (x.bas_ay || 0)) - ((y.bas_yil || 0) * 12 + (y.bas_ay || 0));
+  });
   const ba = (baRows || []).sort((x, y) => ((x.yil || 0) * 12 + (x.ay || 0)) - ((y.yil || 0) * 12 + (y.ay || 0)));
   const bk = (bkRows || []).sort((x, y) => (x.sira || 0) - (y.sira || 0));
-  const od = (odRows || []).sort((x, y) => (x.gun || 0) - (y.gun || 0));
+  const od = (odRows || []).sort((x, y) => {
+    if (x.sira !== undefined && y.sira !== undefined && x.sira !== y.sira) return (x.sira || 0) - (y.sira || 0);
+    return (x.gun || 0) - (y.gun || 0);
+  });
   const odd = oddRows || [];
   const odt = odtRows || [];
 
@@ -116,9 +122,12 @@ async function calistir() {
           (k.tur === 'fatura' ? f : g).push({
             id: k.id,
             ad: k.ad || '',
-            tutar: Number(k.tutar || 0)
+            tutar: Number(k.tutar || 0),
+            sira: Number(k.sira || 0)
           });
         });
+        f.sort((p, q) => (p.sira || 0) - (q.sira || 0));
+        g.sort((p, q) => (p.sira || 0) - (q.sira || 0));
         return {
           id: x.id,
           yil: x.yil,
