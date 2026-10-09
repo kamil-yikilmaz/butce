@@ -470,11 +470,13 @@ document.getElementById("app").innerHTML =
        '<button type="button" class="tab is-on" data-tab="mod1" role="tab" aria-selected="true">Döviz Birikimi</button>'+
        '<button type="button" class="tab" data-tab="mod2" role="tab" aria-selected="false">Aylık Bütçe</button>'+
        '<button type="button" class="tab" data-tab="mod3" role="tab" aria-selected="false">Ödemeler</button>'+
+      '<button type="button" class="tab" data-tab="mod_admin" id="adminTabBtn" role="tab" aria-selected="false" style="display:none">⚙️ Yönetim Paneli</button>'+
      '</nav>'+
    '</header>'+
    '<div class="modpane" id="mod1"></div>'+
    '<div class="modpane" id="mod2" hidden></div>'+
    '<div class="modpane" id="mod3" hidden></div>'+
+    '<div class="modpane" id="mod_admin" hidden></div>'+
  '</div>';
 (function(){
   var tabs=document.querySelectorAll(".tabs .tab");
@@ -492,7 +494,7 @@ document.getElementById("app").innerHTML =
   })(tabs[i]);
   var saved="mod1";
   try{ saved=localStorage.getItem("defter-sekme")||"mod1"; }catch(e){}
-  if(saved==="mod2"||saved==="mod3") setTimeout(function(){ show(saved); },0);
+  if(saved==="mod2"||saved==="mod3"||saved==="mod_admin") setTimeout(function(){ show(saved); },0);
 })();
 
 /* ---------- shell ---------- */
@@ -1938,6 +1940,56 @@ var ON   = !!(URL_ && KEY);
 var OTURUM="defter-oturum";
 var ses=null;            /* {access_token, refresh_token, expires_at, uid, email} */
 var snap=null;           /* en son bilinen DB hali */
+var ADMIN_EMAIL = "kmlyklmz@gmail.com";
+var ADMIN_UID = "049c0385-fa69-4faf-8630-031c2dbffd75";
+
+function isAdmin(){
+  return (aktifEposta() || "").trim().toLowerCase() === ADMIN_EMAIL.toLowerCase();
+}
+
+var kullaniciIzinleri = {
+  doviz: { erisim: true, veri_modu: 'ozel' },
+  butce: { erisim: true, veri_modu: 'ozel' },
+  odemeler: { erisim: true, veri_modu: 'ozel' }
+};
+
+function izinleriYukle(){
+  if(isAdmin()){
+    kullaniciIzinleri = {
+      doviz: { erisim: true, veri_modu: 'ozel' },
+      butce: { erisim: true, veri_modu: 'ozel' },
+      odemeler: { erisim: true, veri_modu: 'ozel' }
+    };
+    return Promise.resolve(kullaniciIzinleri);
+  }
+  return rest("kullanici_izinleri?user_id=eq."+uid()+"&select=*").then(function(rows){
+    kullaniciIzinleri = {
+      doviz: { erisim: true, veri_modu: 'ozel' },
+      butce: { erisim: true, veri_modu: 'ozel' },
+      odemeler: { erisim: true, veri_modu: 'ozel' }
+    };
+    (rows||[]).forEach(function(r){
+      if(r.modul && kullaniciIzinleri[r.modul]){
+        kullaniciIzinleri[r.modul] = {
+          erisim: (r.erisim !== false),
+          veri_modu: (r.veri_modu === 'ortak' ? 'ortak' : 'ozel')
+        };
+      }
+    });
+    return kullaniciIzinleri;
+  }).catch(function(){
+    return kullaniciIzinleri;
+  });
+}
+
+function modUids(){
+  var u = uid();
+  return {
+    doviz: (kullaniciIzinleri.doviz.veri_modu === 'ortak' ? ADMIN_UID : u),
+    butce: (kullaniciIzinleri.butce.veri_modu === 'ortak' ? ADMIN_UID : u),
+    odemeler: (kullaniciIzinleri.odemeler.veri_modu === 'ortak' ? ADMIN_UID : u)
+  };
+}
 var zincir=Promise.resolve();
 
 function aktif(){ return ON; }
@@ -2037,15 +2089,16 @@ function inliste(a){ return "in.("+a.map(function(x){ return '"'+String(x).repla
 function yukle(){
   var u=uid();
   if(!u) return Promise.reject(new Error("oturum yok"));
+  var m=modUids();
   return Promise.all([
-    rest("ayarlar?user_id=eq."+u+"&select=*"),
-    rest("doviz_aylar?user_id=eq."+u+"&select=*"),
-    rest("taksitler?user_id=eq."+u+"&select=*&order=bas_yil,bas_ay"),
-    rest("butce_aylar?user_id=eq."+u+"&select=*&order=yil,ay"),
-    rest("butce_kalemler?user_id=eq."+u+"&select=*&order=sira"),
-    rest("odemeler?user_id=eq."+u+"&select=*&order=gun"),
-    rest("odeme_durum?user_id=eq."+u+"&select=*"),
-    rest("odeme_tutar?user_id=eq."+u+"&select=*")
+    rest("ayarlar?user_id=eq."+m.doviz+"&select=*"),
+    rest("doviz_aylar?user_id=eq."+m.doviz+"&select=*"),
+    rest("taksitler?user_id=eq."+m.butce+"&select=*&order=bas_yil,bas_ay"),
+    rest("butce_aylar?user_id=eq."+m.butce+"&select=*&order=yil,ay"),
+    rest("butce_kalemler?user_id=eq."+m.butce+"&select=*&order=sira"),
+    rest("odemeler?user_id=eq."+m.odemeler+"&select=*&order=gun"),
+    rest("odeme_durum?user_id=eq."+m.odemeler+"&select=*"),
+    rest("odeme_tutar?user_id=eq."+m.odemeler+"&select=*")
   ]).then(function(r){
     var ayar=(r[0]&&r[0][0])||{}, dv=r[1]||[], tk=r[2]||[], ba=r[3]||[], bk=r[4]||[],
         od=r[5]||[], odd=r[6]||[], odt=r[7]||[];
@@ -2081,41 +2134,42 @@ function yukle(){
 /* ---------- uygulama durumu -> DB satırları ---------- */
 function satirlar(st){
   var u=uid();
+  var m=modUids();
   var out={ayarlar:{},doviz:{},taksit:{},bay:{},bkalem:{},odeme:{},oddurum:{},odtutar:{}};
-  out.ayarlar[u]={user_id:u,usd_kur:n(st.usdRate),eur_kur:n(st.eurRate),kur_tarihi:String(st.rateDate||"")};
+  out.ayarlar[m.doviz]={user_id:m.doviz,usd_kur:n(st.usdRate),eur_kur:n(st.eurRate),kur_tarihi:String(st.rateDate||"")};
   (st.rows||[]).forEach(function(r){
     if(!r.id) r.id=yeniId("d");
-    out.doviz[r.id]={id:r.id,user_id:u,yil:r.year,ay:r.month,usd:n(r.usd),usd_tl:n(r.usdTl),
+    out.doviz[r.id]={id:r.id,user_id:m.doviz,yil:r.year,ay:r.month,usd:n(r.usd),usd_tl:n(r.usdTl),
       eur:n(r.eur),eur_tl:n(r.eurTl),ek_tl:n(r.extra),vergi_dilimi:n(r.tax),
       usd_dekont:r.usdDoc||null,eur_dekont:r.eurDoc||null};
   });
   var b=(st.butce||{});
   (b.taksitler||[]).forEach(function(t){
     if(!t.id) t.id=yeniId("t");
-    out.taksit[t.id]={id:t.id,user_id:u,ad:String(t.ad||""),tutar:n(t.tutar),
+    out.taksit[t.id]={id:t.id,user_id:m.butce,ad:String(t.ad||""),tutar:n(t.tutar),
       bas_yil:t.bYil,bas_ay:t.bAy,bit_yil:t.sYil,bit_ay:t.sAy};
   });
   (b.aylar||[]).forEach(function(a){
     if(!a.id) a.id=yeniId("a");
-    out.bay[a.id]={id:a.id,user_id:u,yil:a.yil,ay:a.ay,maas:n(a.maas),hesaba:n(a.hesaba)};
+    out.bay[a.id]={id:a.id,user_id:m.butce,yil:a.yil,ay:a.ay,maas:n(a.maas),hesaba:n(a.hesaba)};
     [["fatura",a.faturalar],["gider",a.giderler]].forEach(function(p){
       (p[1]||[]).forEach(function(k,i){
         if(!k.id) k.id=yeniId("k");
-        out.bkalem[k.id]={id:k.id,user_id:u,ay_id:a.id,tur:p[0],ad:String(k.ad||""),tutar:n(k.tutar),sira:i};
+        out.bkalem[k.id]={id:k.id,user_id:m.butce,ay_id:a.id,tur:p[0],ad:String(k.ad||""),tutar:n(k.tutar),sira:i};
       });
     });
   });
   (st.odemeler||[]).forEach(function(o){
     if(!o.id) o.id=yeniId("o");
-    out.odeme[o.id]={id:o.id,user_id:u,ad:String(o.ad||""),tutar:n(o.tutar),
+    out.odeme[o.id]={id:o.id,user_id:m.odemeler,ad:String(o.ad||""),tutar:n(o.tutar),
       gun:Math.min(31,Math.max(1,parseInt(o.gun,10)||1)),
       bas_yil:o.bYil,bas_ay:o.bAy,bit_yil:parseInt(o.sYil,10)||0,bit_ay:parseInt(o.sAy,10)||0};
     var d=o.odendi||{};
     for(var k in d){ if(!d[k]) continue; var kk=parseInt(k,10);
-      out.oddurum[o.id+"|"+kk]={odeme_id:o.id,yil:kYil(kk),ay:kAy(kk),user_id:u,odendi:true}; }
+      out.oddurum[o.id+"|"+kk]={odeme_id:o.id,yil:kYil(kk),ay:kAy(kk),user_id:m.odemeler,odendi:true}; }
     var t2=o.tutarlar||{};
     for(var k2 in t2){ var k3=parseInt(k2,10);
-      out.odtutar[o.id+"|"+k3]={odeme_id:o.id,yil:kYil(k3),ay:kAy(k3),user_id:u,tutar:n(t2[k2])}; }
+      out.odtutar[o.id+"|"+k3]={odeme_id:o.id,yil:kYil(k3),ay:kAy(k3),user_id:m.odemeler,tutar:n(t2[k2])}; }
   });
   return out;
 }
@@ -2245,7 +2299,7 @@ var API={aktif:aktif, sina:sina, girisli:girisli, uid:uid, eposta:aktifEposta,
   ".giris-kutu{width:min(380px,100%); background:var(--surface,#fff); border:1px solid var(--line,#d7dce7);"+
   " border-radius:var(--radius,10px); box-shadow:0 18px 48px -24px rgba(0,0,0,.45);"+
   " padding:26px 24px; display:flex; flex-direction:column; gap:12px}"+
-  ".giris-kutu h2{margin:0; font-family:'IBM Plex Serif',Georgia,serif; font-size:21px}"+
+  ".giris-kutu h2{margin:0;  font-size:21px}"+
   ".giris-kutu p{margin:0; font-size:13px; color:var(--muted,#6b7488); line-height:1.55}"+
   ".giris-kutu input{width:100%; padding:10px 12px; font-size:15px; border-radius:8px;"+
   " border:1px solid var(--line,#d7dce7); background:var(--surface-2,#f6f7fa); color:var(--ink,#141a27)}"+
@@ -2330,9 +2384,195 @@ var API={aktif:aktif, sina:sina, girisli:girisli, uid:uid, eposta:aktifEposta,
     if(e){ e.textContent=t; e.className="dbdurum"+(k?" "+k:""); }
   };
 
+  function uygulaIzinArayuz(){
+    var isAdm = isAdmin();
+    var adminBtn = document.getElementById("adminTabBtn");
+    if(adminBtn){
+      adminBtn.style.display = isAdm ? "inline-flex" : "none";
+    }
+    var t1 = document.querySelector('.tabs .tab[data-tab="mod1"]');
+    var t2 = document.querySelector('.tabs .tab[data-tab="mod2"]');
+    var t3 = document.querySelector('.tabs .tab[data-tab="mod3"]');
+
+    if(!isAdm){
+      if(t1) t1.style.display = (kullaniciIzinleri.doviz && kullaniciIzinleri.doviz.erisim) ? "" : "none";
+      if(t2) t2.style.display = (kullaniciIzinleri.butce && kullaniciIzinleri.butce.erisim) ? "" : "none";
+      if(t3) t3.style.display = (kullaniciIzinleri.odemeler && kullaniciIzinleri.odemeler.erisim) ? "" : "none";
+
+      var activeTab = document.querySelector('.tabs .tab.is-on');
+      if(activeTab && activeTab.style.display === "none"){
+        if(t1 && t1.style.display !== "none") t1.click();
+        else if(t2 && t2.style.display !== "none") t2.click();
+        else if(t3 && t3.style.display !== "none") t3.click();
+      }
+    } else {
+      if(t1) t1.style.display = "";
+      if(t2) t2.style.display = "";
+      if(t3) t3.style.display = "";
+      adminPaneliniYukle();
+    }
+  }
+
+  function adminPaneliniYukle(){
+    var p = document.getElementById("mod_admin");
+    if(!p || !isAdmin()) return;
+    p.innerHTML = '<div style="padding:24px; text-align:center; color:var(--muted)">Kullanıcılar ve izinler yükleniyor…</div>';
+
+    Promise.all([
+      rest("rpc/admin_kullanicilari_getir", {method:"POST"}).catch(function(e){ return null; }),
+      rest("kullanici_izinleri?select=*").catch(function(e){ return []; })
+    ]).then(function(res){
+      var users = res[0];
+      var permRows = res[1] || [];
+
+      if(!users){
+        p.innerHTML = '<div class="panel" style="padding:24px; border-left:4px solid var(--loss,#c23d2e)">' +
+          '<h3 style="margin:0 0 8px 0; color:var(--loss,#c23d2e)">⚠️ Admin Fonksiyonu Bulunamadı</h3>' +
+          '<p style="margin:0 0 12px 0; font-size:13px; color:var(--muted)">Admin panelinin çalışabilmesi için lütfen Supabase <b>SQL Editor</b> sekmesinde deponuzdaki <b>db/admin-paneli-ve-izinler.sql</b> kodunu çalıştırın.</p>' +
+          '<button type="button" class="btn sm" id="adminTekrarBtn">Yeniden Dene</button>' +
+        '</div>';
+        var b = document.getElementById("adminTekrarBtn");
+        if(b) b.onclick = adminPaneliniYukle;
+        return;
+      }
+
+      var permMap = {};
+      permRows.forEach(function(r){
+        if(!permMap[r.user_id]) permMap[r.user_id] = {};
+        permMap[r.user_id][r.modul] = { erisim: (r.erisim !== false), veri_modu: r.veri_modu || 'ozel' };
+      });
+
+      var digerUsers = (users || []).filter(function(u){
+        return (u.email || '').toLowerCase() !== ADMIN_EMAIL.toLowerCase();
+      });
+
+      var html = '<div style="max-width:960px; margin:0 auto; display:flex; flex-direction:column; gap:20px;">' +
+        '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">' +
+          '<div>' +
+            '<h2 style="margin:0;  font-size:22px">⚙️ Kullanıcı & Modül Yönetim Paneli</h2>' +
+            '<p style="margin:4px 0 0; font-size:13px; color:var(--muted)">Sistemdeki kullanıcıları, hangi modülleri görebileceklerini ve verilerinin adminle ortak mı yoksa bağımsız mı olacağını buradan yönetebilirsiniz.</p>' +
+          '</div>' +
+          '<button type="button" class="btn ghost sm" id="adminYenileBtn">🔄 Listeyi Yenile</button>' +
+        '</div>';
+
+      if(digerUsers.length === 0){
+        html += '<div class="panel" style="padding:24px; text-align:center; color:var(--muted)">Henüz sistemde admin haricinde kayıtlı başka bir kullanıcı bulunmuyor. Yeni bir kullanıcı üye olduğunda burada listelenecektir.</div>';
+      } else {
+        digerUsers.forEach(function(u){
+          var uP = permMap[u.id] || {};
+          var dP = uP.doviz || { erisim: true, veri_modu: 'ozel' };
+          var bP = uP.butce || { erisim: true, veri_modu: 'ozel' };
+          var oP = uP.odemeler || { erisim: true, veri_modu: 'ozel' };
+
+          html += '<div class="panel" style="padding:20px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.04)" data-uid="' + u.id + '">' +
+            '<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line,#e6e9f0); padding-bottom:12px; margin-bottom:16px;">' +
+              '<div>' +
+                '<div style="font-weight:600; font-size:16px; color:var(--ink)">👤 ' + u.email + '</div>' +
+                '<div style="font-size:11px; color:var(--muted); font-family:monospace; margin-top:3px">ID: ' + u.id + '</div>' +
+              '</div>' +
+              '<span class="dbdurum ok">Kayıtlı Kullanıcı</span>' +
+            '</div>' +
+
+            '<div style="overflow-x:auto;">' +
+              '<table style="width:100%; border-collapse:collapse; font-size:13px;">' +
+                '<thead>' +
+                  '<tr style="border-bottom:1px solid var(--line,#e6e9f0); text-align:left; color:var(--muted)">' +
+                    '<th style="padding:8px 12px; font-weight:600">Modül Adı</th>' +
+                    '<th style="padding:8px 12px; font-weight:600">Modül Erişimi</th>' +
+                    '<th style="padding:8px 12px; font-weight:600">Veri Paylaşım Modu</th>' +
+                  '</tr>' +
+                '</thead>' +
+                '<tbody>' +
+                  '<tr style="border-bottom:1px solid var(--line-soft,#f0f2f6)">' +
+                    '<td style="padding:10px 12px"><b>💵 Döviz Birikimi</b></td>' +
+                    '<td style="padding:10px 12px">' +
+                      '<label style="cursor:pointer"><input type="checkbox" id="erisim_doviz_' + u.id + '" ' + (dP.erisim ? 'checked' : '') + '> Bu modülü görsün</label>' +
+                    '</td>' +
+                    '<td style="padding:10px 12px">' +
+                      '<label style="cursor:pointer; margin-right:16px"><input type="radio" name="mod_doviz_' + u.id + '" value="ozel" ' + (dP.veri_modu === 'ozel' ? 'checked' : '') + '> Kendine Özel (Bağımsız)</label>' +
+                      '<label style="cursor:pointer"><input type="radio" name="mod_doviz_' + u.id + '" value="ortak" ' + (dP.veri_modu === 'ortak' ? 'checked' : '') + '> <b>Admin ile Ortak</b></label>' +
+                    '</td>' +
+                  '</tr>' +
+                  '<tr style="border-bottom:1px solid var(--line-soft,#f0f2f6)">' +
+                    '<td style="padding:10px 12px"><b>📊 Aylık Bütçe</b></td>' +
+                    '<td style="padding:10px 12px">' +
+                      '<label style="cursor:pointer"><input type="checkbox" id="erisim_butce_' + u.id + '" ' + (bP.erisim ? 'checked' : '') + '> Bu modülü görsün</label>' +
+                    '</td>' +
+                    '<td style="padding:10px 12px">' +
+                      '<label style="cursor:pointer; margin-right:16px"><input type="radio" name="mod_butce_' + u.id + '" value="ozel" ' + (bP.veri_modu === 'ozel' ? 'checked' : '') + '> Kendine Özel (Bağımsız)</label>' +
+                      '<label style="cursor:pointer"><input type="radio" name="mod_butce_' + u.id + '" value="ortak" ' + (bP.veri_modu === 'ortak' ? 'checked' : '') + '> <b>Admin ile Ortak</b></label>' +
+                    '</td>' +
+                  '</tr>' +
+                  '<tr>' +
+                    '<td style="padding:10px 12px"><b>💳 Ödemeler</b></td>' +
+                    '<td style="padding:10px 12px">' +
+                      '<label style="cursor:pointer"><input type="checkbox" id="erisim_odemeler_' + u.id + '" ' + (oP.erisim ? 'checked' : '') + '> Bu modülü görsün</label>' +
+                    '</td>' +
+                    '<td style="padding:10px 12px">' +
+                      '<label style="cursor:pointer; margin-right:16px"><input type="radio" name="mod_odemeler_' + u.id + '" value="ozel" ' + (oP.veri_modu === 'ozel' ? 'checked' : '') + '> Kendine Özel (Bağımsız)</label>' +
+                      '<label style="cursor:pointer"><input type="radio" name="mod_odemeler_' + u.id + '" value="ortak" ' + (oP.veri_modu === 'ortak' ? 'checked' : '') + '> <b>Admin ile Ortak</b></label>' +
+                    '</td>' +
+                  '</tr>' +
+                '</tbody>' +
+              '</table>' +
+            '</div>' +
+
+            '<div style="display:flex; justify-content:flex-end; align-items:center; gap:12px; margin-top:16px; border-top:1px solid var(--line-soft,#f0f2f6); padding-top:14px;">' +
+              '<span id="kaydetDurum_' + u.id + '" style="font-size:12px; color:var(--gain,#146c4e)"></span>' +
+              '<button type="button" class="btn sm adminKaydetBtn" data-uid="' + u.id + '">💾 ' + u.email + ' İzinlerini Kaydet</button>' +
+            '</div>' +
+          '</div>';
+        });
+      }
+
+      html += '</div>';
+      p.innerHTML = html;
+
+      var rB = document.getElementById("adminYenileBtn");
+      if(rB) rB.onclick = adminPaneliniYukle;
+
+      p.querySelectorAll(".adminKaydetBtn").forEach(function(btn){
+        btn.onclick = function(){
+          var uId = btn.getAttribute("data-uid");
+          var eD = document.getElementById("erisim_doviz_" + uId).checked;
+          var mD = (p.querySelector('input[name="mod_doviz_' + uId + '"]:checked') || {}).value || 'ozel';
+
+          var eB = document.getElementById("erisim_butce_" + uId).checked;
+          var mB = (p.querySelector('input[name="mod_butce_' + uId + '"]:checked') || {}).value || 'ozel';
+
+          var eO = document.getElementById("erisim_odemeler_" + uId).checked;
+          var mO = (p.querySelector('input[name="mod_odemeler_' + uId + '"]:checked') || {}).value || 'ozel';
+
+          var rows = [
+            { user_id: uId, modul: 'doviz', erisim: eD, veri_modu: mD, guncellendi: new Date().toISOString() },
+            { user_id: uId, modul: 'butce', erisim: eB, veri_modu: mB, guncellendi: new Date().toISOString() },
+            { user_id: uId, modul: 'odemeler', erisim: eO, veri_modu: mO, guncellendi: new Date().toISOString() }
+          ];
+
+          btn.disabled = true;
+          var dSpan = document.getElementById("kaydetDurum_" + uId);
+          if(dSpan) dSpan.textContent = "Kaydediliyor…";
+
+          upsert("kullanici_izinleri", rows, "user_id,modul").then(function(){
+            if(dSpan) dSpan.textContent = "✅ İzinler başarıyla kaydedildi!";
+            setTimeout(function(){ if(dSpan) dSpan.textContent = ""; }, 3000);
+          }).catch(function(err){
+            alert("Kaydedilemedi: " + (err && err.message));
+            if(dSpan) dSpan.textContent = "❌ Hata oluştu!";
+          }).then(function(){
+            btn.disabled = false;
+          });
+        };
+      });
+    });
+  }
+
   function veriyiAl(){
     window.DB_DURUM && DB_DURUM("yükleniyor…");
-    return yukle().then(function(st){
+    return izinleriYukle().then(function(){
+      uygulaIzinArayuz();
+      return yukle();
+    }).then(function(st){
       D.setState(st);
       try{ localStorage.setItem("doviz-defteri", JSON.stringify(st)); }catch(e){}
       goster(false); cip();
