@@ -337,7 +337,7 @@ td.odn,.odn{font-size:12.5px; white-space:nowrap}
 <div id="app"></div>
 
 <script id="app-state" type="application/json">
-{"savedAt":1788265006855,"usdRate":48.2238,"eurRate":55.9713,"rateDate":"03.09.2026","rows":[{"id":"r1","year":2026,"month":4,"usd":150,"usdTl":6723.96,"eur":0,"eurTl":0,"extra":0,"tax":27,"usdDoc":null,"eurDoc":null},{"id":"r2","year":2026,"month":5,"usd":150,"usdTl":6819.4,"eur":0,"eurTl":0,"extra":0,"tax":27,"usdDoc":null,"eurDoc":null},{"id":"r3","year":2026,"month":6,"usd":150,"usdTl":6935.7,"eur":400,"eurTl":21308.16,"extra":0,"tax":27,"usdDoc":null,"eurDoc":null},{"id":"r4","year":2026,"month":7,"usd":150,"usdTl":7044.46,"eur":400,"eurTl":21478.52,"extra":0,"tax":27,"usdDoc":null,"eurDoc":null},{"id":"r5","year":2026,"month":8,"usd":150,"usdTl":7173.8,"eur":400,"eurTl":22072.16,"extra":0,"tax":27,"usdDoc":null,"eurDoc":null}],"butce":{"taksitler":[{"id":"t01","ad":"Tatil","tutar":6500,"bYil":2025,"bAy":7,"sYil":2026,"sAy":3},{"id":"t02","ad":"Ömer LCW okul","tutar":196,"bYil":2026,"bAy":1,"sYil":2026,"sAy":3},{"id":"t03","ad":"Hilal elbise","tutar":1000,"bYil":2025,"bAy":10,"sYil":2026,"sAy":3},{"id":"t04","ad":"Metin kışlık","tutar":435,"bYil":2025,"bAy":10,"sYil":2026,"sAy":3},{"id":"t05","ad":"Ömer ayakkabı","tutar":500,"bYil":2026,"bAy":4,"sYil":2026,"sAy":6},{"id":"t06","ad":"Fincan","tutar":235,"bYil":2026,"bAy":4,"sYil":2026,"sAy":6},{"id":"t07","ad":"Akbank","tutar":5833,"bYil":2025,"bAy":12,"sYil":2026,"sAy":5},{"id":"t08","ad":"Araba","tutar":18500,"bYil":2025,"bAy":7,"sYil":2028,"sAy":6},{"id":"t09","ad":"Kahve makinası","tutar":777,"bYil":2026,"bAy":4,"sYil":2026,"sAy":12},{"id":"t10","ad":"Metin & Ömer bayramlık","tutar":295,"bYil":2026,"bAy":3,"sYil":2026,"sAy":8},{"id":"t11","ad":"LCW okul bayram","tutar":400,"bYil":2026,"bAy":5,"sYil":2026,"sAy":10},{"id":"t12","ad":"LCW Kamil","tutar":367,"bYil":2026,"bAy":6,"sYil":2026,"sAy":11},{"id":"tmth18uwf7is","ad":"Aidat","tutar":1750,"bYil":2026,"bAy":8,"sYil":2026,"sAy":8}],"aylar":[{"id":"a202608","yil":2026,"ay":8,"maas":77000,"hesaba":23270,"faturalar":[{"ad":"İnternet","tutar":870},{"ad":"Elektrik","tutar":375},{"ad":"Gaz","tutar":95},{"ad":"Su","tutar":500}],"giderler":[{"ad":"Halı","tutar":2150},{"ad":"Nakit","tutar":300},{"ad":"Bamya","tutar":400},{"ad":"Kimlik","tutar":220},{"ad":"Amazon deterjan","tutar":1785},{"ad":"Seval Hediye","tutar":500}]}]},"odemeler":[]}
+{"savedAt":0,"usdRate":0,"eurRate":0,"rateDate":"","rows":[],"butce":{"taksitler":[],"aylar":[]},"odemeler":[]}
 </script>
 
 <script id="app-code">
@@ -2035,15 +2035,17 @@ function inliste(a){ return "in.("+a.map(function(x){ return '"'+String(x).repla
 
 /* ---------- DB -> uygulama durumu ---------- */
 function yukle(){
+  var u=uid();
+  if(!u) return Promise.reject(new Error("oturum yok"));
   return Promise.all([
-    rest("ayarlar?select=*"),
-    rest("doviz_aylar?select=*"),
-    rest("taksitler?select=*&order=bas_yil,bas_ay"),
-    rest("butce_aylar?select=*&order=yil,ay"),
-    rest("butce_kalemler?select=*&order=sira"),
-    rest("odemeler?select=*&order=gun"),
-    rest("odeme_durum?select=*"),
-    rest("odeme_tutar?select=*")
+    rest("ayarlar?user_id=eq."+u+"&select=*"),
+    rest("doviz_aylar?user_id=eq."+u+"&select=*"),
+    rest("taksitler?user_id=eq."+u+"&select=*&order=bas_yil,bas_ay"),
+    rest("butce_aylar?user_id=eq."+u+"&select=*&order=yil,ay"),
+    rest("butce_kalemler?user_id=eq."+u+"&select=*&order=sira"),
+    rest("odemeler?user_id=eq."+u+"&select=*&order=gun"),
+    rest("odeme_durum?user_id=eq."+u+"&select=*"),
+    rest("odeme_tutar?user_id=eq."+u+"&select=*")
   ]).then(function(r){
     var ayar=(r[0]&&r[0][0])||{}, dv=r[1]||[], tk=r[2]||[], ba=r[3]||[], bk=r[4]||[],
         od=r[5]||[], odd=r[6]||[], odt=r[7]||[];
@@ -2162,9 +2164,10 @@ function yaz(st){
 }
 function silCift(tablo,anahtarlar){
   var p=Promise.resolve();
+  var u=uid();
   anahtarlar.forEach(function(a){
     var par=a.split("|"), k=parseInt(par[1],10);
-    p=p.then(function(){ return sil(tablo,"odeme_id=eq."+encodeURIComponent(par[0])+"&yil=eq."+kYil(k)+"&ay=eq."+kAy(k)); });
+    p=p.then(function(){ return sil(tablo,"odeme_id=eq."+encodeURIComponent(par[0])+"&yil=eq."+kYil(k)+"&ay=eq."+kAy(k)+(u?"&user_id=eq."+u:"")); });
   });
   return p;
 }
@@ -2308,6 +2311,16 @@ var API={aktif:aktif, sina:sina, girisli:girisli, uid:uid, eposta:aktifEposta,
       cikis();
       var cElem=document.getElementById("dbCip");
       if(cElem) cElem.remove();
+      D.setState({
+        savedAt: 0,
+        usdRate: 0,
+        eurRate: 0,
+        rateDate: "",
+        rows: [],
+        butce: { taksitler: [], aylar: [] },
+        odemeler: []
+      });
+      try{ localStorage.removeItem("doviz-defteri"); }catch(e){}
       goster(true);
       hata("Çıkış yapıldı.");
     };
@@ -2320,15 +2333,8 @@ var API={aktif:aktif, sina:sina, girisli:girisli, uid:uid, eposta:aktifEposta,
   function veriyiAl(){
     window.DB_DURUM && DB_DURUM("yükleniyor…");
     return yukle().then(function(st){
-      var local = D.getState();
-      var dbDolu = st && ((st.rows&&st.rows.length) || (st.butce&&st.butce.taksitler&&st.butce.taksitler.length));
-      var localDolu = local && ((local.rows&&local.rows.length) || (local.butce&&local.butce.taksitler&&local.butce.taksitler.length));
-
-      if(!dbDolu && localDolu){
-        D.save("İlk senkronizasyon");
-      } else {
-        D.setState(st);
-      }
+      D.setState(st);
+      try{ localStorage.setItem("doviz-defteri", JSON.stringify(st)); }catch(e){}
       goster(false); cip();
       window.DB_DURUM && DB_DURUM((ses&&ses.email)||"bağlandı","ok");
     });
