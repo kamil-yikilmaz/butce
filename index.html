@@ -2842,121 +2842,276 @@ window.isAdmin=isAdmin;
       var html = '<div style="max-width:960px; margin:0 auto; display:flex; flex-direction:column; gap:20px;">' +
         '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">' +
           '<div>' +
-            '<h2 style="margin:0;  font-size:22px">⚙️ Kullanıcı & Modül Yönetim Paneli</h2>' +
+            '<h2 style="margin:0; font-size:22px">⚙️ Kullanıcı & Modül Yönetim Paneli</h2>' +
             '<p style="margin:4px 0 0; font-size:13px; color:var(--muted)">Sistemdeki kullanıcıları, hangi modülleri görebileceklerini ve verilerinin adminle ortak mı yoksa bağımsız mı olacağını buradan yönetebilirsiniz.</p>' +
           '</div>' +
           '<button type="button" class="btn ghost sm" id="adminYenileBtn">🔄 Listeyi Yenile</button>' +
         '</div>';
 
       if(digerUsers.length === 0){
-        html += '<div class="panel" style="padding:24px; text-align:center; color:var(--muted)">Henüz sistemde admin haricinde kayıtlı başka bir kullanıcı bulunmuyor. Yeni bir kullanıcı üye olduğunda burada listelenecektir.</div>';
-      } else {
-        digerUsers.forEach(function(u){
-          var uP = permMap[u.id] || {};
-          var dP = uP.doviz || { erisim: true, veri_modu: 'ozel' };
-          var bP = uP.butce || { erisim: true, veri_modu: 'ozel' };
-          var oP = uP.odemeler || { erisim: true, veri_modu: 'ozel' };
-
-          html += '<div class="panel" style="padding:20px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.04)" data-uid="' + u.id + '">' +
-            '<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line,#e6e9f0); padding-bottom:12px; margin-bottom:16px;">' +
-              '<div>' +
-                '<div style="font-weight:600; font-size:16px; color:var(--ink)">👤 ' + u.email + '</div>' +
-                '<div style="font-size:11px; color:var(--muted); font-family:monospace; margin-top:3px">ID: ' + u.id + '</div>' +
-              '</div>' +
-              '<span class="dbdurum ok">Kayıtlı Kullanıcı</span>' +
-            '</div>' +
-
-            '<div style="overflow-x:auto;">' +
-              '<table style="width:100%; border-collapse:collapse; font-size:13px;">' +
-                '<thead>' +
-                  '<tr style="border-bottom:1px solid var(--line,#e6e9f0); text-align:left; color:var(--muted)">' +
-                    '<th style="padding:8px 12px; font-weight:600">Modül Adı</th>' +
-                    '<th style="padding:8px 12px; font-weight:600">Modül Erişimi</th>' +
-                    '<th style="padding:8px 12px; font-weight:600">Veri Paylaşım Modu</th>' +
-                  '</tr>' +
-                '</thead>' +
-                '<tbody>' +
-                  '<tr style="border-bottom:1px solid var(--line-soft,#f0f2f6)">' +
-                    '<td style="padding:10px 12px"><b>💵 Döviz Birikimi</b></td>' +
-                    '<td style="padding:10px 12px">' +
-                      '<label style="cursor:pointer"><input type="checkbox" id="erisim_doviz_' + u.id + '" ' + (dP.erisim ? 'checked' : '') + '> Bu modülü görsün</label>' +
-                    '</td>' +
-                    '<td style="padding:10px 12px">' +
-                      '<label style="cursor:pointer; margin-right:16px"><input type="radio" name="mod_doviz_' + u.id + '" value="ozel" ' + (dP.veri_modu === 'ozel' ? 'checked' : '') + '> Kendine Özel (Bağımsız)</label>' +
-                      '<label style="cursor:pointer"><input type="radio" name="mod_doviz_' + u.id + '" value="ortak" ' + (dP.veri_modu === 'ortak' ? 'checked' : '') + '> <b>Admin ile Ortak</b></label>' +
-                    '</td>' +
-                  '</tr>' +
-                  '<tr style="border-bottom:1px solid var(--line-soft,#f0f2f6)">' +
-                    '<td style="padding:10px 12px"><b>📊 Aylık Bütçe</b></td>' +
-                    '<td style="padding:10px 12px">' +
-                      '<label style="cursor:pointer"><input type="checkbox" id="erisim_butce_' + u.id + '" ' + (bP.erisim ? 'checked' : '') + '> Bu modülü görsün</label>' +
-                    '</td>' +
-                    '<td style="padding:10px 12px">' +
-                      '<label style="cursor:pointer; margin-right:16px"><input type="radio" name="mod_butce_' + u.id + '" value="ozel" ' + (bP.veri_modu === 'ozel' ? 'checked' : '') + '> Kendine Özel (Bağımsız)</label>' +
-                      '<label style="cursor:pointer"><input type="radio" name="mod_butce_' + u.id + '" value="ortak" ' + (bP.veri_modu === 'ortak' ? 'checked' : '') + '> <b>Admin ile Ortak</b></label>' +
-                    '</td>' +
-                  '</tr>' +
-                  '<tr>' +
-                    '<td style="padding:10px 12px"><b>💳 Ödemeler</b></td>' +
-                    '<td style="padding:10px 12px">' +
-                      '<label style="cursor:pointer"><input type="checkbox" id="erisim_odemeler_' + u.id + '" ' + (oP.erisim ? 'checked' : '') + '> Bu modülü görsün</label>' +
-                    '</td>' +
-                    '<td style="padding:10px 12px">' +
-                      '<label style="cursor:pointer; margin-right:16px"><input type="radio" name="mod_odemeler_' + u.id + '" value="ozel" ' + (oP.veri_modu === 'ozel' ? 'checked' : '') + '> Kendine Özel (Bağımsız)</label>' +
-                      '<label style="cursor:pointer"><input type="radio" name="mod_odemeler_' + u.id + '" value="ortak" ' + (oP.veri_modu === 'ortak' ? 'checked' : '') + '> <b>Admin ile Ortak</b></label>' +
-                    '</td>' +
-                  '</tr>' +
-                '</tbody>' +
-              '</table>' +
-            '</div>' +
-
-            '<div style="display:flex; justify-content:flex-end; align-items:center; gap:12px; margin-top:16px; border-top:1px solid var(--line-soft,#f0f2f6); padding-top:14px;">' +
-              '<span id="kaydetDurum_' + u.id + '" style="font-size:12px; color:var(--gain,#146c4e)"></span>' +
-              '<button type="button" class="btn sm adminKaydetBtn" data-uid="' + u.id + '">💾 ' + u.email + ' İzinlerini Kaydet</button>' +
-            '</div>' +
-          '</div>';
-        });
+        html += '<div class="panel" style="padding:24px; text-align:center; color:var(--muted)">Henüz sistemde admin haricinde kayıtlı başka bir kullanıcı bulunmuyor. Yeni bir kullanıcı üye olduğunda burada listelenecektir.</div></div>';
+        p.innerHTML = html;
+        var rB0 = document.getElementById("adminYenileBtn");
+        if(rB0) rB0.onclick = adminPaneliniYukle;
+        return;
       }
 
-      html += '</div>';
+      html += '<div class="panel" style="padding:16px 20px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.04); background:var(--surface,#fff);">' +
+        '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">' +
+          '<label for="adminUserSearch" style="font-weight:600; font-size:14px; color:var(--ink);">👤 Yönetilecek Kullanıcıyı Seçin:</label>' +
+          '<span id="adminUserCountText" style="font-size:12px; color:var(--muted)">Toplam ' + digerUsers.length + ' kullanıcı</span>' +
+        '</div>' +
+        '<div style="position:relative; width:100%;">' +
+          '<div style="display:flex; gap:8px; align-items:center;">' +
+            '<div style="position:relative; flex:1;">' +
+              '<input type="text" id="adminUserSearch" style="width:100%; box-sizing:border-box; padding:10px 38px 10px 14px; font-size:14px; border:1px solid var(--line,#d5d9e2); border-radius:8px; background:var(--surface,#fff); color:var(--ink,#1a1e28);" placeholder="🔍 Kullanıcı ara (e-posta veya ID yazın)..." autocomplete="off">' +
+              '<button type="button" id="adminDropdownToggle" style="position:absolute; right:4px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; padding:8px 10px; color:var(--muted); font-size:12px;" title="Listeyi aç/kapat">▼</button>' +
+            '</div>' +
+            '<button type="button" class="btn ghost sm" id="adminClearSearch" style="white-space:nowrap; padding:9px 14px;" title="Tüm listeyi göster">Tüm Liste</button>' +
+          '</div>' +
+          '<div id="adminDropdownList" style="display:none; position:absolute; top:calc(100% + 4px); left:0; right:0; max-height:280px; overflow-y:auto; background:var(--surface,#fff); border:1px solid var(--line,#d5d9e2); border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.12); z-index:1000;"></div>' +
+        '</div>' +
+      '</div>' +
+      '<div id="adminUserPanelContainer"></div>' +
+      '</div>';
+
       p.innerHTML = html;
 
       var rB = document.getElementById("adminYenileBtn");
       if(rB) rB.onclick = adminPaneliniYukle;
 
-      p.querySelectorAll(".adminKaydetBtn").forEach(function(btn){
-        btn.onclick = function(){
-          var uId = btn.getAttribute("data-uid");
-          var eD = document.getElementById("erisim_doviz_" + uId).checked;
-          var mD = (p.querySelector('input[name="mod_doviz_' + uId + '"]:checked') || {}).value || 'ozel';
+      var searchInp = document.getElementById("adminUserSearch");
+      var toggleBtn = document.getElementById("adminDropdownToggle");
+      var clearBtn = document.getElementById("adminClearSearch");
+      var dropList = document.getElementById("adminDropdownList");
+      var panelContainer = document.getElementById("adminUserPanelContainer");
+      var countText = document.getElementById("adminUserCountText");
 
-          var eB = document.getElementById("erisim_butce_" + uId).checked;
-          var mB = (p.querySelector('input[name="mod_butce_' + uId + '"]:checked') || {}).value || 'ozel';
+      var selectedUid = digerUsers[0].id;
 
-          var eO = document.getElementById("erisim_odemeler_" + uId).checked;
-          var mO = (p.querySelector('input[name="mod_odemeler_' + uId + '"]:checked') || {}).value || 'ozel';
+      function renderCard(uId){
+        selectedUid = uId;
+        var u = digerUsers.find(function(x){ return x.id === uId; });
+        if(!u){
+          panelContainer.innerHTML = '<div class="panel" style="padding:32px; text-align:center; color:var(--muted); border-radius:10px;">' +
+            '<div style="font-size:24px; margin-bottom:8px;">👥</div>' +
+            '<div style="font-size:14px; font-weight:500;">İzinlerini düzenlemek için yukarıdaki aramalı listeden bir kullanıcı seçin.</div>' +
+          '</div>';
+          searchInp.value = "";
+          return;
+        }
 
-          var rows = [
-            { user_id: uId, modul: 'doviz', erisim: eD, veri_modu: mD, guncellendi: new Date().toISOString() },
-            { user_id: uId, modul: 'butce', erisim: eB, veri_modu: mB, guncellendi: new Date().toISOString() },
-            { user_id: uId, modul: 'odemeler', erisim: eO, veri_modu: mO, guncellendi: new Date().toISOString() }
-          ];
+        searchInp.value = u.email;
 
-          btn.disabled = true;
-          var dSpan = document.getElementById("kaydetDurum_" + uId);
-          if(dSpan) dSpan.textContent = "Kaydediliyor…";
+        var uP = permMap[u.id] || {};
+        var dP = uP.doviz || { erisim: true, veri_modu: 'ozel' };
+        var bP = uP.butce || { erisim: true, veri_modu: 'ozel' };
+        var oP = uP.odemeler || { erisim: true, veri_modu: 'ozel' };
 
-          upsert("kullanici_izinleri", rows, "user_id,modul").then(function(){
-            if(dSpan) dSpan.textContent = "✅ İzinler başarıyla kaydedildi!";
-            setTimeout(function(){ if(dSpan) dSpan.textContent = ""; }, 3000);
-          }).catch(function(err){
-            alert("Kaydedilemedi: " + (err && err.message));
-            if(dSpan) dSpan.textContent = "❌ Hata oluştu!";
-          }).then(function(){
-            btn.disabled = false;
-          });
-        };
+        var cardHtml = '<div class="panel" style="padding:22px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.05); background:var(--surface,#fff); border:1px solid var(--line-soft,#e7eaf1);" data-uid="' + u.id + '">' +
+          '<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line,#e6e9f0); padding-bottom:14px; margin-bottom:18px;">' +
+            '<div>' +
+              '<div style="font-weight:700; font-size:17px; color:var(--ink);">👤 ' + u.email + '</div>' +
+              '<div style="font-size:11px; color:var(--muted); font-family:monospace; margin-top:4px">Kullanıcı ID: ' + u.id + '</div>' +
+            '</div>' +
+            '<span class="dbdurum ok" style="padding:5px 12px; font-size:12px;">Kayıtlı Kullanıcı</span>' +
+          '</div>' +
+
+          '<div style="overflow-x:auto;">' +
+            '<table style="width:100%; border-collapse:collapse; font-size:13.5px;">' +
+              '<thead>' +
+                '<tr style="border-bottom:2px solid var(--line,#e6e9f0); text-align:left; color:var(--muted); font-size:12.5px; text-transform:uppercase; letter-spacing:0.04em;">' +
+                  '<th style="padding:10px 14px; font-weight:600">Modül Adı</th>' +
+                  '<th style="padding:10px 14px; font-weight:600">Modül Erişimi</th>' +
+                  '<th style="padding:10px 14px; font-weight:600">Veri Paylaşım Modu</th>' +
+                '</tr>' +
+              '</thead>' +
+              '<tbody>' +
+                '<tr style="border-bottom:1px solid var(--line-soft,#f0f2f6)">' +
+                  '<td style="padding:13px 14px"><b>💵 Döviz Birikimi</b></td>' +
+                  '<td style="padding:13px 14px">' +
+                    '<label style="cursor:pointer; display:inline-flex; align-items:center; gap:6px;"><input type="checkbox" id="erisim_doviz_' + u.id + '" ' + (dP.erisim ? 'checked' : '') + '> Bu modülü görsün</label>' +
+                  '</td>' +
+                  '<td style="padding:13px 14px">' +
+                    '<label style="cursor:pointer; margin-right:18px; display:inline-flex; align-items:center; gap:6px;"><input type="radio" name="mod_doviz_' + u.id + '" value="ozel" ' + (dP.veri_modu === 'ozel' ? 'checked' : '') + '> Kendine Özel (Bağımsız)</label>' +
+                    '<label style="cursor:pointer; display:inline-flex; align-items:center; gap:6px;"><input type="radio" name="mod_doviz_' + u.id + '" value="ortak" ' + (dP.veri_modu === 'ortak' ? 'checked' : '') + '> <b>Admin ile Ortak</b></label>' +
+                  '</td>' +
+                '</tr>' +
+                '<tr style="border-bottom:1px solid var(--line-soft,#f0f2f6)">' +
+                  '<td style="padding:13px 14px"><b>📊 Aylık Bütçe</b></td>' +
+                  '<td style="padding:13px 14px">' +
+                    '<label style="cursor:pointer; display:inline-flex; align-items:center; gap:6px;"><input type="checkbox" id="erisim_butce_' + u.id + '" ' + (bP.erisim ? 'checked' : '') + '> Bu modülü görsün</label>' +
+                  '</td>' +
+                  '<td style="padding:13px 14px">' +
+                    '<label style="cursor:pointer; margin-right:18px; display:inline-flex; align-items:center; gap:6px;"><input type="radio" name="mod_butce_' + u.id + '" value="ozel" ' + (bP.veri_modu === 'ozel' ? 'checked' : '') + '> Kendine Özel (Bağımsız)</label>' +
+                    '<label style="cursor:pointer; display:inline-flex; align-items:center; gap:6px;"><input type="radio" name="mod_butce_' + u.id + '" value="ortak" ' + (bP.veri_modu === 'ortak' ? 'checked' : '') + '> <b>Admin ile Ortak</b></label>' +
+                  '</td>' +
+                '</tr>' +
+                '<tr>' +
+                  '<td style="padding:13px 14px"><b>💳 Ödemeler</b></td>' +
+                  '<td style="padding:13px 14px">' +
+                    '<label style="cursor:pointer; display:inline-flex; align-items:center; gap:6px;"><input type="checkbox" id="erisim_odemeler_' + u.id + '" ' + (oP.erisim ? 'checked' : '') + '> Bu modülü görsün</label>' +
+                  '</td>' +
+                  '<td style="padding:13px 14px">' +
+                    '<label style="cursor:pointer; margin-right:18px; display:inline-flex; align-items:center; gap:6px;"><input type="radio" name="mod_odemeler_' + u.id + '" value="ozel" ' + (oP.veri_modu === 'ozel' ? 'checked' : '') + '> Kendine Özel (Bağımsız)</label>' +
+                    '<label style="cursor:pointer; display:inline-flex; align-items:center; gap:6px;"><input type="radio" name="mod_odemeler_' + u.id + '" value="ortak" ' + (oP.veri_modu === 'ortak' ? 'checked' : '') + '> <b>Admin ile Ortak</b></label>' +
+                  '</td>' +
+                '</tr>' +
+              '</tbody>' +
+            '</table>' +
+          '</div>' +
+
+          '<div style="display:flex; justify-content:flex-end; align-items:center; gap:14px; margin-top:20px; border-top:1px solid var(--line-soft,#f0f2f6); padding-top:16px;">' +
+            '<span id="kaydetDurum_' + u.id + '" style="font-size:13px; color:var(--gain,#146c4e); font-weight:500;"></span>' +
+            '<button type="button" class="btn sm" id="adminKaydetBtn_' + u.id + '">💾 ' + u.email + ' İzinlerini Kaydet</button>' +
+          '</div>' +
+        '</div>';
+
+        panelContainer.innerHTML = cardHtml;
+
+        var saveBtn = document.getElementById("adminKaydetBtn_" + u.id);
+        if(saveBtn){
+          saveBtn.onclick = function(){
+            var eD = document.getElementById("erisim_doviz_" + u.id).checked;
+            var mD = (panelContainer.querySelector('input[name="mod_doviz_' + u.id + '"]:checked') || {}).value || 'ozel';
+
+            var eB = document.getElementById("erisim_butce_" + u.id).checked;
+            var mB = (panelContainer.querySelector('input[name="mod_butce_' + u.id + '"]:checked') || {}).value || 'ozel';
+
+            var eO = document.getElementById("erisim_odemeler_" + u.id).checked;
+            var mO = (panelContainer.querySelector('input[name="mod_odemeler_' + u.id + '"]:checked') || {}).value || 'ozel';
+
+            var rows = [
+              { user_id: u.id, modul: 'doviz', erisim: eD, veri_modu: mD, guncellendi: new Date().toISOString() },
+              { user_id: u.id, modul: 'butce', erisim: eB, veri_modu: mB, guncellendi: new Date().toISOString() },
+              { user_id: u.id, modul: 'odemeler', erisim: eO, veri_modu: mO, guncellendi: new Date().toISOString() }
+            ];
+
+            saveBtn.disabled = true;
+            var dSpan = document.getElementById("kaydetDurum_" + u.id);
+            if(dSpan) dSpan.textContent = "Kaydediliyor…";
+
+            upsert("kullanici_izinleri", rows, "user_id,modul").then(function(){
+              permMap[u.id] = {
+                doviz: { erisim: eD, veri_modu: mD },
+                butce: { erisim: eB, veri_modu: mB },
+                odemeler: { erisim: eO, veri_modu: mO }
+              };
+              if(dSpan) dSpan.textContent = "✅ İzinler başarıyla kaydedildi!";
+              setTimeout(function(){ if(dSpan) dSpan.textContent = ""; }, 3000);
+            }).catch(function(err){
+              alert("Kaydedilemedi: " + (err && err.message));
+              if(dSpan) dSpan.textContent = "❌ Hata oluştu!";
+            }).then(function(){
+              saveBtn.disabled = false;
+            });
+          };
+        }
+      }
+
+      function populateDropdown(q){
+        q = (q || "").trim().toLowerCase();
+        var matches = digerUsers.filter(function(x){
+          if(!q) return true;
+          return (x.email || "").toLowerCase().indexOf(q) > -1 || (x.id || "").toLowerCase().indexOf(q) > -1;
+        });
+
+        countText.textContent = q ? ("Eşleşen " + matches.length + " / " + digerUsers.length + " kullanıcı") : ("Toplam " + digerUsers.length + " kullanıcı");
+
+        if(matches.length === 0){
+          dropList.innerHTML = '<div style="padding:16px; text-align:center; color:var(--muted); font-size:13px;">Eşleşen kullanıcı bulunamadı.</div>';
+          return;
+        }
+
+        var itemsHtml = matches.map(function(u){
+          var isSel = (u.id === selectedUid);
+          return '<div class="admin-drop-opt" data-uid="' + u.id + '" style="padding:11px 16px; cursor:pointer; border-bottom:1px solid var(--line-soft,#f0f2f6); display:flex; justify-content:space-between; align-items:center; background:' + (isSel ? 'var(--surface-2,#f6f7fa)' : 'transparent') + ';">' +
+            '<div>' +
+              '<div style="font-weight:600; font-size:13.5px; color:var(--ink); display:flex; align-items:center; gap:6px;">' +
+                '👤 ' + u.email + (isSel ? '<span style="font-size:11px; color:var(--gain,#146c4e); font-weight:normal; background:var(--gain-soft,#e1f0e9); padding:2px 6px; border-radius:4px;">Seçili</span>' : '') +
+              '</div>' +
+              '<div style="font-size:11px; color:var(--muted); font-family:monospace; margin-top:2px;">ID: ' + u.id + '</div>' +
+            '</div>' +
+            '<span style="font-size:12px; color:var(--muted); font-weight:500;">Seç →</span>' +
+          '</div>';
+        }).join("");
+
+        dropList.innerHTML = itemsHtml;
+
+        dropList.querySelectorAll(".admin-drop-opt").forEach(function(opt){
+          opt.onmouseenter = function(){ this.style.backgroundColor = 'var(--surface-2,#f6f7fa)'; };
+          opt.onmouseleave = function(){
+            var id = this.getAttribute("data-uid");
+            this.style.backgroundColor = (id === selectedUid) ? 'var(--surface-2,#f6f7fa)' : 'transparent';
+          };
+          opt.onclick = function(){
+            var uid = this.getAttribute("data-uid");
+            dropList.style.display = "none";
+            renderCard(uid);
+          };
+        });
+      }
+
+      function openDropdown(){
+        populateDropdown(searchInp.value);
+        dropList.style.display = "block";
+      }
+
+      function closeDropdown(){
+        dropList.style.display = "none";
+      }
+
+      searchInp.onfocus = function(){
+        this.select();
+        openDropdown();
+      };
+
+      searchInp.oninput = function(){
+        populateDropdown(this.value);
+        dropList.style.display = "block";
+      };
+
+      toggleBtn.onclick = function(e){
+        e.stopPropagation();
+        if(dropList.style.display === "block"){
+          closeDropdown();
+        } else {
+          searchInp.focus();
+          openDropdown();
+        }
+      };
+
+      clearBtn.onclick = function(e){
+        e.stopPropagation();
+        searchInp.value = "";
+        searchInp.focus();
+        populateDropdown("");
+        dropList.style.display = "block";
+      };
+
+      document.addEventListener("click", function(e){
+        if(!p.contains(e.target)) return;
+        if(!searchInp.contains(e.target) && !dropList.contains(e.target) && !toggleBtn.contains(e.target) && !clearBtn.contains(e.target)){
+          closeDropdown();
+        }
       });
+
+      searchInp.onkeydown = function(e){
+        if(e.key === "Escape"){
+          closeDropdown();
+        } else if(e.key === "Enter"){
+          e.preventDefault();
+          var firstOpt = dropList.querySelector(".admin-drop-opt");
+          if(firstOpt){
+            var uid = firstOpt.getAttribute("data-uid");
+            closeDropdown();
+            renderCard(uid);
+          }
+        }
+      };
+
+      // İlk kullanıcıyı seç ve kartını göster
+      renderCard(selectedUid);
     });
   }
 
