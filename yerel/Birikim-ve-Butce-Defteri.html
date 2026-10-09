@@ -1092,6 +1092,14 @@ function ayTaksitleri(k){
 }
 
 /* ---------- toplamlar ---------- */
+function toplamGonderim(a){
+  if(!a) return 0;
+  if(Array.isArray(a.gonderimler) && a.gonderimler.length){
+    return a.gonderimler.reduce(function(s,x){ return s+num(x.tutar); },0);
+  }
+  return num(a.hesaba);
+}
+
 function hesap(a){
   if(!a) return {taksit:0,fatura:0,gider:0,toplam:0,maas:0,kalan:0,hesaba:0,elde:0,bitiyor:0,aktif:0};
   var k=K(a.yil,a.ay);
@@ -1099,9 +1107,12 @@ function hesap(a){
   tk.forEach(function(t){ taksit+=num(t.tutar); if(tSon(t)===k) bitiyor++; });
   var fatura=(a.faturalar||[]).reduce(function(s,x){ return s+num(x.tutar); },0);
   var gider=(a.giderler||[]).reduce(function(s,x){ return s+num(x.tutar); },0);
-  var toplam=taksit+fatura+gider, maas=num(a.maas), hesaba=num(a.hesaba);
+  var hesaba=toplamGonderim(a);
+  a.hesaba=hesaba;
+  var toplam=taksit+fatura+gider, maas=num(a.maas);
+  var kalan=maas-toplam-hesaba; // Her gönderim kalandan otomatik düşer
   return {taksit:taksit,fatura:fatura,gider:gider,toplam:toplam,maas:maas,
-    kalan:maas-toplam, hesaba:hesaba, elde:maas-toplam-hesaba, bitiyor:bitiyor, aktif:tk.length};
+    kalan:kalan, hesaba:hesaba, elde:kalan, bitiyor:bitiyor, aktif:tk.length};
 }
 
 /* ---------- kaydetme ---------- */
@@ -1184,13 +1195,13 @@ function renderSummary(){
     '<div class="hcell"><span class="k">Toplam gider</span><span class="v">',tl(h.toplam),'</span>',
       '<span class="s">',fmt(h.aktif,0),' taksit · ',(a.faturalar||[]).length,' fatura · ',(a.giderler||[]).length,' kalem</span></div>',
     '<div class="hcell"><span class="k">Kalan</span><span class="v ',dir,'">',tl(h.kalan),'</span>',
-      (h.hesaba>0 ? '<span class="pill flat">hesaba '+fmt(h.hesaba,0)+' ₺ · elde '+fmt(h.elde,0)+' ₺</span>'
-                  : '<span class="s">maaşın %'+fmt(h.maas>0?h.kalan/h.maas*100:0,0)+'\'i</span>'),
+      '<span class="s">maaşın %'+fmt(h.maas>0?Math.max(0,h.kalan)/h.maas*100:0,0)+'\'i</span>',
     '</div></div>',
     '<div class="chips" style="margin-top:14px">',
       chip("Taksitler",tl(h.taksit)),
       chip("Faturalar",tl(h.fatura)),
       chip("Diğer giderler",tl(h.gider)),
+      (h.hesaba>0 ? chip("Hesaba gönderilen",tl(h.hesaba)) : ""),
       chip("Aktif taksit",fmt(h.aktif,0)+" kalem"),
       chip("Bu ay biten", h.bitiyor? fmt(h.bitiyor,0)+" taksit" : "—"),
     '</div>'].join("");
@@ -1200,21 +1211,50 @@ function renderGelir(){
   var a=seciliAy();
   if(!a){ $("pGelir").innerHTML=""; $("pGelir").hidden=true; return; }
   $("pGelir").hidden=false;
-  $("pGelir").innerHTML=
-    '<div class="panel-head"><h2>'+ymLabel(a.yil,a.ay)+'</h2><span class="hint">Maaş ve hesaba gönderilen tutar</span></div>'+
-    '<div class="gelir">'+
-      '<div class="field"><label for="bMaas">Maaş ₺</label><input id="bMaas" type="text" inputmode="decimal" value="'+inp(a.maas)+'" placeholder="0"></div>'+
-      '<div class="field"><label for="bHesaba">Hesaba gönderilen ₺ <span style="text-transform:none;letter-spacing:0">(varsa)</span></label><input id="bHesaba" type="text" inputmode="decimal" value="'+inp(a.hesaba)+'" placeholder="0"><span class="calc" id="bElde"></span></div>'+
-    '</div>';
-  $("bMaas").addEventListener("input",function(){ a.maas=num(this.value); renderSummary(); eldeNot(); kaydet(); });
-  $("bHesaba").addEventListener("input",function(){ a.hesaba=num(this.value); renderSummary(); eldeNot(); kaydet(); });
-  eldeNot();
-}
-function eldeNot(){
-  var a=seciliAy(); if(!a||!$("bElde")) return;
+
+  if(!Array.isArray(a.gonderimler)){
+    a.gonderimler = (num(a.hesaba) > 0) ? [{ad:"Hesaba Gönderim", tutar:num(a.hesaba)}] : [];
+  }
   var h=hesap(a);
-  $("bElde").textContent = h.hesaba>0 ? "elde kalan "+tl(h.elde) : "";
+
+  var gonRows = (a.gonderimler||[]).map(function(it, i){
+    return '<div class="row2" style="margin-bottom:8px;">'+
+      '<input type="text" data-gon-i="'+i+'" data-gon-f="ad" value="'+D.attr(it.ad||"")+'" placeholder="Gönderim açıklaması (örn: Kira, Yatırım, vb.)">'+
+      '<input type="text" inputmode="decimal" data-gon-i="'+i+'" data-gon-f="tutar" value="'+inp(it.tutar)+'" placeholder="0">'+
+      '<button type="button" class="icobtn danger" data-gon-sil="'+i+'">Sil</button>'+
+    '</div>';
+  }).join("");
+
+  $("pGelir").innerHTML=
+    '<div class="panel-head"><h2>'+ymLabel(a.yil,a.ay)+'</h2><span class="hint">Maaş ve hesaba gönderilen tutarlar</span></div>'+
+    '<div class="gelir" style="margin-bottom:18px;">'+
+      '<div class="field" style="max-width:240px"><label for="bMaas">Maaş ₺</label><input id="bMaas" type="text" inputmode="decimal" value="'+inp(a.maas)+'" placeholder="0"></div>'+
+    '</div>'+
+    '<div class="gonderim-bolum" style="border-top:1px solid var(--line-soft,#f0f2f6); padding-top:14px;">'+
+      '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">'+
+        '<div><h3 style="margin:0; font-size:14px; font-weight:600">Hesaba Gönderilenler</h3><span class="hint" style="font-size:11.5px">Her gönderim kalandan otomatik düşer</span></div>'+
+        '<span id="tot-gonderim" style="font-size:13px; font-weight:600; color:var(--ink)">Toplam '+tl(h.hesaba)+'</span>'+
+      '</div>'+
+      '<div class="rows" id="gonderimList">'+
+        (gonRows || '<div class="empty" style="padding:10px 0; color:var(--muted); font-size:12.5px;">Henüz hesaba gönderim girilmedi.</div>')+
+      '</div>'+
+      '<div class="rowfoot" style="margin-top:10px;"><button type="button" class="btn ghost sm" id="bEkleGonderim">+ Gönderim ekle</button></div>'+
+    '</div>';
+
+  $("bMaas").addEventListener("input",function(){ a.maas=num(this.value); renderSummary(); renderOzet(); kaydet(); });
+
+  var bEk = $("bEkleGonderim");
+  if(bEk){
+    bEk.addEventListener("click",function(){
+      a.gonderimler = a.gonderimler || [];
+      a.gonderimler.push({ad:"", tutar:0});
+      renderGelir(); renderSummary(); renderOzet(); kaydet();
+      var ins = $("pGelir").querySelectorAll('input[data-gon-f="ad"]');
+      if(ins.length) ins[ins.length-1].focus();
+    });
+  }
 }
+function eldeNot(){}
 
 function prog(oran){
   var p=Math.round(Math.max(0,Math.min(1,oran))*100);
@@ -1264,6 +1304,12 @@ function renderOzet(){
   if(!gid.length) out.push('<div class="oz-bos">Gider girilmemiş.</div>');
   gid.forEach(function(x){ out.push(ozRow({ad:D.attr(x.ad||"—"),tut:fmt(num(x.tutar))})); });
 
+  var gon=a.gonderimler||[];
+  if(gon.length){
+    out.push(ozGrp("Hesaba gönderilenler",gon.length,h.hesaba));
+    gon.forEach(function(x){ out.push(ozRow({ad:D.attr(x.ad||"Hesaba gönderim"),tut:fmt(num(x.tutar))})); });
+  }
+
   $("pOzet").innerHTML=
     '<div class="panel-head"><h2>Bu ayın özeti</h2><span class="hint">'+ymLabel(a.yil,a.ay)+
       ' · taksitler, faturalar ve giderler bir arada</span></div>'+
@@ -1274,7 +1320,8 @@ function renderOzet(){
         '<span class="oz-odn">Ödenen / Toplam ₺</span><span class="oz-drm">Durum</span>'+
       '</div>'+
       out.join("")+
-      '<div class="oz-foot"><span>Genel toplam</span><span class="v">'+fmt(h.toplam)+'</span></div>'+
+      '<div class="oz-foot"><span>Giderler toplamı</span><span class="v">'+fmt(h.toplam)+'</span></div>'+
+      (h.hesaba>0 ? '<div class="oz-foot"><span>Hesaba gönderilen toplam</span><span class="v">'+fmt(h.hesaba)+'</span></div>' : '')+
       '<div class="oz-foot son"><span>Maaş '+fmt(h.maas,0)+' ₺ sonrası kalan</span><span class="v">'+fmt(h.kalan)+'</span></div>'+
     '</div>';
 }
@@ -1394,6 +1441,15 @@ $("mod2").addEventListener("input",function(e){
     if(arr[i]){ arr[i][f]=(f==="tutar")?num(t.value):t.value; totNot(); renderSummary(); renderOzet(); kaydet(); }
     return;
   }
+  if(t.hasAttribute("data-gon-i") && a){
+    var arrG=a.gonderimler||[], iG=parseInt(t.getAttribute("data-gon-i"),10), fG=t.getAttribute("data-gon-f");
+    if(arrG[iG]){
+      arrG[iG][fG]=(fG==="tutar")?num(t.value):t.value;
+      var tg=$("tot-gonderim"); if(tg) tg.textContent="Toplam "+tl(toplamGonderim(a));
+      renderSummary(); renderOzet(); kaydet();
+    }
+    return;
+  }
   if(t.hasAttribute("data-t")){
     var id=t.getAttribute("data-t"), f2=t.getAttribute("data-f");
     var tk=B().taksitler.filter(function(x){ return x.id===id; })[0];
@@ -1434,6 +1490,11 @@ $("mod2").addEventListener("click",function(e){
   if(b.hasAttribute("data-sil") && a){
     var key3=b.getAttribute("data-sil"), i=parseInt(b.getAttribute("data-i"),10);
     (a[key3]||[]).splice(i,1); renderListeler(); renderSummary(); renderOzet(); kaydet(); return;
+  }
+  if(b.hasAttribute("data-gon-sil") && a){
+    var iGS=parseInt(b.getAttribute("data-gon-sil"),10);
+    (a.gonderimler||[]).splice(iGS,1);
+    renderGelir(); renderSummary(); renderOzet(); kaydet(); return;
   }
   if(b.hasAttribute("data-tsil")){
     var id=b.getAttribute("data-tsil");
@@ -2112,10 +2173,11 @@ function yukle(){
         taksitler:tk.map(function(x){ return {id:x.id,ad:x.ad,tutar:n(x.tutar),
           bYil:x.bas_yil,bAy:x.bas_ay,sYil:x.bit_yil,sAy:x.bit_ay}; }),
         aylar:ba.map(function(x){
+          var gonderimler = Array.isArray(x.gonderimler) ? x.gonderimler : (n(x.hesaba)>0 ? [{ad:"Hesaba Gönderim", tutar:n(x.hesaba)}] : []);
           var f=[],g=[];
           bk.forEach(function(k){ if(k.ay_id!==x.id) return;
             (k.tur==="fatura"?f:g).push({id:k.id,ad:k.ad,tutar:n(k.tutar)}); });
-          return {id:x.id,yil:x.yil,ay:x.ay,maas:n(x.maas),hesaba:n(x.hesaba),faturalar:f,giderler:g};
+          return {id:x.id,yil:x.yil,ay:x.ay,maas:n(x.maas),hesaba:n(x.hesaba),gonderimler:gonderimler,faturalar:f,giderler:g};
         })
       },
       odemeler:od.map(function(x){
@@ -2151,7 +2213,7 @@ function satirlar(st){
   });
   (b.aylar||[]).forEach(function(a){
     if(!a.id) a.id=yeniId("a");
-    out.bay[a.id]={id:a.id,user_id:m.butce,yil:a.yil,ay:a.ay,maas:n(a.maas),hesaba:n(a.hesaba)};
+    out.bay[a.id]={id:a.id,user_id:m.butce,yil:a.yil,ay:a.ay,maas:n(a.maas),hesaba:n(a.hesaba),gonderimler:a.gonderimler||[]};
     [["fatura",a.faturalar],["gider",a.giderler]].forEach(function(p){
       (p[1]||[]).forEach(function(k,i){
         if(!k.id) k.id=yeniId("k");
@@ -2205,7 +2267,19 @@ function yaz(st){
   p=p.then(function(){ return upsert("ayarlar",f.ayarlar.ekle,"user_id"); });
   p=p.then(function(){ return upsert("doviz_aylar",f.doviz.ekle,"id"); });
   p=p.then(function(){ return upsert("taksitler",f.taksit.ekle,"id"); });
-  p=p.then(function(){ return upsert("butce_aylar",f.bay.ekle,"id"); });
+  p=p.then(function(){
+    return upsert("butce_aylar",f.bay.ekle,"id").catch(function(err){
+      if(/gonderimler|column.*does not exist/i.test(err && err.message)){
+        var stripped = f.bay.ekle.map(function(item){
+          var cp = Object.assign({}, item);
+          delete cp.gonderimler;
+          return cp;
+        });
+        return upsert("butce_aylar", stripped, "id");
+      }
+      throw err;
+    });
+  });
   p=p.then(function(){ return upsert("butce_kalemler",f.bkalem.ekle,"id"); });
   p=p.then(function(){ return upsert("odemeler",f.odeme.ekle,"id"); });
   p=p.then(function(){ return upsert("odeme_durum",f.oddurum.ekle,"odeme_id,yil,ay"); });

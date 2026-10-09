@@ -125,6 +125,7 @@ async function calistir() {
           ay: x.ay,
           maas: Number(x.maas || 0),
           hesaba: Number(x.hesaba || 0),
+          gonderimler: Array.isArray(x.gonderimler) ? x.gonderimler : (Number(x.hesaba || 0) > 0 ? [{ ad: "Hesaba Gönderim", tutar: Number(x.hesaba) }] : []),
           faturalar: f,
           giderler: g
         };
