@@ -2856,20 +2856,26 @@ window.isAdmin=isAdmin;
         return;
       }
 
-      html += '<div class="panel" style="padding:16px 20px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.04); background:var(--surface,#fff);">' +
-        '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">' +
-          '<label for="adminUserSearch" style="font-weight:600; font-size:14px; color:var(--ink);">👤 Yönetilecek Kullanıcıyı Seçin:</label>' +
-          '<span id="adminUserCountText" style="font-size:12px; color:var(--muted)">Toplam ' + digerUsers.length + ' kullanıcı</span>' +
+      html += '<div class="panel" style="padding:18px 22px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.04); background:var(--surface,#fff); overflow:visible;">' +
+        '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;">' +
+          '<label for="adminUserSelect" style="font-weight:700; font-size:15px; color:var(--ink);">👤 Yönetilecek Kullanıcıyı Seçin:</label>' +
+          '<span id="adminUserCountText" style="font-size:12.5px; color:var(--muted); font-weight:500;">Toplam ' + digerUsers.length + ' kullanıcı</span>' +
         '</div>' +
-        '<div style="position:relative; width:100%;">' +
-          '<div style="display:flex; gap:8px; align-items:center;">' +
-            '<div style="position:relative; flex:1;">' +
-              '<input type="text" id="adminUserSearch" style="width:100%; box-sizing:border-box; padding:10px 38px 10px 14px; font-size:14px; border:1px solid var(--line,#d5d9e2); border-radius:8px; background:var(--surface,#fff); color:var(--ink,#1a1e28);" placeholder="🔍 Kullanıcı ara (e-posta veya ID yazın)..." autocomplete="off">' +
-              '<button type="button" id="adminDropdownToggle" style="position:absolute; right:4px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; padding:8px 10px; color:var(--muted); font-size:12px;" title="Listeyi aç/kapat">▼</button>' +
-            '</div>' +
-            '<button type="button" class="btn ghost sm" id="adminClearSearch" style="white-space:nowrap; padding:9px 14px;" title="Tüm listeyi göster">Tüm Liste</button>' +
+
+        '<div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">' +
+          '<div style="flex:1; min-width:240px;">' +
+            '<input type="text" id="adminUserSearch" style="width:100%; box-sizing:border-box; padding:10px 14px; font-size:14px; border:1px solid var(--line,#d5d9e2); border-radius:8px; background:var(--surface,#fff); color:var(--ink,#1a1e28);" placeholder="🔍 Listede ara (e-posta veya ID)..." autocomplete="off">' +
           '</div>' +
-          '<div id="adminDropdownList" style="display:none; position:absolute; top:calc(100% + 4px); left:0; right:0; max-height:280px; overflow-y:auto; background:var(--surface,#fff); border:1px solid var(--line,#d5d9e2); border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.12); z-index:1000;"></div>' +
+          '<div style="flex:2; min-width:260px;">' +
+            '<select id="adminUserSelect" style="width:100%; box-sizing:border-box; padding:10px 14px; font-size:14px; font-weight:600; border:1px solid var(--line,#d5d9e2); border-radius:8px; background:var(--surface,#fff); color:var(--ink,#1a1e28); cursor:pointer; height:42px;">' +
+            '</select>' +
+          '</div>' +
+          '<div>' +
+            '<button type="button" class="btn ghost sm" id="adminClearSearch" style="height:42px; padding:0 16px; white-space:nowrap;" title="Aramayı temizle ve tüm kullanıcıları göster">Tüm Liste</button>' +
+          '</div>' +
+        '</div>' +
+        '<div id="adminSearchHint" style="margin-top:8px; font-size:12px; color:var(--muted);">' +
+          '💡 Arama kutusuna yazarak yüzlerce kullanıcı arasında filtreleme yapabilir, yanındaki açılır listeden istediğiniz kullanıcıyı seçebilirsiniz.' +
         '</div>' +
       '</div>' +
       '<div id="adminUserPanelContainer"></div>' +
@@ -2881,9 +2887,8 @@ window.isAdmin=isAdmin;
       if(rB) rB.onclick = adminPaneliniYukle;
 
       var searchInp = document.getElementById("adminUserSearch");
-      var toggleBtn = document.getElementById("adminDropdownToggle");
+      var userSelect = document.getElementById("adminUserSelect");
       var clearBtn = document.getElementById("adminClearSearch");
-      var dropList = document.getElementById("adminDropdownList");
       var panelContainer = document.getElementById("adminUserPanelContainer");
       var countText = document.getElementById("adminUserCountText");
 
@@ -2895,13 +2900,10 @@ window.isAdmin=isAdmin;
         if(!u){
           panelContainer.innerHTML = '<div class="panel" style="padding:32px; text-align:center; color:var(--muted); border-radius:10px;">' +
             '<div style="font-size:24px; margin-bottom:8px;">👥</div>' +
-            '<div style="font-size:14px; font-weight:500;">İzinlerini düzenlemek için yukarıdaki aramalı listeden bir kullanıcı seçin.</div>' +
+            '<div style="font-size:14px; font-weight:500;">İzinlerini düzenlemek için yukarıdaki listeden bir kullanıcı seçin.</div>' +
           '</div>';
-          searchInp.value = "";
           return;
         }
-
-        searchInp.value = u.email;
 
         var uP = permMap[u.id] || {};
         var dP = uP.doviz || { erisim: true, veri_modu: 'ozel' };
@@ -3009,7 +3011,7 @@ window.isAdmin=isAdmin;
         }
       }
 
-      function populateDropdown(q){
+      function populateSelect(q){
         q = (q || "").trim().toLowerCase();
         var matches = digerUsers.filter(function(x){
           if(!q) return true;
@@ -3018,100 +3020,48 @@ window.isAdmin=isAdmin;
 
         countText.textContent = q ? ("Eşleşen " + matches.length + " / " + digerUsers.length + " kullanıcı") : ("Toplam " + digerUsers.length + " kullanıcı");
 
+        userSelect.innerHTML = "";
         if(matches.length === 0){
-          dropList.innerHTML = '<div style="padding:16px; text-align:center; color:var(--muted); font-size:13px;">Eşleşen kullanıcı bulunamadı.</div>';
+          var noOpt = document.createElement("option");
+          noOpt.value = "";
+          noOpt.textContent = "Eşleşen kullanıcı bulunamadı";
+          userSelect.appendChild(noOpt);
+          renderCard("");
           return;
         }
 
-        var itemsHtml = matches.map(function(u){
-          var isSel = (u.id === selectedUid);
-          return '<div class="admin-drop-opt" data-uid="' + u.id + '" style="padding:11px 16px; cursor:pointer; border-bottom:1px solid var(--line-soft,#f0f2f6); display:flex; justify-content:space-between; align-items:center; background:' + (isSel ? 'var(--surface-2,#f6f7fa)' : 'transparent') + ';">' +
-            '<div>' +
-              '<div style="font-weight:600; font-size:13.5px; color:var(--ink); display:flex; align-items:center; gap:6px;">' +
-                '👤 ' + u.email + (isSel ? '<span style="font-size:11px; color:var(--gain,#146c4e); font-weight:normal; background:var(--gain-soft,#e1f0e9); padding:2px 6px; border-radius:4px;">Seçili</span>' : '') +
-              '</div>' +
-              '<div style="font-size:11px; color:var(--muted); font-family:monospace; margin-top:2px;">ID: ' + u.id + '</div>' +
-            '</div>' +
-            '<span style="font-size:12px; color:var(--muted); font-weight:500;">Seç →</span>' +
-          '</div>';
-        }).join("");
+        var hasCurrent = matches.some(function(x){ return x.id === selectedUid; });
+        var targetUid = hasCurrent ? selectedUid : matches[0].id;
 
-        dropList.innerHTML = itemsHtml;
-
-        dropList.querySelectorAll(".admin-drop-opt").forEach(function(opt){
-          opt.onmouseenter = function(){ this.style.backgroundColor = 'var(--surface-2,#f6f7fa)'; };
-          opt.onmouseleave = function(){
-            var id = this.getAttribute("data-uid");
-            this.style.backgroundColor = (id === selectedUid) ? 'var(--surface-2,#f6f7fa)' : 'transparent';
-          };
-          opt.onclick = function(){
-            var uid = this.getAttribute("data-uid");
-            dropList.style.display = "none";
-            renderCard(uid);
-          };
+        matches.forEach(function(u){
+          var opt = document.createElement("option");
+          opt.value = u.id;
+          opt.textContent = "👤 " + (u.email || "") + " (ID: " + u.id.slice(0, 8) + "…)";
+          if(u.id === targetUid) opt.selected = true;
+          userSelect.appendChild(opt);
         });
+
+        renderCard(targetUid);
       }
 
-      function openDropdown(){
-        populateDropdown(searchInp.value);
-        dropList.style.display = "block";
-      }
-
-      function closeDropdown(){
-        dropList.style.display = "none";
-      }
-
-      searchInp.onfocus = function(){
-        this.select();
-        openDropdown();
+      userSelect.onchange = function(){
+        if(this.value){
+          renderCard(this.value);
+        }
       };
 
       searchInp.oninput = function(){
-        populateDropdown(this.value);
-        dropList.style.display = "block";
+        populateSelect(this.value);
       };
 
-      toggleBtn.onclick = function(e){
-        e.stopPropagation();
-        if(dropList.style.display === "block"){
-          closeDropdown();
-        } else {
-          searchInp.focus();
-          openDropdown();
-        }
-      };
-
-      clearBtn.onclick = function(e){
-        e.stopPropagation();
+      clearBtn.onclick = function(){
         searchInp.value = "";
+        populateSelect("");
         searchInp.focus();
-        populateDropdown("");
-        dropList.style.display = "block";
       };
 
-      document.addEventListener("click", function(e){
-        if(!p.contains(e.target)) return;
-        if(!searchInp.contains(e.target) && !dropList.contains(e.target) && !toggleBtn.contains(e.target) && !clearBtn.contains(e.target)){
-          closeDropdown();
-        }
-      });
-
-      searchInp.onkeydown = function(e){
-        if(e.key === "Escape"){
-          closeDropdown();
-        } else if(e.key === "Enter"){
-          e.preventDefault();
-          var firstOpt = dropList.querySelector(".admin-drop-opt");
-          if(firstOpt){
-            var uid = firstOpt.getAttribute("data-uid");
-            closeDropdown();
-            renderCard(uid);
-          }
-        }
-      };
-
-      // İlk kullanıcıyı seç ve kartını göster
-      renderCard(selectedUid);
+      // Başlangıçta tüm kullanıcıları doldur ve ilkini göster
+      populateSelect("");
     });
   }
 
