@@ -9,6 +9,8 @@ on:
 jobs:
   yedekle-ve-gonder:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Depoyu Çek
         uses: actions/checkout@v4
@@ -21,6 +23,15 @@ jobs:
       - name: Tarih Bilgisini Belirle
         id: tarih
         run: echo "bugun=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
+      - name: TCMB Kurlarını Güncelle (Efektif Alış)
+        run: |
+          node scripts/guncelle-kurlar.js || echo "Kur guncelleme atlaniyor"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add kurlar.json
+          git commit -m "chore: Gunluk TCMB kurlari guncellendi [skip ci]" || echo "Degisiklik yok"
+          git push || echo "Push atlaniyor"
 
       - name: Supabase Veritabanından Yedeği Al
         env:

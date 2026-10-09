@@ -527,13 +527,13 @@ document.getElementById("mod1").innerHTML = [
 '<p class="lede">Her ay PDF\'teki tutarları gir: alış kurunu, vergi iadesini ve bugünkü TL karşılığını sayfa kendisi hesaplar.</p>',
 
 '<section class="rates">',
-  '<div class="field"><label for="uk">Dolar · TCMB</label><input id="uk" type="text" inputmode="decimal"></div>',
-  '<div class="field"><label for="ek">Euro · TCMB</label><input id="ek" type="text" inputmode="decimal"></div>',
-  '<div class="field"><label for="kt">Kur tarihi</label><input id="kt" type="text" placeholder="28.08.2026" style="width:118px"></div>',
+  '<div class="field"><label for="uk">Dolar · TCMB (Efektif Alış)</label><input id="uk" type="text" inputmode="decimal"></div>',
+  '<div class="field"><label for="ek">Euro · TCMB (Efektif Alış)</label><input id="ek" type="text" inputmode="decimal"></div>',
+  '<div class="field"><label for="kt">Kur tarihi</label><input id="kt" type="text" placeholder="09.10.2026" style="width:118px"></div>',
   '<div class="grow"></div>',
   '<div class="field" style="align-items:flex-end;gap:7px">',
-    '<a class="tcmb-link" href="https://www.tcmb.gov.tr/kurlar/today.xml" target="_blank" rel="noopener">TCMB günlük kurları ↗</a>',
-    '<span class="rate-note">Kuru güncelledikten sonra <b>Kuru kaydet</b>\'e bas.</span>',
+    '<a class="tcmb-link" href="https://www.tcmb.gov.tr/kurlar/today.xml" target="_blank" rel="noopener">TCMB today.xml ↗</a>',
+    '<span class="rate-note">TCMB Banknote Buying (Efektif Alış) kurları hesaplamada kullanılır.</span>',
   '</div>',
   '<div class="actions"><button type="button" class="btn ghost" id="saveRates">Kuru kaydet</button></div>',
 '</section>',
@@ -1935,7 +1935,8 @@ renderAll();
   var noteEl=document.querySelector(".rates .rate-note");
   if(noteEl) noteEl.id="fetchNote";
   var btn=document.createElement("button");
-  btn.type="button"; btn.className="btn ghost"; btn.id="fetchTcmb"; btn.textContent="Kuru yenile";
+  btn.type="button"; btn.className="btn sm"; btn.id="fetchTcmb"; btn.textContent="🔄 TCMB'den Çek";
+  btn.title="today.xml üzerinden Efektif Alış kurlarını çeker";
   var actions=document.querySelector(".rates .actions");
   if(actions) actions.insertBefore(btn,actions.firstChild); else document.querySelector(".rates").appendChild(btn);
 
@@ -1945,30 +1946,126 @@ renderAll();
   function apply(u,e,d,kaynak){
     setVal(uk,u); setVal(ek,e);
     if(d){ kt.value=d; kt.dispatchEvent(new Event("input",{bubbles:true})); }
-    note("TCMB "+(d||"")+" \u00b7 "+kaynak+" \u2014 Kuru kaydet'e bas",false);
+    note("TCMB ("+(d||"")+") Efektif Alış: $ "+(typeof fmt==="function"?fmt(u,4):u)+" · € "+(typeof fmt==="function"?fmt(e,4):e)+" · "+kaynak,false);
+    try{
+      var saveBtn=document.getElementById("saveRates");
+      if(saveBtn) saveBtn.click();
+    }catch(err){}
   }
+
   function parseXml(txt){
-    var doc=new DOMParser().parseFromString(txt,"text/xml");
-    function rate(code){ var n=doc.querySelector('Currency[CurrencyCode="'+code+'"] ForexBuying');
-      return n ? parseFloat(n.textContent) : NaN; }
-    var td=doc.querySelector("Tarih_Date");
-    return {usd:rate("USD"), eur:rate("EUR"), tarih: td ? (td.getAttribute("Tarih")||"") : ""};
+    if(!txt || typeof txt!=="string") return null;
+    txt=txt.trim();
+    if(txt.startsWith("{")){
+      try{
+        var j=JSON.parse(txt);
+        return {
+          usd: j.usd ? (j.usd.efektifAlis || j.usd.dovizAlis) : NaN,
+          eur: j.eur ? (j.eur.efektifAlis || j.eur.dovizAlis) : NaN,
+          tarih: j.tarih || ""
+        };
+      }catch(e){}
+    }
+
+    var mDate = txt.match(/Tarih_Date[^>]*Tarih="([^"]+)"/i);
+    var tarih = mDate ? mDate[1] : "";
+
+    function rate(code){
+      var re = new RegExp('<Currency[^>]*(?:Kod|CurrencyCode)="' + code + '"[\\s\\S]*?<\\/Currency>', 'i');
+      var m = txt.match(re);
+      if(!m) return NaN;
+      var chunk = m[0];
+      // Kullanıcı tercihi: Efektif Alış (Banknote Buying)
+      var b = chunk.match(/<BanknoteBuying>([^<]+)<\/BanknoteBuying>/i);
+      var val = b ? parseFloat(b[1].trim().replace(",", ".")) : NaN;
+      if(isNaN(val) || val <= 0){
+        var f = chunk.match(/<ForexBuying>([^<]+)<\/ForexBuying>/i);
+        val = f ? parseFloat(f[1].trim().replace(",", ".")) : NaN;
+      }
+      return val;
+    }
+
+    return {usd:rate("USD"), eur:rate("EUR"), tarih:tarih};
   }
-  function pull(manual){
-    note("TCMB kuru al\u0131n\u0131yor\u2026",false);
-    var sig;
-    try{ var c=new AbortController(); sig=c.signal; setTimeout(function(){ c.abort(); },12000); }catch(e){}
-    fetch("/tcmb?_="+Date.now(),{cache:"no-store",signal:sig})
-      .then(function(r){ if(!r.ok) throw new Error(r.status); return r.text(); })
-      .then(function(txt){
+
+  async function pull(manual){
+    note("TCMB kuru alınıyor…",false);
+    btn.disabled=true;
+    btn.textContent="⏳ Çekiliyor...";
+
+    var sources=[
+      "https://www.tcmb.gov.tr/kurlar/today.xml",
+      "./kurlar.json",
+      "https://raw.githubusercontent.com/kamil-yikilmaz/butce/main/kurlar.json"
+    ];
+
+    var found=null;
+    var kaynak="";
+
+    for(var i=0; i<sources.length; i++){
+      var url=sources[i];
+      try{
+        var sig;
+        if(window.AbortController){
+          var c=new AbortController();
+          sig=c.signal;
+          setTimeout(function(){ c.abort(); },4000);
+        }
+        var r=await fetch(url + (url.indexOf("?")>-1 ? "&" : "?") + "_=" + Date.now(), {cache:"no-store", signal:sig});
+        if(!r.ok) continue;
+        var txt=await r.text();
         var k=parseXml(txt);
-        if(!isFinite(k.usd)||!isFinite(k.eur)) throw new Error("kur yok");
-        apply(k.usd,k.eur,k.tarih,"canl\u0131");
-      })
-      .catch(function(){ note("TCMB kuruna ula\u015f\u0131lamad\u0131 \u2014 kuru elle girebilirsin.",!!manual); });
+        if(k && isFinite(k.usd) && k.usd > 0 && isFinite(k.eur) && k.eur > 0){
+          found=k;
+          kaynak = (i === 0 ? "today.xml" : "kurlar.json");
+          break;
+        }
+      }catch(e){}
+    }
+
+    btn.disabled=false;
+    btn.textContent="🔄 TCMB'den Çek";
+
+    if(found){
+      apply(found.usd, found.eur, found.tarih, kaynak);
+      return;
+    }
+
+    note("TCMB kuruna ulaşılamadı — kuru elle girebilir veya XML yapıştırabilirsiniz.", !!manual);
+
+    if(manual && typeof sheet==="function"){
+      sheet(
+        '<header><span class="nm">TCMB Kurlarını Getir</span><span class="acts"><button type="button" class="btn ghost sm" data-close>Kapat</button></span></header>' +
+        '<div class="msg" style="line-height:1.6">' +
+          '<p>Tarayıcınızın CORS güvenlik kısıtlaması nedeniyle doğrudan <b>today.xml</b> bağlantısına erişilemedi.</p>' +
+          '<p>1. Aşağıdaki bağlantıya tıklayarak TCMB sayfasını açın:<br>' +
+          '<a href="https://www.tcmb.gov.tr/kurlar/today.xml" target="_blank" rel="noopener" class="tcmb-link" style="font-size:14px; margin:6px 0; display:inline-block">🔗 TCMB today.xml\'i Aç ↗</a></p>' +
+          '<p>2. Açılan sayfadaki XML içeriğini kopyalayıp aşağıdaki kutucuğa yapıştırın:</p>' +
+          '<textarea id="tcmbXmlPaste" style="width:100%; height:110px; font-family:monospace; font-size:12px; padding:8px; border:1px solid var(--line); border-radius:6px; resize:vertical" placeholder="<Tarih_Date..."></textarea>' +
+          '<div style="margin-top:12px; text-align:right">' +
+            '<button type="button" class="btn sm" id="btnXmlIsle">Kurları Çıkar ve Uygula</button>' +
+          '</div>' +
+        '</div>'
+      );
+      var btnIsle = document.getElementById("btnXmlIsle");
+      if(btnIsle){
+        btnIsle.addEventListener("click", function(){
+          var txt = (document.getElementById("tcmbXmlPaste") || {}).value || "";
+          var p = parseXml(txt);
+          if(p && isFinite(p.usd) && p.usd > 0 && isFinite(p.eur) && p.eur > 0){
+            apply(p.usd, p.eur, p.tarih, "Yapıştırılan XML");
+            if(typeof closeSheet==="function") closeSheet();
+          } else {
+            alert("Geçerli bir TCMB XML içeriği bulunamadı. Lütfen XML'i eksiksiz yapıştırdığınızdan emin olun.");
+          }
+        });
+      }
+    }
   }
+
   btn.addEventListener("click",function(){ pull(true); });
-  pull(false);
+  // Sayfa açılışında kurları otomatik kontrol et (mevcut kurlar 0 veya boşsa)
+  if(!num(uk.value) || !num(ek.value)) { pull(false); }
 })();
 </script>
 <script id="backup-tools">
