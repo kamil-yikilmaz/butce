@@ -183,10 +183,12 @@ footer.note b{color:var(--ink-2); font-weight:600}
     grid-template-columns:1fr auto;
     grid-template-areas:
       "brand cip"
-      "tabs  tabs";
+      "nav   nav";
     gap:12px 10px;
     align-items:center;
     padding-bottom:12px;
+    position:relative;
+    z-index:50;
   }
   .mast-brand,.masthead>div:first-child{grid-area:brand; min-width:0}
   .mast-brand h1,.masthead>div:first-child h1{
@@ -221,27 +223,12 @@ footer.note b{color:var(--ink-2); font-weight:600}
     white-space:nowrap;
   }
   .tabs{
-    grid-area:tabs;
-    width:100%;
-    max-width:100%;
-    box-sizing:border-box;
-    display:flex;
-    flex-wrap:nowrap;
-    overflow-x:auto;
-    -webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
-    -ms-overflow-style:none;
-    padding:3px;
-    gap:4px;
-    border-radius:9px;
+    display:none !important;
   }
-  .tabs::-webkit-scrollbar{display:none}
-  .tab{
-    flex:0 0 auto!important;
-    padding:8px 12px!important;
-    font-size:13px!important;
-    white-space:nowrap!important;
-    border-radius:7px;
+  .nav-module-picker{
+    display:block !important;
+    grid-area:nav;
+    width:100%;
   }
   .wrap{padding:16px 12px 56px; gap:16px}
   .headline{grid-template-columns:1fr}
@@ -443,26 +430,106 @@ td.odn,.odn{font-size:12.5px; white-space:nowrap}
   .backup .bk-acts button{flex:1 1 auto}
 }
 
+/* Navigation Module Switcher (Mobile & Scalable) */
+.nav-module-picker{position:relative; display:none; width:100%; box-sizing:border-box}
+.nav-module-btn{
+  width:100%; min-height:44px; background:var(--surface); border:1px solid var(--line);
+  border-radius:10px; padding:9px 12px; display:flex; align-items:center;
+  justify-content:space-between; gap:10px; cursor:pointer; font-family:"IBM Plex Sans",system-ui,sans-serif;
+  box-shadow:0 1px 3px rgba(0,0,0,0.05); box-sizing:border-box; color:var(--ink);
+}
+.nav-module-cur{display:flex; align-items:center; gap:8px; font-weight:700; font-size:14.5px; color:var(--ink); min-width:0}
+.nav-cur-ico{font-size:18px; line-height:1; flex:0 0 auto}
+.nav-cur-txt{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.nav-module-chevron{font-size:12px; font-weight:600; color:var(--accent); background:var(--accent-soft); padding:4px 8px; border-radius:6px; white-space:nowrap; flex:0 0 auto}
+.nav-module-dropdown{
+  position:absolute; top:calc(100% + 5px); left:0; right:0; z-index:99999 !important;
+  background:var(--surface); border:1px solid var(--line); border-radius:12px;
+  box-shadow:0 16px 40px rgba(0,0,0,0.22), 0 2px 6px rgba(0,0,0,0.06);
+  overflow:hidden; display:flex; flex-direction:column; box-sizing:border-box; max-height:420px;
+}
+.nav-dropdown-title{padding:10px 14px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); background:var(--surface-2); border-bottom:1px solid var(--line-soft)}
+.nav-dropdown-list{overflow-y:auto; -webkit-overflow-scrolling:touch; padding:4px 0; display:flex; flex-direction:column}
+.nav-item-btn{
+  display:flex; align-items:center; gap:10px; padding:11px 14px; background:none; border:0;
+  width:100%; text-align:left; cursor:pointer; transition:background .12s; border-bottom:1px solid var(--line-soft);
+  color:var(--ink); font-family:"IBM Plex Sans",system-ui,sans-serif; box-sizing:border-box;
+}
+.nav-item-btn:last-child{border-bottom:none}
+.nav-item-btn:hover{background:var(--surface-2)}
+.nav-item-btn.is-active{background:var(--accent-soft); color:var(--accent)}
+.nav-item-ico{font-size:20px; line-height:1; flex:0 0 auto}
+.nav-item-content{display:flex; flex-direction:column; gap:1px; flex:1 1 auto; min-width:0}
+.nav-item-title{font-size:14px; font-weight:700; color:inherit}
+.nav-item-desc{font-size:11.5px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.nav-item-check{font-size:15px; font-weight:700; color:var(--gain); flex:0 0 auto}
+
 /* admin panel */
 .admin-container{max-width:960px; width:100%; margin:0 auto; display:flex; flex-direction:column; gap:16px; box-sizing:border-box}
 .admin-card-head{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px}
 .admin-head-titles h2{margin:0; font-size:20px}
 .admin-head-titles p{margin:3px 0 0; font-size:13px; color:var(--muted)}
-.admin-picker-panel{padding:16px 18px; border-radius:10px; box-sizing:border-box; width:100%; overflow:hidden}
+
+/* Searchable Custom Dropdown in Admin Panel */
+.admin-picker-panel{
+  padding:16px 18px; border-radius:10px; box-sizing:border-box; width:100%;
+  position:relative; z-index:100; overflow:visible !important;
+}
 .admin-picker-top{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px}
 .admin-picker-label{font-weight:700; font-size:14.5px; color:var(--ink)}
 .admin-count-badge{font-size:12px; color:var(--muted); font-weight:500}
-.admin-picker-controls{display:flex; flex-wrap:wrap; gap:8px; align-items:center; width:100%; box-sizing:border-box}
-.admin-picker-field{min-width:0; flex:1 1 200px}
-.admin-picker-field-select{flex:2 1 240px}
-.admin-picker-btn-wrap{flex:0 0 auto}
-.admin-input, .admin-select{
-  width:100%; box-sizing:border-box; padding:9px 12px; font-size:14px;
-  border:1px solid var(--line); border-radius:8px; background:var(--surface);
-  color:var(--ink); height:42px; font-family:"IBM Plex Sans",system-ui,sans-serif;
+
+.custom-dropdown-wrap{position:relative; width:100%; box-sizing:border-box}
+.custom-dropdown-trigger{
+  width:100%; min-height:44px; padding:10px 14px; background:var(--surface);
+  border:1px solid var(--line); border-radius:8px; color:var(--ink);
+  font-size:14.5px; font-weight:600; display:flex; align-items:center;
+  justify-content:space-between; gap:10px; cursor:pointer; box-sizing:border-box;
+  text-align:left; font-family:"IBM Plex Sans",system-ui,sans-serif;
+  transition:border-color .15s, box-shadow .15s;
 }
-.admin-select{font-weight:600; cursor:pointer; text-overflow:ellipsis; overflow:hidden; white-space:nowrap}
-.admin-hint{margin-top:8px; font-size:12px; color:var(--muted); line-height:1.45}
+.custom-dropdown-trigger:hover, .custom-dropdown-trigger:focus{border-color:var(--accent)}
+.custom-dropdown-trigger-text{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1 1 auto}
+.custom-dropdown-arrow{font-size:14px; color:var(--muted); flex:0 0 auto; transition:transform .15s ease}
+.custom-dropdown-wrap.is-open .custom-dropdown-arrow{transform:rotate(180deg)}
+
+.custom-dropdown-menu{
+  position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:99999 !important;
+  background:var(--surface); border:1px solid var(--line); border-radius:10px;
+  box-shadow:0 14px 36px rgba(0,0,0,0.22), 0 2px 6px rgba(0,0,0,0.06);
+  display:flex; flex-direction:column; overflow:hidden; box-sizing:border-box; max-height:360px;
+}
+.custom-dropdown-search-wrap{
+  padding:8px 10px; background:var(--surface-2); border-bottom:1px solid var(--line-soft);
+  display:flex; align-items:center; gap:6px; position:sticky; top:0; z-index:2;
+}
+.custom-dropdown-search-input{
+  flex:1 1 auto; padding:8px 10px; font-size:14.5px; border:1px solid var(--line);
+  border-radius:6px; background:var(--surface); color:var(--ink); outline:none;
+  box-sizing:border-box; font-family:"IBM Plex Sans",system-ui,sans-serif;
+}
+.custom-dropdown-search-input:focus{border-color:var(--accent)}
+.custom-dropdown-clear-btn{
+  background:none; border:0; color:var(--muted); font-size:13px; cursor:pointer;
+  padding:6px; line-height:1; border-radius:4px;
+}
+.custom-dropdown-clear-btn:hover{color:var(--ink)}
+.custom-dropdown-list{overflow-y:auto; -webkit-overflow-scrolling:touch; max-height:240px; padding:4px 0}
+.custom-dropdown-item{
+  padding:10px 14px; font-size:13.5px; color:var(--ink); cursor:pointer;
+  display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--line-soft);
+  transition:background .12s; user-select:none; box-sizing:border-box;
+}
+.custom-dropdown-item:last-child{border-bottom:none}
+.custom-dropdown-item:hover{background:var(--surface-2)}
+.custom-dropdown-item.is-selected{background:var(--accent-soft); color:var(--accent); font-weight:600}
+.custom-item-ico{font-size:16px; flex:0 0 auto}
+.custom-item-info{display:flex; flex-direction:column; gap:1px; flex:1 1 auto; min-width:0}
+.custom-item-email{font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.custom-item-id{font-size:11px; color:var(--muted); font-family:"IBM Plex Mono",monospace}
+.custom-item-check{font-size:14px; font-weight:700; color:var(--gain); flex:0 0 auto}
+.custom-dropdown-empty{padding:18px 14px; text-align:center; color:var(--muted); font-size:13px}
+.custom-dropdown-footer{padding:6px 12px; background:var(--surface-2); border-top:1px solid var(--line-soft); font-size:11.5px; color:var(--muted); text-align:right}
 
 .admin-user-card{padding:18px 20px; border-radius:10px; box-sizing:border-box; width:100%; overflow:hidden}
 .admin-user-header{display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; border-bottom:1px solid var(--line-soft); padding-bottom:12px; margin-bottom:14px}
@@ -496,10 +563,7 @@ td.odn,.odn{font-size:12.5px; white-space:nowrap}
 @media (max-width:768px){
   .admin-container{gap:12px}
   .admin-picker-panel{padding:14px 12px}
-  .admin-picker-controls{flex-direction:column; align-items:stretch; gap:8px}
-  .admin-picker-field, .admin-picker-field-select, .admin-picker-btn-wrap{width:100%; flex:1 1 auto}
-  .admin-picker-btn-wrap button{width:100%; height:42px}
-  .admin-input, .admin-select{font-size:15px}
+  .custom-dropdown-search-input{font-size:15px}
   
   .admin-user-card{padding:14px 12px}
   .admin-mod-card{padding:12px 10px}
@@ -657,6 +721,13 @@ function docField(cur,label){
 }
 
 /* ---------- ortak kabuk + sekmeler ---------- */
+window.DEFTER_MODULLER = [
+  { id: "mod1", ad: "Döviz Birikimi", ico: "💵", desc: "Döviz ve altın birikim takibi" },
+  { id: "mod2", ad: "Aylık Bütçe", ico: "📊", desc: "Maaş, taksit ve harcama bütçesi" },
+  { id: "mod3", ad: "Ödemeler", ico: "💳", desc: "Aylık düzenli ödeme planı" },
+  { id: "mod_admin", ad: "Yönetim Paneli", ico: "⚙️", desc: "Kullanıcı ve modül izinleri", adminOnly: true }
+];
+
 document.getElementById("app").innerHTML =
  '<div class="wrap">'+
    '<header class="masthead">'+
@@ -668,31 +739,130 @@ document.getElementById("app").innerHTML =
        '<button type="button" class="tab is-on" data-tab="mod1" role="tab" aria-selected="true">Döviz Birikimi</button>'+
        '<button type="button" class="tab" data-tab="mod2" role="tab" aria-selected="false">Aylık Bütçe</button>'+
        '<button type="button" class="tab" data-tab="mod3" role="tab" aria-selected="false">Ödemeler</button>'+
-      '<button type="button" class="tab" data-tab="mod_admin" id="adminTabBtn" role="tab" aria-selected="false" style="display:none">⚙️ Yönetim Paneli</button>'+
+       '<button type="button" class="tab" data-tab="mod_admin" id="adminTabBtn" role="tab" aria-selected="false" style="display:none">⚙️ Yönetim Paneli</button>'+
      '</nav>'+
+     '<div class="nav-module-picker" id="navModulePicker">'+
+       '<button type="button" class="nav-module-btn" id="navModuleBtn" aria-haspopup="true" aria-expanded="false">'+
+         '<span class="nav-module-cur" id="navModCurLabel"><span class="nav-cur-ico" id="navModCurIco">💵</span> <span class="nav-cur-txt" id="navModCurTxt">Döviz Birikimi</span></span>'+
+         '<span class="nav-module-chevron">Modül Değiştir ▾</span>'+
+       '</button>'+
+       '<div class="nav-module-dropdown" id="navModuleDropdown" style="display:none;">'+
+         '<div class="nav-dropdown-title">Modüller</div>'+
+         '<div class="nav-dropdown-list" id="navDropdownList"></div>'+
+       '</div>'+
+     '</div>'+
    '</header>'+
    '<div class="modpane" id="mod1"></div>'+
    '<div class="modpane" id="mod2" hidden></div>'+
    '<div class="modpane" id="mod3" hidden></div>'+
-    '<div class="modpane" id="mod_admin" hidden></div>'+
+   '<div class="modpane" id="mod_admin" hidden></div>'+
  '</div>';
+
 (function(){
-  var tabs=document.querySelectorAll(".tabs .tab");
-  function show(id){
-    for(var i=0;i<tabs.length;i++){
-      var on=tabs[i].getAttribute("data-tab")===id;
-      tabs[i].classList.toggle("is-on",on);
-      tabs[i].setAttribute("aria-selected",on?"true":"false");
-      document.getElementById(tabs[i].getAttribute("data-tab")).hidden=!on;
+  var curTabId = "mod1";
+  window.DEFTER_SHOW_TAB = function(id){
+    curTabId = id;
+    var tabs = document.querySelectorAll(".tabs .tab");
+    for(var i=0; i<tabs.length; i++){
+      var on = tabs[i].getAttribute("data-tab") === id;
+      tabs[i].classList.toggle("is-on", on);
+      tabs[i].setAttribute("aria-selected", on ? "true" : "false");
+      var pane = document.getElementById(tabs[i].getAttribute("data-tab"));
+      if(pane) pane.hidden = !on;
     }
-    try{ localStorage.setItem("defter-sekme",id); }catch(e){}
+    var mod = window.DEFTER_MODULLER.find(function(m){ return m.id === id; });
+    if(mod){
+      var curIco = document.getElementById("navModCurIco");
+      var curTxt = document.getElementById("navModCurTxt");
+      if(curIco) curIco.textContent = mod.ico;
+      if(curTxt) curTxt.textContent = mod.ad;
+    }
+    var listBtns = document.querySelectorAll("#navDropdownList .nav-item-btn");
+    for(var j=0; j<listBtns.length; j++){
+      var itemOn = listBtns[j].getAttribute("data-tab") === id;
+      listBtns[j].classList.toggle("is-active", itemOn);
+      var chk = listBtns[j].querySelector(".nav-item-check");
+      if(chk) chk.style.display = itemOn ? "inline-block" : "none";
+    }
+    try{ localStorage.setItem("defter-sekme", id); }catch(e){}
+    if(id === "mod_admin" && typeof window.adminPaneliniYukle === "function" && typeof window.isAdmin === "function" && window.isAdmin()){
+      window.adminPaneliniYukle();
+    }
+  };
+
+  window.DEFTER_YUKLE_MODUL_MENUSU = function(){
+    var list = document.getElementById("navDropdownList");
+    if(!list) return;
+    var isAdm = (typeof window.isAdmin === "function") ? window.isAdmin() : false;
+    var perms = (window.DEFTER_DB && window.DEFTER_DB.kullaniciIzinleri) || {};
+    list.innerHTML = "";
+    window.DEFTER_MODULLER.forEach(function(m){
+      if(m.adminOnly && !isAdm) return;
+      if(!isAdm){
+        if(m.id === "mod1" && perms.doviz && perms.doviz.erisim === false) return;
+        if(m.id === "mod2" && perms.butce && perms.butce.erisim === false) return;
+        if(m.id === "mod3" && perms.odemeler && perms.odemeler.erisim === false) return;
+      }
+      var isCur = m.id === curTabId;
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "nav-item-btn" + (isCur ? " is-active" : "");
+      btn.setAttribute("data-tab", m.id);
+      btn.innerHTML = '<span class="nav-item-ico">' + m.ico + '</span>' +
+        '<div class="nav-item-content">' +
+          '<div class="nav-item-title">' + m.ad + '</div>' +
+          '<div class="nav-item-desc">' + m.desc + '</div>' +
+        '</div>' +
+        '<span class="nav-item-check" style="' + (isCur ? '' : 'display:none;') + '">✓</span>';
+      
+      btn.onclick = function(){
+        window.DEFTER_SHOW_TAB(m.id);
+        closeNavDropdown();
+      };
+      list.appendChild(btn);
+    });
+  };
+
+  var navBtn = document.getElementById("navModuleBtn");
+  var navDropdown = document.getElementById("navModuleDropdown");
+  var navOpen = false;
+  function openNavDropdown(){
+    navOpen = true;
+    window.DEFTER_YUKLE_MODUL_MENUSU();
+    if(navDropdown) navDropdown.style.display = "flex";
+    if(navBtn) navBtn.setAttribute("aria-expanded", "true");
   }
-  for(var i=0;i<tabs.length;i++)(function(t){
-    t.addEventListener("click",function(){ show(t.getAttribute("data-tab")); });
+  function closeNavDropdown(){
+    navOpen = false;
+    if(navDropdown) navDropdown.style.display = "none";
+    if(navBtn) navBtn.setAttribute("aria-expanded", "false");
+  }
+  if(navBtn){
+    navBtn.onclick = function(e){
+      e.stopPropagation();
+      if(navOpen) closeNavDropdown();
+      else openNavDropdown();
+    };
+  }
+  document.addEventListener("click", function(e){
+    if(navOpen && navDropdown && !navDropdown.contains(e.target) && navBtn && !navBtn.contains(e.target)){
+      closeNavDropdown();
+    }
+  });
+
+  var tabs = document.querySelectorAll(".tabs .tab");
+  for(var i=0; i<tabs.length; i++)(function(t){
+    t.addEventListener("click", function(){ window.DEFTER_SHOW_TAB(t.getAttribute("data-tab")); });
   })(tabs[i]);
-  var saved="mod1";
-  try{ saved=localStorage.getItem("defter-sekme")||"mod1"; }catch(e){}
-  if(saved==="mod2"||saved==="mod3"||saved==="mod_admin") setTimeout(function(){ show(saved); },0);
+
+  var saved = "mod1";
+  try{ saved = localStorage.getItem("defter-sekme") || "mod1"; }catch(e){}
+  if(saved === "mod2" || saved === "mod3" || saved === "mod_admin"){
+    setTimeout(function(){ window.DEFTER_SHOW_TAB(saved); }, 0);
+  } else {
+    setTimeout(function(){ window.DEFTER_SHOW_TAB("mod1"); }, 0);
+  }
+  window.DEFTER_YUKLE_MODUL_MENUSU();
 })();
 
 /* ---------- shell ---------- */
@@ -1523,16 +1693,15 @@ function renderOzet(){
   // Dip toplamlar
   var foot = [];
   if(h.hesaba > 0){
-    foot.push('<div class="oz-foot"><span>Giderler toplamı</span><span class="v">'+fmt(h.toplam)+' ₺</span></div>');
-    foot.push('<div class="oz-foot"><span>Genel toplam (Giderler + Gönderim)</span><span class="v">'+fmt(genelToplam)+' ₺</span></div>');
+    foot.push('<div class="oz-foot"><span>Giderler</span><span class="v">'+fmt(h.toplam)+' ₺</span></div>');
+    foot.push('<div class="oz-foot"><span>Genel toplam</span><span class="v">'+fmt(genelToplam)+' ₺</span></div>');
   } else {
     foot.push('<div class="oz-foot"><span>Genel toplam</span><span class="v">'+fmt(h.toplam)+' ₺</span></div>');
   }
-  foot.push('<div class="oz-foot son"><span>Maaş '+fmt(h.maas,0)+' ₺ sonrası kalan</span><span class="v">'+fmt(h.kalan)+' ₺</span></div>');
+  foot.push('<div class="oz-foot son"><span>Kalan</span><span class="v">'+fmt(h.kalan)+' ₺</span></div>');
 
   $("pOzet").innerHTML=
-    '<div class="panel-head"><h2>Bu ayın özeti</h2><span class="hint">'+ymLabel(a.yil,a.ay)+
-      ' · taksitler, faturalar, diğer giderler ve hesaba gönderimler</span></div>'+
+    '<div class="panel-head"><h2>Bu ayın özeti</h2><span class="hint">'+ymLabel(a.yil,a.ay)+'</span></div>'+
     '<div class="ozet">'+
       html.join("")+
       foot.join("")+
@@ -2454,6 +2623,7 @@ function izinleriYukle(){
       butce: { erisim: true, veri_modu: 'ozel' },
       odemeler: { erisim: true, veri_modu: 'ozel' }
     };
+    if(typeof API !== "undefined") API.kullaniciIzinleri = kullaniciIzinleri;
     return Promise.resolve(kullaniciIzinleri);
   }
   return rest("kullanici_izinleri?user_id=eq."+uid()+"&select=*").then(function(rows){
@@ -2470,8 +2640,10 @@ function izinleriYukle(){
         };
       }
     });
+    if(typeof API !== "undefined") API.kullaniciIzinleri = kullaniciIzinleri;
     return kullaniciIzinleri;
   }).catch(function(){
+    if(typeof API !== "undefined") API.kullaniciIzinleri = kullaniciIzinleri;
     return kullaniciIzinleri;
   });
 }
@@ -2825,7 +2997,7 @@ function sina(){
 }
 
 sesOku();
-var API={aktif:aktif, sina:sina, girisli:girisli, uid:uid, eposta:aktifEposta, isAdmin:isAdmin,
+var API={aktif:aktif, sina:sina, girisli:girisli, uid:uid, eposta:aktifEposta, isAdmin:isAdmin, kullaniciIzinleri:kullaniciIzinleri,
         giris:giris, cikis:cikis, tazele:tazele, yukle:yukle, kaydet:kaydet,
         dosyaYukle:dosyaYukle, dosyaLink:dosyaLink, dosyaSil:dosyaSil};
 window.isAdmin=isAdmin;
@@ -2964,6 +3136,9 @@ window.isAdmin=isAdmin;
       if(t3) t3.style.display = "";
       adminPaneliniYukle();
     }
+    if(typeof window.DEFTER_YUKLE_MODUL_MENUSU === "function"){
+      window.DEFTER_YUKLE_MODUL_MENUSU();
+    }
   }
 
   function adminPaneliniYukle(){
@@ -3018,24 +3193,22 @@ window.isAdmin=isAdmin;
 
       html += '<div class="panel admin-picker-panel">' +
         '<div class="admin-picker-top">' +
-          '<label for="adminUserSelect" class="admin-picker-label">👤 Yönetilecek Kullanıcıyı Seçin:</label>' +
+          '<label class="admin-picker-label" for="customUserTrigger">👤 Yönetilecek Kullanıcıyı Seçin:</label>' +
           '<span id="adminUserCountText" class="admin-count-badge">Toplam ' + digerUsers.length + ' kullanıcı</span>' +
         '</div>' +
-
-        '<div class="admin-picker-controls">' +
-          '<div class="admin-picker-field">' +
-            '<input type="text" id="adminUserSearch" class="admin-input" placeholder="🔍 Listede ara (e-posta veya ID)..." autocomplete="off">' +
+        '<div class="custom-dropdown-wrap" id="customUserDropdown">' +
+          '<button type="button" class="custom-dropdown-trigger" id="customUserTrigger" aria-haspopup="listbox" aria-expanded="false">' +
+            '<span class="custom-dropdown-trigger-text" id="customUserTriggerText">👤 Kullanıcı seçin...</span>' +
+            '<span class="custom-dropdown-arrow">▾</span>' +
+          '</button>' +
+          '<div class="custom-dropdown-menu" id="customUserMenu" style="display:none;">' +
+            '<div class="custom-dropdown-search-wrap">' +
+              '<input type="text" class="custom-dropdown-search-input" id="customUserSearchInput" placeholder="🔍 Kullanıcı ara (e-posta veya ID)..." autocomplete="off">' +
+              '<button type="button" class="custom-dropdown-clear-btn" id="customUserClearBtn" title="Temizle">✕</button>' +
+            '</div>' +
+            '<div class="custom-dropdown-list" id="customUserList"></div>' +
+            '<div class="custom-dropdown-footer" id="customUserFooter">Toplam ' + digerUsers.length + ' kullanıcı</div>' +
           '</div>' +
-          '<div class="admin-picker-field admin-picker-field-select">' +
-            '<select id="adminUserSelect" class="admin-select">' +
-            '</select>' +
-          '</div>' +
-          '<div class="admin-picker-btn-wrap">' +
-            '<button type="button" class="btn ghost sm" id="adminClearSearch" title="Aramayı temizle ve tüm kullanıcıları göster">Tüm Liste</button>' +
-          '</div>' +
-        '</div>' +
-        '<div id="adminSearchHint" class="admin-hint">' +
-          '💡 Arama kutusuna yazarak kullanıcılar arasında filtreleme yapabilir, açılır listeden istediğiniz kullanıcıyı seçebilirsiniz.' +
         '</div>' +
       '</div>' +
       '<div id="adminUserPanelContainer"></div>' +
@@ -3046,12 +3219,7 @@ window.isAdmin=isAdmin;
       var rB = document.getElementById("adminYenileBtn");
       if(rB) rB.onclick = adminPaneliniYukle;
 
-      var searchInp = document.getElementById("adminUserSearch");
-      var userSelect = document.getElementById("adminUserSelect");
-      var clearBtn = document.getElementById("adminClearSearch");
       var panelContainer = document.getElementById("adminUserPanelContainer");
-      var countText = document.getElementById("adminUserCountText");
-
       var selectedUid = digerUsers[0].id;
 
       function renderCard(uId){
@@ -3239,59 +3407,150 @@ window.isAdmin=isAdmin;
         }
       }
 
-      function populateSelect(q){
+      var wrap = document.getElementById("customUserDropdown");
+      var triggerBtn = document.getElementById("customUserTrigger");
+      var triggerText = document.getElementById("customUserTriggerText");
+      var menu = document.getElementById("customUserMenu");
+      var searchInput = document.getElementById("customUserSearchInput");
+      var clearBtn = document.getElementById("customUserClearBtn");
+      var userList = document.getElementById("customUserList");
+      var footerText = document.getElementById("customUserFooter");
+      var countText = document.getElementById("adminUserCountText");
+
+      var isMenuOpen = false;
+
+      function openMenu(){
+        isMenuOpen = true;
+        if(wrap) wrap.classList.add("is-open");
+        if(menu) menu.style.display = "flex";
+        if(triggerBtn) triggerBtn.setAttribute("aria-expanded", "true");
+        setTimeout(function(){
+          if(searchInput) searchInput.focus();
+        }, 40);
+      }
+
+      function closeMenu(){
+        isMenuOpen = false;
+        if(wrap) wrap.classList.remove("is-open");
+        if(menu) menu.style.display = "none";
+        if(triggerBtn) triggerBtn.setAttribute("aria-expanded", "false");
+      }
+
+      function toggleMenu(){
+        if(isMenuOpen) closeMenu();
+        else openMenu();
+      }
+
+      if(triggerBtn){
+        triggerBtn.onclick = function(e){
+          e.stopPropagation();
+          toggleMenu();
+        };
+      }
+
+      function onOutsideClick(e){
+        if(isMenuOpen && wrap && !wrap.contains(e.target)){
+          closeMenu();
+        }
+      }
+      document.addEventListener("click", onOutsideClick);
+
+      function onKeyDown(e){
+        if(isMenuOpen && (e.key === "Escape" || e.keyCode === 27)){
+          closeMenu();
+          if(triggerBtn) triggerBtn.focus();
+        }
+      }
+      document.addEventListener("keydown", onKeyDown);
+
+      function updateTriggerLabel(u){
+        if(!triggerText) return;
+        if(u){
+          var shortId = u.id ? (u.id.slice(0, 8) + "…") : "";
+          triggerText.innerHTML = '👤 <strong>' + (u.email || "") + '</strong> <span style="opacity:0.75; font-weight:normal; font-size:12px; margin-left:6px;">(ID: ' + shortId + ')</span>';
+        } else {
+          triggerText.textContent = "👤 Kullanıcı seçin...";
+        }
+      }
+
+      function renderDropdownList(q){
         q = (q || "").trim().toLowerCase();
         var matches = digerUsers.filter(function(x){
           if(!q) return true;
           return (x.email || "").toLowerCase().indexOf(q) > -1 || (x.id || "").toLowerCase().indexOf(q) > -1;
         });
 
-        countText.textContent = q ? ("Eşleşen " + matches.length + " / " + digerUsers.length + " kullanıcı") : ("Toplam " + digerUsers.length + " kullanıcı");
+        var countStr = q ? ("Eşleşen " + matches.length + " / " + digerUsers.length + " kullanıcı") : ("Toplam " + digerUsers.length + " kullanıcı");
+        if(countText) countText.textContent = countStr;
+        if(footerText) footerText.textContent = countStr;
 
-        userSelect.innerHTML = "";
+        if(!userList) return;
+        userList.innerHTML = "";
+
         if(matches.length === 0){
-          var noOpt = document.createElement("option");
-          noOpt.value = "";
-          noOpt.textContent = "Eşleşen kullanıcı bulunamadı";
-          userSelect.appendChild(noOpt);
-          renderCard("");
+          var emptyDiv = document.createElement("div");
+          emptyDiv.className = "custom-dropdown-empty";
+          emptyDiv.textContent = "🔍 Aramaya uygun kullanıcı bulunamadı.";
+          userList.appendChild(emptyDiv);
           return;
         }
 
-        var hasCurrent = matches.some(function(x){ return x.id === selectedUid; });
-        var targetUid = hasCurrent ? selectedUid : matches[0].id;
-
         matches.forEach(function(u){
-          var opt = document.createElement("option");
-          opt.value = u.id;
-          opt.textContent = "👤 " + (u.email || "") + " (ID: " + u.id.slice(0, 8) + "…)";
-          if(u.id === targetUid) opt.selected = true;
-          userSelect.appendChild(opt);
-        });
+          var isSel = (u.id === selectedUid);
+          var item = document.createElement("div");
+          item.className = "custom-dropdown-item" + (isSel ? " is-selected" : "");
+          item.setAttribute("role", "option");
+          item.setAttribute("aria-selected", isSel ? "true" : "false");
 
-        renderCard(targetUid);
+          var shortId = u.id ? (u.id.slice(0, 8) + "…") : "";
+          item.innerHTML = '<span class="custom-item-ico">👤</span>' +
+            '<div class="custom-item-info">' +
+              '<span class="custom-item-email">' + (u.email || "") + '</span>' +
+              '<span class="custom-item-id">ID: ' + shortId + '</span>' +
+            '</div>' +
+            '<span class="custom-item-check" style="' + (isSel ? '' : 'display:none;') + '">✓</span>';
+
+          item.onclick = function(e){
+            e.stopPropagation();
+            selectedUid = u.id;
+            updateTriggerLabel(u);
+            renderCard(u.id);
+            renderDropdownList(searchInput ? searchInput.value : "");
+            closeMenu();
+          };
+
+          userList.appendChild(item);
+        });
       }
 
-      userSelect.onchange = function(){
-        if(this.value){
-          renderCard(this.value);
-        }
-      };
+      if(searchInput){
+        searchInput.oninput = function(){
+          renderDropdownList(this.value);
+        };
+      }
 
-      searchInp.oninput = function(){
-        populateSelect(this.value);
-      };
+      if(clearBtn){
+        clearBtn.onclick = function(e){
+          e.stopPropagation();
+          if(searchInput){
+            searchInput.value = "";
+            renderDropdownList("");
+            searchInput.focus();
+          }
+        };
+      }
 
-      clearBtn.onclick = function(){
-        searchInp.value = "";
-        populateSelect("");
-        searchInp.focus();
-      };
-
-      // Başlangıçta tüm kullanıcıları doldur ve ilkini göster
-      populateSelect("");
+      // Başlangıçta ilk kullanıcıyı seç ve listeyi oluştur
+      var initUser = digerUsers.find(function(x){ return x.id === selectedUid; }) || digerUsers[0];
+      if(initUser){
+        selectedUid = initUser.id;
+        updateTriggerLabel(initUser);
+        renderCard(initUser.id);
+      }
+      renderDropdownList("");
     });
   }
+  window.adminPaneliniYukle = adminPaneliniYukle;
 
   function veriyiAl(){
     window.DB_DURUM && DB_DURUM("yükleniyor…");
