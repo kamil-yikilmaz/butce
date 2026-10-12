@@ -44,14 +44,15 @@
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -16px rgba(0,0,0,.7);
 }
 *,*::before,*::after{box-sizing:border-box}
-html,body{margin:0;padding:0}
-img{max-width:100%}
-[hidden]{display:none!important}
+html{overflow-x:hidden; -webkit-text-size-adjust:100%}
 body{
+  overflow-x:hidden; width:100%; max-width:100vw; margin:0; padding:0;
   background:var(--ground); color:var(--ink);
   font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
 }
+img{max-width:100%}
+[hidden]{display:none!important}
 .wrap{max-width:1140px; margin:0 auto; padding:32px 20px 72px; display:flex; flex-direction:column; gap:22px}
 h1,h2,h3{margin:0; font-family:"IBM Plex Serif",Georgia,serif; font-weight:600; text-wrap:balance}
 h1{font-size:29px; letter-spacing:-.01em}
@@ -176,13 +177,73 @@ form.entry{padding:16px 18px 18px; display:flex; flex-direction:column; gap:14px
 footer.note{color:var(--muted); font-size:12.5px; line-height:1.65}
 footer.note b{color:var(--ink-2); font-weight:600}
 
-@media (max-width:720px){
-  .masthead{gap:12px}
-  .tabs{width:100%; overflow-x:auto; -ms-overflow-style:none; scrollbar-width:none}
+@media (max-width:820px){
+  .masthead{
+    display:grid;
+    grid-template-columns:1fr auto;
+    grid-template-areas:
+      "brand cip"
+      "tabs  tabs";
+    gap:12px 10px;
+    align-items:center;
+    padding-bottom:12px;
+  }
+  .mast-brand,.masthead>div:first-child{grid-area:brand; min-width:0}
+  .mast-brand h1,.masthead>div:first-child h1{
+    font-size:20px;
+    line-height:1.25;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .masthead .dbcip{
+    grid-area:cip;
+    margin-left:0;
+    justify-self:end;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    max-width:170px;
+    min-width:0;
+  }
+  .masthead .dbcip .dbdurum{
+    max-width:115px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    display:inline-block;
+    padding:3px 8px;
+    font-size:11px;
+  }
+  .masthead .dbcip .icobtn{
+    padding:3px 7px;
+    font-size:11.5px;
+    white-space:nowrap;
+  }
+  .tabs{
+    grid-area:tabs;
+    width:100%;
+    max-width:100%;
+    box-sizing:border-box;
+    display:flex;
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    -ms-overflow-style:none;
+    padding:3px;
+    gap:4px;
+    border-radius:9px;
+  }
   .tabs::-webkit-scrollbar{display:none}
-  .tab{flex:1 1 auto; padding:8px 9px; font-size:12.5px}
-  .wrap{padding:22px 14px 56px}
-  h1{font-size:24px}
+  .tab{
+    flex:0 0 auto!important;
+    padding:8px 12px!important;
+    font-size:13px!important;
+    white-space:nowrap!important;
+    border-radius:7px;
+  }
+  .wrap{padding:16px 12px 56px; gap:16px}
   .headline{grid-template-columns:1fr}
   .hcell .v{font-size:23px}
   .rates input{width:100%}
@@ -226,6 +287,20 @@ table.mini{min-width:620px}
   .monthbar .actions{width:100%; gap:6px}
   .monthbar .actions .btn{flex:1 1 auto}
   .monthbar .status{width:100%}
+  .rowfoot{flex-direction:column; align-items:stretch; gap:8px}
+  .rowfoot button{width:100%; text-align:center}
+  .rowfoot .rowtot{text-align:center; font-size:12.5px}
+}
+@media (max-width:540px){
+  .row2{
+    grid-template-columns:1fr auto;
+    gap:6px 8px;
+    padding:8px 12px;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .row2 input[data-f="ad"]{grid-column:1/-1}
+  .row2 input[data-f="tutar"]{grid-column:1}
+  .row2 .row-acts{grid-column:2; justify-self:end}
 }
 
 .acc-btn{display:flex; align-items:center; gap:8px; background:none; border:0; padding:0; cursor:pointer; color:inherit; text-align:left}
@@ -341,21 +416,118 @@ td.odn,.odn{font-size:12.5px; white-space:nowrap}
 .od-chk input{width:19px; height:19px; margin:0; accent-color:var(--gain); cursor:pointer}
 .od-chk span{display:none}
 @media (max-width:860px){
-  .od-row{grid-template-columns:26px minmax(0,1fr) auto; gap:7px 8px; padding:11px 12px 11px 9px}
-  .od-row .od-chk{grid-column:1; grid-row:1}
-  .od-row .od-ad{grid-column:2/-1; grid-row:1}
-  .od-row .od-tut{grid-column:2; grid-row:2}
+  .od-row{
+    grid-template-columns:26px 1fr auto;
+    gap:8px 8px;
+    padding:11px 12px 11px 10px;
+    align-items:center;
+  }
+  .od-row .od-chk{grid-column:1; grid-row:1; align-self:center}
+  .od-row .od-ad{grid-column:2/-1; grid-row:1; width:100%}
+  .od-row .od-tut{grid-column:1/3; grid-row:2; width:100%; max-width:160px; text-align:left}
   .od-row .od-drm{grid-column:3; grid-row:2; text-align:right; align-self:center}
-  .od-row .od-gun{grid-column:2/-1; grid-row:3}
-  .od-row .od-bit{grid-column:2; grid-row:4}
-  .od-row>button, .od-row .row-acts{grid-column:3; grid-row:4; justify-self:end; align-self:center}
-  .od-row .od-bit select{min-width:0; flex:1 1 auto}
-  .od-row .od-bit select:last-of-type{min-width:0; max-width:86px}
+  .od-row .od-gun{grid-column:1/3; grid-row:3; display:flex; align-items:center; gap:5px; white-space:nowrap}
+  .od-row .gun{width:42px; text-align:center}
+  .od-row>button, .od-row .row-acts{grid-column:3; grid-row:3; justify-self:end; align-self:center}
+  .od-row .od-bit{grid-column:1/-1; grid-row:4; display:flex; align-items:center; gap:6px; width:100%; margin-top:2px}
+  .od-row .od-bit select{min-width:0; flex:1 1 auto; width:100%}
+  .od-row .od-bit select:last-of-type{min-width:0; flex:0 0 76px; width:76px}
 }
 .backup{display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center; justify-content:space-between;
   background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:12px 16px}
 .backup .bk-note{font-size:12.5px; color:var(--muted); max-width:62ch}
 .backup .bk-acts{display:flex; gap:8px}
+@media (max-width:720px){
+  .backup{flex-direction:column; align-items:stretch; gap:10px; padding:12px 14px}
+  .backup .bk-acts{flex-wrap:wrap}
+  .backup .bk-acts button{flex:1 1 auto}
+}
+
+/* admin panel */
+.admin-card-head{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:4px}
+.admin-card-head h2{margin:0; font-size:21px}
+.admin-picker-wrap{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+.admin-picker-search{flex:1 1 220px; min-width:0}
+.admin-picker-select{flex:2 1 260px; min-width:0}
+.admin-picker-btn{flex:0 0 auto}
+.admin-user-header{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-bottom:1px solid var(--line-soft); padding-bottom:12px; margin-bottom:14px}
+.admin-user-email{font-weight:700; font-size:16px; color:var(--ink); word-break:break-word}
+.admin-user-id{font-size:11px; color:var(--muted); font-family:"IBM Plex Mono",monospace; margin-top:3px; word-break:break-all}
+.admin-perm-table{width:100%; border-collapse:collapse; font-size:13.5px}
+.admin-perm-table thead tr{border-bottom:2px solid var(--line); text-align:left; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em}
+.admin-perm-table th{padding:10px 12px; font-weight:600}
+.admin-perm-table td{padding:12px 12px; border-bottom:1px solid var(--line-soft)}
+.admin-chk-label{cursor:pointer; display:inline-flex; align-items:center; gap:7px}
+.admin-mode-group{display:inline-flex; align-items:center; gap:16px; flex-wrap:wrap}
+.admin-radio-label{cursor:pointer; display:inline-flex; align-items:center; gap:6px}
+.admin-save-bar{display:flex; justify-content:flex-end; align-items:center; gap:14px; margin-top:18px; border-top:1px solid var(--line-soft); padding-top:14px; flex-wrap:wrap}
+
+@media (max-width:768px){
+  .admin-picker-wrap{flex-direction:column; align-items:stretch; gap:8px}
+  .admin-picker-search, .admin-picker-select, .admin-picker-btn{width:100%; flex:1 1 auto}
+  .admin-picker-btn button{width:100%; text-align:center}
+  
+  .admin-table-wrap{overflow:visible}
+  .admin-perm-table, .admin-perm-table thead, .admin-perm-table tbody, .admin-perm-table tr, .admin-perm-table td{
+    display:block;
+    width:100%;
+    box-sizing:border-box;
+  }
+  .admin-perm-table thead{display:none}
+  .admin-perm-table tbody{display:flex; flex-direction:column; gap:12px}
+  .admin-perm-table tr{
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px 14px;
+  }
+  .admin-perm-table td{
+    padding:6px 0 !important;
+    border:none !important;
+  }
+  .admin-perm-name{
+    font-size:15px;
+    font-weight:700;
+    color:var(--ink);
+    border-bottom:1px solid var(--line-soft) !important;
+    padding-bottom:8px !important;
+    margin-bottom:6px;
+  }
+  .admin-perm-access{
+    padding:4px 0 !important;
+  }
+  .admin-perm-access label{
+    font-weight:600;
+    font-size:13.5px;
+  }
+  .admin-mode-group{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    background:var(--surface);
+    border:1px solid var(--line-soft);
+    border-radius:8px;
+    padding:10px 12px;
+    margin-top:6px;
+  }
+  .admin-radio-label{
+    font-size:13px;
+    padding:2px 0;
+  }
+  .admin-save-bar{
+    flex-direction:column;
+    align-items:stretch !important;
+    gap:10px !important;
+  }
+  .admin-save-bar button{
+    width:100%;
+    padding:11px 16px;
+    font-size:14px;
+  }
+  .admin-save-status{
+    text-align:center;
+  }
+}
 </style>
 </head>
 <body>
@@ -504,7 +676,7 @@ function docField(cur,label){
 document.getElementById("app").innerHTML =
  '<div class="wrap">'+
    '<header class="masthead">'+
-     '<div>'+
+     '<div class="mast-brand">'+
        '<div class="eyebrow">Kişisel finans defteri</div>'+
        '<h1>Birikim ve Bütçe Defteri</h1>'+
      '</div>'+
@@ -2840,9 +3012,9 @@ window.isAdmin=isAdmin;
       });
 
       var html = '<div style="max-width:960px; margin:0 auto; display:flex; flex-direction:column; gap:20px;">' +
-        '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">' +
+        '<div class="admin-card-head">' +
           '<div>' +
-            '<h2 style="margin:0; font-size:22px">⚙️ Kullanıcı & Modül Yönetim Paneli</h2>' +
+            '<h2>⚙️ Kullanıcı & Modül Yönetim Paneli</h2>' +
             '<p style="margin:4px 0 0; font-size:13px; color:var(--muted)">Sistemdeki kullanıcıları, hangi modülleri görebileceklerini ve verilerinin adminle ortak mı yoksa bağımsız mı olacağını buradan yönetebilirsiniz.</p>' +
           '</div>' +
           '<button type="button" class="btn ghost sm" id="adminYenileBtn">🔄 Listeyi Yenile</button>' +
@@ -2862,15 +3034,15 @@ window.isAdmin=isAdmin;
           '<span id="adminUserCountText" style="font-size:12.5px; color:var(--muted); font-weight:500;">Toplam ' + digerUsers.length + ' kullanıcı</span>' +
         '</div>' +
 
-        '<div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">' +
-          '<div style="flex:1; min-width:240px;">' +
+        '<div class="admin-picker-wrap">' +
+          '<div class="admin-picker-search">' +
             '<input type="text" id="adminUserSearch" style="width:100%; box-sizing:border-box; padding:10px 14px; font-size:14px; border:1px solid var(--line,#d5d9e2); border-radius:8px; background:var(--surface,#fff); color:var(--ink,#1a1e28);" placeholder="🔍 Listede ara (e-posta veya ID)..." autocomplete="off">' +
           '</div>' +
-          '<div style="flex:2; min-width:260px;">' +
+          '<div class="admin-picker-select">' +
             '<select id="adminUserSelect" style="width:100%; box-sizing:border-box; padding:10px 14px; font-size:14px; font-weight:600; border:1px solid var(--line,#d5d9e2); border-radius:8px; background:var(--surface,#fff); color:var(--ink,#1a1e28); cursor:pointer; height:42px;">' +
             '</select>' +
           '</div>' +
-          '<div>' +
+          '<div class="admin-picker-btn">' +
             '<button type="button" class="btn ghost sm" id="adminClearSearch" style="height:42px; padding:0 16px; white-space:nowrap;" title="Aramayı temizle ve tüm kullanıcıları göster">Tüm Liste</button>' +
           '</div>' +
         '</div>' +
@@ -2910,61 +3082,67 @@ window.isAdmin=isAdmin;
         var bP = uP.butce || { erisim: true, veri_modu: 'ozel' };
         var oP = uP.odemeler || { erisim: true, veri_modu: 'ozel' };
 
-        var cardHtml = '<div class="panel" style="padding:22px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.05); background:var(--surface,#fff); border:1px solid var(--line-soft,#e7eaf1);" data-uid="' + u.id + '">' +
-          '<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line,#e6e9f0); padding-bottom:14px; margin-bottom:18px;">' +
-            '<div>' +
-              '<div style="font-weight:700; font-size:17px; color:var(--ink);">👤 ' + u.email + '</div>' +
-              '<div style="font-size:11px; color:var(--muted); font-family:monospace; margin-top:4px">Kullanıcı ID: ' + u.id + '</div>' +
+        var cardHtml = '<div class="panel admin-user-card" style="padding:22px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.05); background:var(--surface,#fff); border:1px solid var(--line-soft,#e7eaf1);" data-uid="' + u.id + '">' +
+          '<div class="admin-user-header">' +
+            '<div class="admin-user-info">' +
+              '<div class="admin-user-email">👤 ' + u.email + '</div>' +
+              '<div class="admin-user-id">Kullanıcı ID: ' + u.id + '</div>' +
             '</div>' +
             '<span class="dbdurum ok" style="padding:5px 12px; font-size:12px;">Kayıtlı Kullanıcı</span>' +
           '</div>' +
 
-          '<div style="overflow-x:auto;">' +
-            '<table style="width:100%; border-collapse:collapse; font-size:13.5px;">' +
+          '<div class="admin-table-wrap">' +
+            '<table class="admin-perm-table">' +
               '<thead>' +
-                '<tr style="border-bottom:2px solid var(--line,#e6e9f0); text-align:left; color:var(--muted); font-size:12.5px; text-transform:uppercase; letter-spacing:0.04em;">' +
-                  '<th style="padding:10px 14px; font-weight:600">Modül Adı</th>' +
-                  '<th style="padding:10px 14px; font-weight:600">Modül Erişimi</th>' +
-                  '<th style="padding:10px 14px; font-weight:600">Veri Paylaşım Modu</th>' +
+                '<tr>' +
+                  '<th>Modül Adı</th>' +
+                  '<th>Modül Erişimi</th>' +
+                  '<th>Veri Paylaşım Modu</th>' +
                 '</tr>' +
               '</thead>' +
               '<tbody>' +
-                '<tr style="border-bottom:1px solid var(--line-soft,#f0f2f6)">' +
-                  '<td style="padding:13px 14px"><b>💵 Döviz Birikimi</b></td>' +
-                  '<td style="padding:13px 14px">' +
-                    '<label style="cursor:pointer; display:inline-flex; align-items:center; gap:6px;"><input type="checkbox" id="erisim_doviz_' + u.id + '" ' + (dP.erisim ? 'checked' : '') + '> Bu modülü görsün</label>' +
+                '<tr>' +
+                  '<td class="admin-perm-name"><b>💵 Döviz Birikimi</b></td>' +
+                  '<td class="admin-perm-access">' +
+                    '<label class="admin-chk-label"><input type="checkbox" id="erisim_doviz_' + u.id + '" ' + (dP.erisim ? 'checked' : '') + '> Bu modülü görsün</label>' +
                   '</td>' +
-                  '<td style="padding:13px 14px">' +
-                    '<label style="cursor:pointer; margin-right:18px; display:inline-flex; align-items:center; gap:6px;"><input type="radio" name="mod_doviz_' + u.id + '" value="ozel" ' + (dP.veri_modu === 'ozel' ? 'checked' : '') + '> Kendine Özel (Bağımsız)</label>' +
-                    '<label style="cursor:pointer; display:inline-flex; align-items:center; gap:6px;"><input type="radio" name="mod_doviz_' + u.id + '" value="ortak" ' + (dP.veri_modu === 'ortak' ? 'checked' : '') + '> <b>Admin ile Ortak</b></label>' +
-                  '</td>' +
-                '</tr>' +
-                '<tr style="border-bottom:1px solid var(--line-soft,#f0f2f6)">' +
-                  '<td style="padding:13px 14px"><b>📊 Aylık Bütçe</b></td>' +
-                  '<td style="padding:13px 14px">' +
-                    '<label style="cursor:pointer; display:inline-flex; align-items:center; gap:6px;"><input type="checkbox" id="erisim_butce_' + u.id + '" ' + (bP.erisim ? 'checked' : '') + '> Bu modülü görsün</label>' +
-                  '</td>' +
-                  '<td style="padding:13px 14px">' +
-                    '<label style="cursor:pointer; margin-right:18px; display:inline-flex; align-items:center; gap:6px;"><input type="radio" name="mod_butce_' + u.id + '" value="ozel" ' + (bP.veri_modu === 'ozel' ? 'checked' : '') + '> Kendine Özel (Bağımsız)</label>' +
-                    '<label style="cursor:pointer; display:inline-flex; align-items:center; gap:6px;"><input type="radio" name="mod_butce_' + u.id + '" value="ortak" ' + (bP.veri_modu === 'ortak' ? 'checked' : '') + '> <b>Admin ile Ortak</b></label>' +
+                  '<td class="admin-perm-mode">' +
+                    '<div class="admin-mode-group">' +
+                      '<label class="admin-radio-label"><input type="radio" name="mod_doviz_' + u.id + '" value="ozel" ' + (dP.veri_modu === 'ozel' ? 'checked' : '') + '> Kendine Özel (Bağımsız)</label>' +
+                      '<label class="admin-radio-label"><input type="radio" name="mod_doviz_' + u.id + '" value="ortak" ' + (dP.veri_modu === 'ortak' ? 'checked' : '') + '> <b>Admin ile Ortak</b></label>' +
+                    '</div>' +
                   '</td>' +
                 '</tr>' +
                 '<tr>' +
-                  '<td style="padding:13px 14px"><b>💳 Ödemeler</b></td>' +
-                  '<td style="padding:13px 14px">' +
-                    '<label style="cursor:pointer; display:inline-flex; align-items:center; gap:6px;"><input type="checkbox" id="erisim_odemeler_' + u.id + '" ' + (oP.erisim ? 'checked' : '') + '> Bu modülü görsün</label>' +
+                  '<td class="admin-perm-name"><b>📊 Aylık Bütçe</b></td>' +
+                  '<td class="admin-perm-access">' +
+                    '<label class="admin-chk-label"><input type="checkbox" id="erisim_butce_' + u.id + '" ' + (bP.erisim ? 'checked' : '') + '> Bu modülü görsün</label>' +
                   '</td>' +
-                  '<td style="padding:13px 14px">' +
-                    '<label style="cursor:pointer; margin-right:18px; display:inline-flex; align-items:center; gap:6px;"><input type="radio" name="mod_odemeler_' + u.id + '" value="ozel" ' + (oP.veri_modu === 'ozel' ? 'checked' : '') + '> Kendine Özel (Bağımsız)</label>' +
-                    '<label style="cursor:pointer; display:inline-flex; align-items:center; gap:6px;"><input type="radio" name="mod_odemeler_' + u.id + '" value="ortak" ' + (oP.veri_modu === 'ortak' ? 'checked' : '') + '> <b>Admin ile Ortak</b></label>' +
+                  '<td class="admin-perm-mode">' +
+                    '<div class="admin-mode-group">' +
+                      '<label class="admin-radio-label"><input type="radio" name="mod_butce_' + u.id + '" value="ozel" ' + (bP.veri_modu === 'ozel' ? 'checked' : '') + '> Kendine Özel (Bağımsız)</label>' +
+                      '<label class="admin-radio-label"><input type="radio" name="mod_butce_' + u.id + '" value="ortak" ' + (bP.veri_modu === 'ortak' ? 'checked' : '') + '> <b>Admin ile Ortak</b></label>' +
+                    '</div>' +
+                  '</td>' +
+                '</tr>' +
+                '<tr>' +
+                  '<td class="admin-perm-name"><b>💳 Ödemeler</b></td>' +
+                  '<td class="admin-perm-access">' +
+                    '<label class="admin-chk-label"><input type="checkbox" id="erisim_odemeler_' + u.id + '" ' + (oP.erisim ? 'checked' : '') + '> Bu modülü görsün</label>' +
+                  '</td>' +
+                  '<td class="admin-perm-mode">' +
+                    '<div class="admin-mode-group">' +
+                      '<label class="admin-radio-label"><input type="radio" name="mod_odemeler_' + u.id + '" value="ozel" ' + (oP.veri_modu === 'ozel' ? 'checked' : '') + '> Kendine Özel (Bağımsız)</label>' +
+                      '<label class="admin-radio-label"><input type="radio" name="mod_odemeler_' + u.id + '" value="ortak" ' + (oP.veri_modu === 'ortak' ? 'checked' : '') + '> <b>Admin ile Ortak</b></label>' +
+                    '</div>' +
                   '</td>' +
                 '</tr>' +
               '</tbody>' +
             '</table>' +
           '</div>' +
 
-          '<div style="display:flex; justify-content:flex-end; align-items:center; gap:14px; margin-top:20px; border-top:1px solid var(--line-soft,#f0f2f6); padding-top:16px;">' +
-            '<span id="kaydetDurum_' + u.id + '" style="font-size:13px; color:var(--gain,#146c4e); font-weight:500;"></span>' +
+          '<div class="admin-save-bar">' +
+            '<span id="kaydetDurum_' + u.id + '" class="admin-save-status" style="font-size:13px; color:var(--gain,#146c4e); font-weight:500;"></span>' +
             '<button type="button" class="btn sm" id="adminKaydetBtn_' + u.id + '">💾 ' + u.email + ' İzinlerini Kaydet</button>' +
           '</div>' +
         '</div>';
