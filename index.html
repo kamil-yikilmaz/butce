@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -645,14 +645,20 @@ td.odn,.odn{font-size:12.5px; white-space:nowrap}
 .pat-chip-count{font-size:11px; opacity:0.85; padding:1px 6px; border-radius:10px; background:rgba(0,0,0,0.08)}
 .pat-chip.is-active .pat-chip-count{background:rgba(255,255,255,0.25)}
 
-.pat-search-wrap{position:relative; width:100%; box-sizing:border-box}
-.pat-search-ico{position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:13px; color:var(--muted); pointer-events:none}
+.pat-search-wrap{position:relative; width:100%; box-sizing:border-box; display:flex; align-items:center}
+.pat-search-ico{position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:15px; color:var(--muted); pointer-events:none; z-index:2; line-height:1}
 .pat-search-input{
-  width:100%; padding:9px 12px 9px 34px; font-size:14px; border:1px solid var(--line);
-  border-radius:8px; background:var(--surface); color:var(--ink); box-sizing:border-box;
+  width:100%; min-height:44px; padding:10px 36px 10px 42px; font-size:16px; border:1px solid var(--line);
+  border-radius:10px; background:var(--surface); color:var(--ink); box-sizing:border-box;
   outline:none; font-family:"IBM Plex Sans",system-ui,sans-serif;
 }
 .pat-search-input:focus{border-color:var(--accent)}
+.pat-search-clear{
+  position:absolute; right:10px; top:50%; transform:translateY(-50%);
+  width:24px; height:24px; border-radius:50%; border:none; background:var(--line-soft);
+  color:var(--muted); font-size:12px; cursor:pointer; display:flex;
+  align-items:center; justify-content:center; padding:0; line-height:1; z-index:2;
+}
 
 /* Sipariş Kartları Listesi */
 .pat-orders-list{display:flex; flex-direction:column; gap:10px; width:100%; box-sizing:border-box}
@@ -679,12 +685,19 @@ td.odn,.odn{font-size:12.5px; white-space:nowrap}
 }
 .pat-order-date{font-size:11.5px; color:var(--muted); font-family:"IBM Plex Mono",monospace}
 
+/* Tek Satırda Kompakt Sipariş Özeti */
 .pat-order-summary-box{
-  background:var(--surface-2); border-radius:8px; padding:10px 12px;
-  display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;
+  background:var(--surface-2); border-radius:8px; padding:9px 12px;
+  display:flex; justify-content:space-between; align-items:center; flex-wrap:nowrap; gap:8px; min-width:0;
 }
-.pat-order-sack-desc{font-size:13.5px; font-weight:600; color:var(--ink); display:flex; align-items:center; gap:6px}
-.pat-order-amount{font-size:17px; font-weight:700; font-family:"IBM Plex Mono",monospace; color:var(--ink)}
+.pat-order-sack-desc{
+  font-size:13px; font-weight:600; color:var(--ink); display:flex; align-items:center; gap:4px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;
+}
+.pat-order-amount{
+  font-size:15.5px; font-weight:700; font-family:"IBM Plex Mono",monospace;
+  color:var(--ink); white-space:nowrap; flex-shrink:0; text-align:right;
+}
 
 .pat-order-note{font-size:12px; color:var(--muted); font-style:italic; padding-left:2px}
 
@@ -713,10 +726,36 @@ td.odn,.odn{font-size:12.5px; white-space:nowrap}
 }
 
 .pat-order-card-foot{
-  display:flex; justify-content:space-between; align-items:center; gap:8px;
-  margin-top:2px; padding-top:8px; border-top:1px solid var(--line-soft); flex-wrap:wrap;
+  display:flex; justify-content:flex-end; align-items:center; gap:8px;
+  margin-top:2px; padding-top:8px; border-top:1px solid var(--line-soft);
 }
-.pat-card-btns{display:flex; align-items:center; gap:6px}
+.pat-card-btns{display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end}
+
+/* Müşteri Adı Yazarken Çıkan Öneri Listesi ve Uyarılar */
+.pat-suggest-box{
+  position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:99999;
+  background:var(--surface); border:1px solid var(--line); border-radius:10px;
+  box-shadow:0 14px 36px rgba(0,0,0,0.22); max-height:230px; overflow-y:auto;
+}
+.pat-suggest-item{
+  padding:10px 12px; cursor:pointer; border-bottom:1px solid var(--line-soft);
+  transition:background .12s;
+}
+.pat-suggest-item:last-child{border-bottom:none}
+.pat-suggest-item:hover{background:var(--surface-2)}
+.pat-sug-name{font-size:13.5px; color:var(--ink); display:flex; align-items:center; justify-content:space-between; gap:6px}
+.pat-sug-badge{
+  font-size:11px; font-weight:600; color:var(--accent); background:var(--accent-soft);
+  padding:1px 6px; border-radius:4px;
+}
+.pat-sug-sub{font-size:12px; color:var(--muted); margin-top:3px; line-height:1.4}
+.pat-alert-box{
+  margin-top:6px; font-size:12.5px; color:var(--brass); background:var(--brass-soft);
+  padding:8px 10px; border-radius:8px; border:1px solid var(--brass); line-height:1.4;
+}
+.pat-alert-box.is-success{
+  color:var(--gain); background:var(--gain-soft); border-color:var(--gain);
+}
 
 /* Stok & Araç Yükleme İki Kolon */
 .pat-stock-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; width:100%; box-sizing:border-box}
@@ -781,6 +820,10 @@ td.odn,.odn{font-size:12.5px; white-space:nowrap}
   .pat-form-row{grid-template-columns:1fr}
   .pat-status-btn{min-height:42px; font-size:13.5px}
   .pat-order-top{flex-direction:column; align-items:flex-start}
+  .pat-search-input, .pat-form-input, .pat-form-select, .pat-form-textarea,
+  .custom-dropdown-search-input, input, select, textarea {
+    font-size:16px !important;
+  }
 }
 
 @media (max-width:440px){
@@ -2745,6 +2788,9 @@ function patatesModulunuYukle(){
     h.push('  <div class="pat-search-wrap">');
     h.push('    <span class="pat-search-ico">🔍</span>');
     h.push('    <input type="text" id="patSearchInp" class="pat-search-input" placeholder="Müşteri adı, firma, mahalle veya adres ara..." value="' + escH(aramaMetni) + '">');
+    if(aramaMetni){
+      h.push('    <button type="button" class="pat-search-clear" id="patSearchClear" title="Temizle">✕</button>');
+    }
     h.push('  </div>');
     h.push('</div>');
 
@@ -2809,11 +2855,11 @@ function patatesModulunuYukle(){
         h.push('    <div class="pat-order-date">📅 ' + escH(s.siparisTarih || "") + '</div>');
         h.push('  </div>');
 
-        // Sipariş Detay Kutusu
+        // Sipariş Detay Kutusu (Tek Satırda Kompakt)
+        var kgKisa = cTipi ? (cTipi.kg ? (cTipi.kg + "kg") : cTipi.ad) : (s.cuvalTipAd || "36kg");
         h.push('  <div class="pat-order-summary-box">');
-        h.push('    <div class="pat-order-sack-desc">');
-        h.push('      <span>🥔 <strong>' + fmtSayi(s.cuvalAdet) + ' Çuval</strong> · ' + escH(cTipiAd) + '</span>');
-        h.push('      <span style="font-size:11.5px; color:var(--muted);">(Birim: ' + fmtTl(s.birimFiyat) + ')</span>');
+        h.push('    <div class="pat-order-sack-desc" title="' + escH(cTipiAd) + ' · Birim: ' + fmtTl(s.birimFiyat) + '">');
+        h.push('      <span>🥔 <strong>' + fmtSayi(s.cuvalAdet) + ' Çuval</strong> <span style="font-size:12px; font-weight:normal; color:var(--muted);">(' + escH(kgKisa) + ' · ' + fmtTl(s.birimFiyat) + ')</span></span>');
         h.push('    </div>');
         h.push('    <div class="pat-order-amount">' + fmtTl(s.toplamTutar) + '</div>');
         h.push('  </div>');
@@ -2837,9 +2883,8 @@ function patatesModulunuYukle(){
         }
         h.push('  </div>');
 
-        // Alt Eylem Butonları
+        // Alt Eylem Butonları (ID kaldırıldı)
         h.push('  <div class="pat-order-card-foot">');
-        h.push('    <div style="font-size:11.5px; color:var(--muted); font-family:monospace;">ID: ' + escH(s.id.slice(0, 8)) + '</div>');
         h.push('    <div class="pat-card-btns">');
         h.push('      <button type="button" class="btn ghost sm" data-pattekrar="' + s.id + '" title="Bu müşteriye yeni bir sipariş aç">🔄 Tekrar Sipariş</button>');
         h.push('      <button type="button" class="btn ghost sm" data-patduzenle="' + s.id + '" title="Siparişi Düzenle">✏️ Düzenle</button>');
@@ -2977,9 +3022,11 @@ function renderModalHtml(pat){
     m.push('    </div>');
     m.push('    <form id="patSiparisForm" class="pat-modal-body">');
 
-    m.push('      <div class="pat-form-group">');
+    m.push('      <div class="pat-form-group" style="position:relative;">');
     m.push('        <label for="fMusteriAd">Müşteri Adı / Ünvan *</label>');
-    m.push('        <input type="text" id="fMusteriAd" class="pat-form-input" placeholder="Örn: Ali (A Firması)" value="' + escH(s.musteriAd || "") + '" required>');
+    m.push('        <input type="text" id="fMusteriAd" class="pat-form-input" placeholder="Örn: Ali (A Firması)" value="' + escH(s.musteriAd || "") + '" autocomplete="off" required>');
+    m.push('        <div id="fMusteriOneriList" class="pat-suggest-box" style="display:none;"></div>');
+    m.push('        <div id="fMusteriVarAlert" style="display:none;"></div>');
     m.push('      </div>');
 
     m.push('      <div class="pat-form-row">');
@@ -3170,6 +3217,7 @@ function bindPatatesEvents(root, pat){
 
   // Arama kutusu
   var searchInp = document.getElementById("patSearchInp");
+  var searchClear = document.getElementById("patSearchClear");
   if(searchInp){
     searchInp.oninput = function(){
       aramaMetni = this.value;
@@ -3180,6 +3228,13 @@ function bindPatatesEvents(root, pat){
         var cTxt = cards[k].textContent.toLowerCase();
         cards[k].style.display = (!q || cTxt.indexOf(q) > -1) ? "" : "none";
       }
+      if(searchClear) searchClear.style.display = aramaMetni ? "flex" : "none";
+    };
+  }
+  if(searchClear){
+    searchClear.onclick = function(){
+      aramaMetni = "";
+      patatesModulunuYukle();
     };
   }
 
@@ -3423,6 +3478,110 @@ function bindPatatesEvents(root, pat){
     }
     if(cAdetInp) cAdetInp.oninput = recalcTotal;
     if(birimInp) birimInp.oninput = recalcTotal;
+
+    var musteriInp = document.getElementById("fMusteriAd");
+    var oneriList = document.getElementById("fMusteriOneriList");
+    var alertBox = document.getElementById("fMusteriVarAlert");
+    var telInp = document.getElementById("fTelefon");
+    var adresInp = document.getElementById("fAdres");
+
+    // Sistemdeki kayıtlı tüm müşterileri topla
+    var eskiMusteriler = [];
+    var musMap = {};
+    (pat.siparisler || []).forEach(function(item){
+      var ad = (item.musteriAd || "").trim();
+      if(!ad) return;
+      var k = ad.toLowerCase();
+      if(!musMap[k]){
+        musMap[k] = {
+          ad: ad,
+          telefon: (item.telefon || "").trim(),
+          adres: (item.adres || "").trim(),
+          cuvalTipId: item.cuvalTipId || "",
+          birimFiyat: item.birimFiyat || 0
+        };
+        eskiMusteriler.push(musMap[k]);
+      } else {
+        if(!musMap[k].telefon && item.telefon) musMap[k].telefon = item.telefon.trim();
+        if(!musMap[k].adres && item.adres) musMap[k].adres = item.adres.trim();
+      }
+    });
+
+    function checkMusteriOneri(){
+      if(!musteriInp || !oneriList) return;
+      var q = musteriInp.value.trim().toLowerCase();
+      if(!q){
+        oneriList.style.display = "none";
+        oneriList.innerHTML = "";
+        if(alertBox) alertBox.style.display = "none";
+        return;
+      }
+
+      var matches = eskiMusteriler.filter(function(m){
+        return m.ad.toLowerCase().indexOf(q) > -1 || (m.telefon && m.telefon.indexOf(q) > -1) || (m.adres && m.adres.toLowerCase().indexOf(q) > -1);
+      });
+
+      var tamEslesme = eskiMusteriler.find(function(m){ return m.ad.toLowerCase() === q; });
+
+      if(tamEslesme && alertBox){
+        alertBox.style.display = "block";
+        alertBox.className = "pat-alert-box";
+        alertBox.innerHTML = 'ℹ️ <strong>' + escH(tamEslesme.ad) + '</strong> daha önce kayıtlı! Bilgiler otomatik getirildi. Aynı müşteriye yeni bir sipariş açıyorsunuz.';
+      } else if(alertBox){
+        alertBox.style.display = "none";
+      }
+
+      if(matches.length === 0){
+        oneriList.style.display = "none";
+        oneriList.innerHTML = "";
+        return;
+      }
+
+      oneriList.style.display = "block";
+      var oHtml = [];
+      matches.slice(0, 6).forEach(function(m, idx){
+        oHtml.push('<div class="pat-suggest-item" data-sug-idx="' + idx + '">');
+        oHtml.push('  <div class="pat-sug-name"><span>👤 <strong>' + escH(m.ad) + '</strong></span> <span class="pat-sug-badge">Kayıtlı Müşteri</span></div>');
+        var detay = [];
+        if(m.telefon) detay.push('📞 ' + escH(m.telefon));
+        if(m.adres) detay.push('📍 ' + escH(m.adres));
+        if(detay.length){
+          oHtml.push('  <div class="pat-sug-sub">' + detay.join(' · ') + '</div>');
+        }
+        oHtml.push('</div>');
+      });
+      oneriList.innerHTML = oHtml.join("");
+
+      var items = oneriList.querySelectorAll(".pat-suggest-item");
+      for(var si=0; si<items.length; si++)(function(item, mObj){
+        item.onmousedown = function(e){
+          e.preventDefault();
+          musteriInp.value = mObj.ad;
+          if(telInp && mObj.telefon) telInp.value = mObj.telefon;
+          if(adresInp && mObj.adres) adresInp.value = mObj.adres;
+          if(mObj.cuvalTipId && cTipSel){
+            cTipSel.value = mObj.cuvalTipId;
+            cTipSel.dispatchEvent(new Event("change"));
+          }
+          oneriList.style.display = "none";
+          if(alertBox){
+            alertBox.style.display = "block";
+            alertBox.className = "pat-alert-box is-success";
+            alertBox.innerHTML = '✓ <strong>' + escH(mObj.ad) + '</strong> seçildi. Bilgiler otomatik dolduruldu.';
+          }
+        };
+      })(items[si], matches[si]);
+    }
+
+    if(musteriInp){
+      musteriInp.oninput = checkMusteriOneri;
+      musteriInp.onfocus = checkMusteriOneri;
+      musteriInp.onblur = function(){
+        setTimeout(function(){
+          if(oneriList) oneriList.style.display = "none";
+        }, 220);
+      };
+    }
 
     sipForm.onsubmit = function(e){
       e.preventDefault();
