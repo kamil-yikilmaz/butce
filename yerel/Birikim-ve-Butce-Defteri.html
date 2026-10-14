@@ -576,6 +576,215 @@ td.odn,.odn{font-size:12.5px; white-space:nowrap}
   .admin-save-bar button{width:100%; padding:12px 16px; font-size:14.5px}
   .admin-save-status{text-align:center}
 }
+
+/* ============================================================================
+   Modül 4: Patates Dağıtım & Sipariş Takibi Stilleri
+   ========================================================================== */
+.pat-container{display:flex; flex-direction:column; gap:16px; width:100%; box-sizing:border-box}
+
+.pat-head{
+  display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;
+  gap:12px; margin-bottom:4px;
+}
+.pat-titles h2{margin:0; font-size:20px; display:flex; align-items:center; gap:8px}
+.pat-titles p{margin:4px 0 0; font-size:13px; color:var(--muted)}
+.pat-head-actions{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+
+/* İstatistik Kartları Grid */
+.pat-stats-grid{
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
+  gap:10px; width:100%; box-sizing:border-box;
+}
+.pat-stat-card{
+  background:var(--surface); border:1px solid var(--line); border-radius:10px;
+  padding:12px 14px; display:flex; flex-direction:column; gap:3px; box-sizing:border-box;
+  transition:border-color .15s;
+}
+.pat-stat-card:hover{border-color:var(--accent)}
+.pat-stat-lbl{font-size:11px; text-transform:uppercase; letter-spacing:.05em; font-weight:700; color:var(--muted)}
+.pat-stat-val{font-size:20px; font-weight:700; font-family:"IBM Plex Mono",monospace; color:var(--ink); line-height:1.2}
+.pat-stat-sub{font-size:11px; color:var(--muted); line-height:1.2}
+.pat-stat-card.stat-gain .pat-stat-val{color:var(--gain)}
+.pat-stat-card.stat-loss .pat-stat-val{color:var(--loss)}
+.pat-stat-card.stat-accent .pat-stat-val{color:var(--accent)}
+
+/* Alt Sekmeler (Siparişler, Stok/Araç, Çuval Tipleri) */
+.pat-subnav{
+  display:flex; gap:6px; border-bottom:1px solid var(--line-soft);
+  padding-bottom:10px; overflow-x:auto; -webkit-overflow-scrolling:touch; width:100%;
+}
+.pat-subnav-btn{
+  padding:8px 14px; border-radius:8px; font-size:13px; font-weight:600;
+  border:1px solid transparent; background:transparent; color:var(--muted);
+  cursor:pointer; display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+  transition:all .15s;
+}
+.pat-subnav-btn:hover{color:var(--ink); background:var(--surface-2)}
+.pat-subnav-btn.is-active{background:var(--accent-soft); color:var(--accent); border-color:var(--line-soft)}
+
+/* Filtre & Arama Çubuğu */
+.pat-filter-box{
+  background:var(--surface); border:1px solid var(--line); border-radius:10px;
+  padding:12px 14px; display:flex; flex-direction:column; gap:10px; width:100%; box-sizing:border-box;
+}
+.pat-filter-top{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap}
+.pat-chips{display:flex; align-items:center; gap:6px; flex-wrap:wrap}
+.pat-chip{
+  padding:6px 12px; font-size:12.5px; font-weight:600; border-radius:20px;
+  border:1px solid var(--line); background:var(--surface-2); color:var(--ink);
+  cursor:pointer; display:inline-flex; align-items:center; gap:5px; transition:all .12s;
+  user-select:none;
+}
+.pat-chip:hover{border-color:var(--accent)}
+.pat-chip.is-active{background:var(--accent); color:#fff; border-color:var(--accent)}
+.pat-chip.chip-loss.is-active{background:var(--loss); color:#fff; border-color:var(--loss)}
+.pat-chip.chip-gain.is-active{background:var(--gain); color:#fff; border-color:var(--gain)}
+.pat-chip-count{font-size:11px; opacity:0.85; padding:1px 6px; border-radius:10px; background:rgba(0,0,0,0.08)}
+.pat-chip.is-active .pat-chip-count{background:rgba(255,255,255,0.25)}
+
+.pat-search-wrap{position:relative; width:100%; box-sizing:border-box}
+.pat-search-ico{position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:13px; color:var(--muted); pointer-events:none}
+.pat-search-input{
+  width:100%; padding:9px 12px 9px 34px; font-size:14px; border:1px solid var(--line);
+  border-radius:8px; background:var(--surface); color:var(--ink); box-sizing:border-box;
+  outline:none; font-family:"IBM Plex Sans",system-ui,sans-serif;
+}
+.pat-search-input:focus{border-color:var(--accent)}
+
+/* Sipariş Kartları Listesi */
+.pat-orders-list{display:flex; flex-direction:column; gap:10px; width:100%; box-sizing:border-box}
+.pat-order-card{
+  background:var(--surface); border:1px solid var(--line); border-radius:10px;
+  padding:14px 16px; display:flex; flex-direction:column; gap:10px; box-sizing:border-box;
+  transition:border-color .15s, box-shadow .15s; border-left:4px solid var(--line);
+}
+.pat-order-card.status-tamam{border-left-color:var(--gain)}
+.pat-order-card.status-borclu{border-left-color:var(--loss)}
+.pat-order-card.status-bekliyor{border-left-color:var(--brass)}
+
+.pat-order-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap}
+.pat-order-main-info{min-width:0; flex:1 1 auto}
+.pat-order-name{font-size:16px; font-weight:700; color:var(--ink); display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.pat-order-phone{
+  font-size:12.5px; font-weight:600; color:var(--accent); text-decoration:none;
+  display:inline-flex; align-items:center; gap:4px; margin-top:3px;
+}
+.pat-order-phone:hover{text-decoration:underline}
+.pat-order-addr{
+  font-size:12.5px; color:var(--ink-2); display:flex; align-items:flex-start;
+  gap:5px; margin-top:3px; line-height:1.4;
+}
+.pat-order-date{font-size:11.5px; color:var(--muted); font-family:"IBM Plex Mono",monospace}
+
+.pat-order-summary-box{
+  background:var(--surface-2); border-radius:8px; padding:10px 12px;
+  display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;
+}
+.pat-order-sack-desc{font-size:13.5px; font-weight:600; color:var(--ink); display:flex; align-items:center; gap:6px}
+.pat-order-amount{font-size:17px; font-weight:700; font-family:"IBM Plex Mono",monospace; color:var(--ink)}
+
+.pat-order-note{font-size:12px; color:var(--muted); font-style:italic; padding-left:2px}
+
+/* Tek Tıkla Durum Değiştirme Butonları */
+.pat-order-actions-grid{
+  display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%; box-sizing:border-box;
+}
+.pat-status-btn{
+  padding:9px 12px; border-radius:8px; font-size:12.5px; font-weight:600;
+  display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;
+  border:1px solid transparent; transition:all .15s; user-select:none; text-align:center;
+}
+.pat-status-btn.btn-teslim-bekliyor{
+  background:var(--surface-2); color:var(--ink-2); border-color:var(--line);
+}
+.pat-status-btn.btn-teslim-bekliyor:hover{border-color:var(--brass); color:var(--brass)}
+.pat-status-btn.btn-teslim-edildi{
+  background:var(--gain-soft); color:var(--gain); border-color:transparent;
+}
+
+.pat-status-btn.btn-odeme-bekliyor{
+  background:var(--loss-soft); color:var(--loss); border-color:transparent;
+}
+.pat-status-btn.btn-odeme-odendi{
+  background:var(--gain-soft); color:var(--gain); border-color:transparent;
+}
+
+.pat-order-card-foot{
+  display:flex; justify-content:space-between; align-items:center; gap:8px;
+  margin-top:2px; padding-top:8px; border-top:1px solid var(--line-soft); flex-wrap:wrap;
+}
+.pat-card-btns{display:flex; align-items:center; gap:6px}
+
+/* Stok & Araç Yükleme İki Kolon */
+.pat-stock-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; width:100%; box-sizing:border-box}
+.pat-stock-box{
+  background:var(--surface); border:1px solid var(--line); border-radius:10px;
+  padding:14px 16px; display:flex; flex-direction:column; gap:12px; box-sizing:border-box;
+}
+.pat-stock-head{display:flex; justify-content:space-between; align-items:center; gap:8px}
+.pat-stock-title{font-size:15px; font-weight:700; color:var(--ink); display:flex; align-items:center; gap:6px}
+.pat-stock-list{display:flex; flex-direction:column; gap:6px; width:100%; box-sizing:border-box}
+.pat-stock-item{
+  display:flex; justify-content:space-between; align-items:center; padding:9px 12px;
+  background:var(--surface-2); border:1px solid var(--line-soft); border-radius:8px;
+  font-size:13px; gap:8px; box-sizing:border-box;
+}
+.pat-stock-item-info{min-width:0; flex:1 1 auto}
+.pat-stock-item-name{font-weight:600; color:var(--ink); word-break:break-all}
+.pat-stock-item-meta{font-size:11.5px; color:var(--muted); font-family:"IBM Plex Mono",monospace}
+.pat-stock-item-badge{font-size:14px; font-weight:700; font-family:"IBM Plex Mono",monospace; color:var(--accent)}
+
+/* Çuval Tipleri Listesi */
+.pat-cuval-list{display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px; width:100%; box-sizing:border-box}
+.pat-cuval-card{
+  background:var(--surface); border:1px solid var(--line); border-radius:10px;
+  padding:14px 16px; display:flex; flex-direction:column; gap:8px; box-sizing:border-box;
+}
+.pat-cuval-top{display:flex; justify-content:space-between; align-items:flex-start; gap:8px}
+.pat-cuval-title{font-size:15px; font-weight:700; color:var(--ink)}
+.pat-cuval-kg{font-size:12px; color:var(--muted)}
+.pat-cuval-price{font-size:20px; font-weight:700; font-family:"IBM Plex Mono",monospace; color:var(--gain)}
+
+/* Modal Dialog */
+.pat-modal-backdrop{
+  position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,0.55);
+  display:flex; align-items:center; justify-content:center; padding:16px; box-sizing:border-box;
+}
+.pat-modal{
+  background:var(--surface); border:1px solid var(--line); border-radius:12px;
+  box-shadow:0 20px 50px rgba(0,0,0,0.3); width:min(520px, 100%); max-height:90vh;
+  overflow-y:auto; display:flex; flex-direction:column; padding:20px; gap:14px; box-sizing:border-box;
+}
+.pat-modal-head{display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line-soft); padding-bottom:10px}
+.pat-modal-head h3{margin:0; font-size:17px; color:var(--ink)}
+.pat-modal-close{background:none; border:none; font-size:18px; color:var(--muted); cursor:pointer; padding:4px}
+.pat-modal-close:hover{color:var(--ink)}
+.pat-modal-body{display:flex; flex-direction:column; gap:12px; box-sizing:border-box}
+.pat-form-group{display:flex; flex-direction:column; gap:5px; box-sizing:border-box}
+.pat-form-group label{font-size:12.5px; font-weight:600; color:var(--ink)}
+.pat-form-input, .pat-form-select, .pat-form-textarea{
+  width:100%; padding:9px 12px; font-size:14px; border:1px solid var(--line);
+  border-radius:8px; background:var(--surface-2); color:var(--ink); box-sizing:border-box;
+  font-family:"IBM Plex Sans",system-ui,sans-serif; outline:none;
+}
+.pat-form-input:focus, .pat-form-select:focus, .pat-form-textarea:focus{border-color:var(--accent)}
+.pat-form-row{display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%; box-sizing:border-box}
+.pat-modal-foot{display:flex; justify-content:flex-end; gap:8px; border-top:1px solid var(--line-soft); padding-top:12px}
+
+@media (max-width:768px){
+  .pat-stats-grid{grid-template-columns:1fr 1fr}
+  .pat-stock-grid{grid-template-columns:1fr}
+  .pat-order-actions-grid{grid-template-columns:1fr}
+  .pat-form-row{grid-template-columns:1fr}
+  .pat-status-btn{min-height:42px; font-size:13.5px}
+  .pat-order-top{flex-direction:column; align-items:flex-start}
+}
+
+@media (max-width:440px){
+  .pat-stats-grid{grid-template-columns:1fr}
+  .pat-head-actions{width:100%}
+  .pat-head-actions button{flex:1 1 auto}
+}
 </style>
 </head>
 <body>
@@ -623,6 +832,11 @@ function readState(){
 }
 function normalize(s){
   s=s||{};
+  var defCuval = [
+    { id: "ct_std", ad: "Standart Çuval (~36 kg)", kg: 36, fiyat: 1300 },
+    { id: "ct_yarim", ad: "Yarım Çuval (~18 kg)", kg: 18, fiyat: 650 }
+  ];
+  var pat = (s.patates && typeof s.patates === "object") ? s.patates : {};
   return {
     savedAt:Number(s.savedAt)||0,
     usdRate:num(s.usdRate)||0,
@@ -635,7 +849,13 @@ function normalize(s){
         usdDoc:normDoc(r.usdDoc),eurDoc:normDoc(r.eurDoc)};
     }),
     butce:(s.butce&&typeof s.butce==="object")?s.butce:{taksitler:[],aylar:[]},
-    odemeler:Array.isArray(s.odemeler)?s.odemeler:[]
+    odemeler:Array.isArray(s.odemeler)?s.odemeler:[],
+    patates:{
+      cuvalTipleri: (Array.isArray(pat.cuvalTipleri) && pat.cuvalTipleri.length) ? pat.cuvalTipleri : defCuval,
+      sevkiyatlar: Array.isArray(pat.sevkiyatlar) ? pat.sevkiyatlar : [],
+      aracYuklemeler: Array.isArray(pat.aracYuklemeler) ? pat.aracYuklemeler : [],
+      siparisler: Array.isArray(pat.siparisler) ? pat.siparisler : []
+    }
   };
 }
 function uid(){ return "r"+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36); }
@@ -725,6 +945,7 @@ window.DEFTER_MODULLER = [
   { id: "mod1", ad: "Döviz Birikimi", ico: "💵", desc: "Döviz ve altın birikim takibi" },
   { id: "mod2", ad: "Aylık Bütçe", ico: "📊", desc: "Maaş, taksit ve harcama bütçesi" },
   { id: "mod3", ad: "Ödemeler", ico: "💳", desc: "Aylık düzenli ödeme planı" },
+  { id: "mod4", ad: "Patates Dağıtım", ico: "🥔", desc: "Çuval stok, araç ve sipariş takibi" },
   { id: "mod_admin", ad: "Yönetim Paneli", ico: "⚙️", desc: "Kullanıcı ve modül izinleri", adminOnly: true }
 ];
 
@@ -739,6 +960,7 @@ document.getElementById("app").innerHTML =
        '<button type="button" class="tab is-on" data-tab="mod1" role="tab" aria-selected="true">Döviz Birikimi</button>'+
        '<button type="button" class="tab" data-tab="mod2" role="tab" aria-selected="false">Aylık Bütçe</button>'+
        '<button type="button" class="tab" data-tab="mod3" role="tab" aria-selected="false">Ödemeler</button>'+
+       '<button type="button" class="tab" data-tab="mod4" role="tab" aria-selected="false">🥔 Patates Dağıtım</button>'+
        '<button type="button" class="tab" data-tab="mod_admin" id="adminTabBtn" role="tab" aria-selected="false" style="display:none">⚙️ Yönetim Paneli</button>'+
      '</nav>'+
      '<div class="nav-module-picker" id="navModulePicker">'+
@@ -755,6 +977,7 @@ document.getElementById("app").innerHTML =
    '<div class="modpane" id="mod1"></div>'+
    '<div class="modpane" id="mod2" hidden></div>'+
    '<div class="modpane" id="mod3" hidden></div>'+
+   '<div class="modpane" id="mod4" hidden></div>'+
    '<div class="modpane" id="mod_admin" hidden></div>'+
  '</div>';
 
@@ -785,6 +1008,9 @@ document.getElementById("app").innerHTML =
       if(chk) chk.style.display = itemOn ? "inline-block" : "none";
     }
     try{ localStorage.setItem("defter-sekme", id); }catch(e){}
+    if(id === "mod4" && typeof window.patatesModulunuYukle === "function"){
+      window.patatesModulunuYukle();
+    }
     if(id === "mod_admin" && typeof window.adminPaneliniYukle === "function" && typeof window.isAdmin === "function" && window.isAdmin()){
       window.adminPaneliniYukle();
     }
@@ -802,6 +1028,7 @@ document.getElementById("app").innerHTML =
         if(m.id === "mod1" && perms.doviz && perms.doviz.erisim === false) return;
         if(m.id === "mod2" && perms.butce && perms.butce.erisim === false) return;
         if(m.id === "mod3" && perms.odemeler && perms.odemeler.erisim === false) return;
+        if(m.id === "mod4" && perms.patates && perms.patates.erisim === false) return;
       }
       var isCur = m.id === curTabId;
       var btn = document.createElement("button");
@@ -857,7 +1084,7 @@ document.getElementById("app").innerHTML =
 
   var saved = "mod1";
   try{ saved = localStorage.getItem("defter-sekme") || "mod1"; }catch(e){}
-  if(saved === "mod2" || saved === "mod3" || saved === "mod_admin"){
+  if(saved === "mod2" || saved === "mod3" || saved === "mod4" || saved === "mod_admin"){
     setTimeout(function(){ window.DEFTER_SHOW_TAB(saved); }, 0);
   } else {
     setTimeout(function(){ window.DEFTER_SHOW_TAB("mod1"); }, 0);
@@ -1303,6 +1530,8 @@ function buildDoc(){
   var butceTxt=butceEl?butceEl.textContent:"";
   var odemeEl=document.getElementById("odeme-code");
   var odemeTxt=odemeEl?odemeEl.textContent:"";
+  var patatesEl=document.getElementById("patates-code");
+  var patatesTxt=patatesEl?patatesEl.textContent:"";
   var ayarEl=document.getElementById("db-ayar"), dbEl=document.getElementById("db-code");
   var ayarTxt=ayarEl?ayarEl.textContent:"", dbTxt=dbEl?dbEl.textContent:"";
   var styleTxt=document.getElementById("app-style").textContent;
@@ -1319,6 +1548,7 @@ function buildDoc(){
     '<script id="app-code">'+codeTxt+'<\/script>\n'+
     (butceTxt ? '<script id="butce-code">'+butceTxt+'<\/script>\n' : '')+
     (odemeTxt ? '<script id="odeme-code">'+odemeTxt+'<\/script>\n' : '')+
+    (patatesTxt ? '<script id="patates-code">'+patatesTxt+'<\/script>\n' : '')+
     (ayarTxt ? '<script id="db-ayar">'+ayarTxt+'<\/script>\n' : '')+
     (dbTxt ? '<script id="db-code">'+dbTxt+'<\/script>\n' : '')+
     '</body>\n</html>';
@@ -2319,6 +2549,988 @@ renderAll();
 })();
 </script>
 
+<script id="patates-code">
+(function(){
+"use strict";
+var D = window.DEFTER;
+if(!D) return;
+
+var aktifSekme = "siparisler"; // 'siparisler' | 'stok' | 'cuvallar'
+var aktifFiltre = "hepsi";      // 'hepsi' | 'bekleyen' | 'teslim' | 'odenmeyen' | 'odenen'
+var aramaMetni = "";
+var modalTip = null;           // 'siparis' | 'sevkiyat' | 'arac' | 'cuval'
+var duzenlenenId = null;
+var formTaslak = null;
+
+function pId(p){
+  return (p||"p") + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+function escH(s){
+  if(s == null) return "";
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function fmtTl(n){
+  n = Number(n) || 0;
+  return n.toLocaleString("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + " ₺";
+}
+
+function fmtSayi(n){
+  n = Number(n) || 0;
+  return n.toLocaleString("tr-TR");
+}
+
+function getPatates(){
+  var st = D.getState();
+  if(!st.patates || typeof st.patates !== "object"){
+    st.patates = {
+      cuvalTipleri: [
+        { id: "ct_std", ad: "Standart Çuval (~36 kg)", kg: 36, fiyat: 1300 },
+        { id: "ct_yarim", ad: "Yarım Çuval (~18 kg)", kg: 18, fiyat: 650 }
+      ],
+      sevkiyatlar: [],
+      aracYuklemeler: [],
+      siparisler: []
+    };
+  }
+  if(!Array.isArray(st.patates.cuvalTipleri) || !st.patates.cuvalTipleri.length){
+    st.patates.cuvalTipleri = [
+      { id: "ct_std", ad: "Standart Çuval (~36 kg)", kg: 36, fiyat: 1300 },
+      { id: "ct_yarim", ad: "Yarım Çuval (~18 kg)", kg: 18, fiyat: 650 }
+    ];
+  }
+  if(!Array.isArray(st.patates.sevkiyatlar)) st.patates.sevkiyatlar = [];
+  if(!Array.isArray(st.patates.aracYuklemeler)) st.patates.aracYuklemeler = [];
+  if(!Array.isArray(st.patates.siparisler)) st.patates.siparisler = [];
+  return st.patates;
+}
+
+function kaydet(msg){
+  D.saveLocal(msg);
+  if(window.DEFTER_DB && DEFTER_DB.aktif() && DEFTER_DB.girisli()){
+    D.save(msg);
+  }
+  patatesModulunuYukle();
+}
+
+function hesaplaOzet(pat){
+  var gelenCuval = 0;
+  (pat.sevkiyatlar || []).forEach(function(s){ gelenCuval += Number(s.cuval) || 0; });
+
+  var yuklenenCuval = 0;
+  (pat.aracYuklemeler || []).forEach(function(y){ yuklenenCuval += Number(y.cuval) || 0; });
+
+  var depoKalan = Math.max(0, gelenCuval - yuklenenCuval);
+
+  var teslimCuval = 0;
+  var toplamCiro = 0;
+  var tahsilEdilen = 0;
+
+  (pat.siparisler || []).forEach(function(s){
+    var cAdet = Number(s.cuvalAdet) || 0;
+    var tutar = Number(s.toplamTutar) || 0;
+    toplamCiro += tutar;
+    if(s.teslimEdildi) teslimCuval += cAdet;
+    if(s.odendi) tahsilEdilen += tutar;
+  });
+
+  var aractaKalan = Math.max(0, yuklenenCuval - teslimCuval);
+  var kalanAlacak = Math.max(0, toplamCiro - tahsilEdilen);
+
+  return {
+    gelenCuval: gelenCuval,
+    yuklenenCuval: yuklenenCuval,
+    depoKalan: depoKalan,
+    teslimCuval: teslimCuval,
+    aractaKalan: aractaKalan,
+    toplamCiro: toplamCiro,
+    tahsilEdilen: tahsilEdilen,
+    kalanAlacak: kalanAlacak
+  };
+}
+
+function patatesModulunuYukle(){
+  var root = document.getElementById("mod4");
+  if(!root) return;
+
+  var pat = getPatates();
+  var ozet = hesaplaOzet(pat);
+
+  // Filtre sayıları
+  var sList = pat.siparisler || [];
+  var sayiHepsi = sList.length;
+  var sayiBekleyen = sList.filter(function(x){ return !x.teslimEdildi; }).length;
+  var sayiTeslim = sList.filter(function(x){ return !!x.teslimEdildi; }).length;
+  var sayiOdenmeyen = sList.filter(function(x){ return !x.odendi; }).length;
+  var sayiOdenen = sList.filter(function(x){ return !!x.odendi; }).length;
+
+  var h = [];
+  h.push('<div class="pat-container">');
+
+  // Başlık & Ana Butonlar
+  h.push('<div class="pat-head">');
+  h.push('  <div class="pat-titles">');
+  h.push('    <h2>🥔 Patates Dağıtım & Sipariş Takibi</h2>');
+  h.push('    <p>Çuval sevkiyatı, araç yüklemeleri, müşteri siparişleri ve anlık tahsilat kontrolü</p>');
+  h.push('  </div>');
+  h.push('  <div class="pat-head-actions">');
+  h.push('    <button type="button" class="btn sm" id="patYeniSiparisBtn">+ Yeni Sipariş</button>');
+  h.push('    <button type="button" class="btn ghost sm" id="patYeniSevkiyatBtn">🚚 Sevkiyat / Stok</button>');
+  h.push('    <button type="button" class="btn ghost sm" id="patCuvalAyarBtn">⚙️ Çuval Fiyatları</button>');
+  h.push('  </div>');
+  h.push('</div>');
+
+  // İstatistik Özet Kartları
+  h.push('<div class="pat-stats-grid">');
+  h.push('  <div class="pat-stat-card">');
+  h.push('    <span class="pat-stat-lbl">📦 Depo Stoğu</span>');
+  h.push('    <span class="pat-stat-val">' + fmtSayi(ozet.depoKalan) + ' çuval</span>');
+  h.push('    <span class="pat-stat-sub">Gelen: ' + fmtSayi(ozet.gelenCuval) + ' | Yüklenen: ' + fmtSayi(ozet.yuklenenCuval) + '</span>');
+  h.push('  </div>');
+
+  h.push('  <div class="pat-stat-card stat-accent">');
+  h.push('    <span class="pat-stat-lbl">🚚 Araçta Kalan</span>');
+  h.push('    <span class="pat-stat-val">' + fmtSayi(ozet.aractaKalan) + ' çuval</span>');
+  h.push('    <span class="pat-stat-sub">Dağıtılan: ' + fmtSayi(ozet.teslimCuval) + ' çuval</span>');
+  h.push('  </div>');
+
+  h.push('  <div class="pat-stat-card">');
+  h.push('    <span class="pat-stat-lbl">💰 Toplam Ciro</span>');
+  h.push('    <span class="pat-stat-val">' + fmtTl(ozet.toplamCiro) + '</span>');
+  h.push('    <span class="pat-stat-sub">' + sayiHepsi + ' sipariş toplamı</span>');
+  h.push('  </div>');
+
+  h.push('  <div class="pat-stat-card stat-gain">');
+  h.push('    <span class="pat-stat-lbl">✅ Tahsil Edilen</span>');
+  h.push('    <span class="pat-stat-val">' + fmtTl(ozet.tahsilEdilen) + '</span>');
+  h.push('    <span class="pat-stat-sub">' + sayiOdenen + ' müşteri ödedi</span>');
+  h.push('  </div>');
+
+  h.push('  <div class="pat-stat-card stat-loss">');
+  h.push('    <span class="pat-stat-lbl">❌ Kalan Borç / Alacak</span>');
+  h.push('    <span class="pat-stat-val">' + fmtTl(ozet.kalanAlacak) + '</span>');
+  h.push('    <span class="pat-stat-sub">' + sayiOdenmeyen + ' sipariş ödeme bekliyor</span>');
+  h.push('  </div>');
+  h.push('</div>');
+
+  // Alt Sekmeler
+  h.push('<div class="pat-subnav">');
+  h.push('  <button type="button" class="pat-subnav-btn ' + (aktifSekme === "siparisler" ? "is-active" : "") + '" data-pattab="siparisler">📦 Müşteri Siparişleri (' + sayiHepsi + ')</button>');
+  h.push('  <button type="button" class="pat-subnav-btn ' + (aktifSekme === "stok" ? "is-active" : "") + '" data-pattab="stok">🚚 Sevkiyat & Araç Yükleme</button>');
+  h.push('  <button type="button" class="pat-subnav-btn ' + (aktifSekme === "cuvallar" ? "is-active" : "") + '" data-pattab="cuvallar">⚙️ Çuval & Fiyat Tipleri (' + (pat.cuvalTipleri||[]).length + ')</button>');
+  h.push('</div>');
+
+  // SEKME 1: SİPARİŞLER & DAĞITIM
+  if(aktifSekme === "siparisler"){
+    h.push('<div class="pat-filter-box">');
+    h.push('  <div class="pat-filter-top">');
+    h.push('    <div class="pat-chips">');
+    h.push('      <button type="button" class="pat-chip ' + (aktifFiltre === "hepsi" ? "is-active" : "") + '" data-patflt="hepsi">Tümü <span class="pat-chip-count">' + sayiHepsi + '</span></button>');
+    h.push('      <button type="button" class="pat-chip ' + (aktifFiltre === "bekleyen" ? "is-active" : "") + '" data-patflt="bekleyen">⏳ Dağıtım Bekleyen <span class="pat-chip-count">' + sayiBekleyen + '</span></button>');
+    h.push('      <button type="button" class="pat-chip chip-gain ' + (aktifFiltre === "teslim" ? "is-active" : "") + '" data-patflt="teslim">🚚 Teslim Edilenler <span class="pat-chip-count">' + sayiTeslim + '</span></button>');
+    h.push('      <button type="button" class="pat-chip chip-loss ' + (aktifFiltre === "odenmeyen" ? "is-active" : "") + '" data-patflt="odenmeyen">❌ Ödenmeyen (Borçlu) <span class="pat-chip-count">' + sayiOdenmeyen + '</span></button>');
+    h.push('      <button type="button" class="pat-chip chip-gain ' + (aktifFiltre === "odenen" ? "is-active" : "") + '" data-patflt="odenen">✅ Ödenenler <span class="pat-chip-count">' + sayiOdenen + '</span></button>');
+    h.push('    </div>');
+    h.push('  </div>');
+    h.push('  <div class="pat-search-wrap">');
+    h.push('    <span class="pat-search-ico">🔍</span>');
+    h.push('    <input type="text" id="patSearchInp" class="pat-search-input" placeholder="Müşteri adı, firma, mahalle veya adres ara..." value="' + escH(aramaMetni) + '">');
+    h.push('  </div>');
+    h.push('</div>');
+
+    // Filtreleme mantığı
+    var q = aramaMetni.trim().toLowerCase();
+    var filtered = sList.filter(function(s){
+      if(aktifFiltre === "bekleyen" && s.teslimEdildi) return false;
+      if(aktifFiltre === "teslim" && !s.teslimEdildi) return false;
+      if(aktifFiltre === "odenmeyen" && s.odendi) return false;
+      if(aktifFiltre === "odenen" && !s.odendi) return false;
+
+      if(q){
+        var metin = [s.musteriAd, s.telefon, s.adres, s.not].join(" ").toLowerCase();
+        if(metin.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+
+    // En yeni sipariş en üstte
+    filtered.sort(function(a, b){
+      var tA = a.siparisTarih || "";
+      var tB = b.siparisTarih || "";
+      return tB.localeCompare(tA);
+    });
+
+    h.push('<div class="pat-orders-list">');
+    if(filtered.length === 0){
+      h.push('<div class="panel" style="padding:32px 20px; text-align:center; color:var(--muted); border-radius:10px;">');
+      h.push('  <div style="font-size:28px; margin-bottom:8px;">🥔</div>');
+      h.push('  <div style="font-size:14.5px; font-weight:600;">Eşleşen sipariş kaydı bulunamadı.</div>');
+      h.push('  <p style="margin:4px 0 12px; font-size:12.5px;">Yeni bir sipariş eklemek için "+ Yeni Sipariş" butonunu kullanabilirsiniz.</p>');
+      h.push('  <button type="button" class="btn sm" id="patEmptyAddBtn">+ Sipariş Oluştur</button>');
+      h.push('</div>');
+    } else {
+      filtered.forEach(function(s){
+        var cTipi = (pat.cuvalTipleri||[]).find(function(c){ return c.id === s.cuvalTipId; });
+        var cTipiAd = cTipi ? cTipi.ad : (s.cuvalTipAd || "Standart Çuval");
+        
+        var cardClass = "pat-order-card";
+        if(s.teslimEdildi && s.odendi) cardClass += " status-tamam";
+        else if(!s.odendi) cardClass += " status-borclu";
+        else cardClass += " status-bekliyor";
+
+        h.push('<div class="' + cardClass + '">');
+        h.push('  <div class="pat-order-top">');
+        h.push('    <div class="pat-order-main-info">');
+        h.push('      <div class="pat-order-name">');
+        h.push('        <span>👤 ' + escH(s.musteriAd || "İsimsiz Müşteri") + '</span>');
+        h.push('      </div>');
+        if(s.telefon){
+          var cleanTel = String(s.telefon).replace(/\s+/g,"");
+          h.push('      <a href="tel:' + escH(cleanTel) + '" class="pat-order-phone" title="Telefonla Ara">📞 ' + escH(s.telefon) + '</a>');
+        }
+        if(s.adres){
+          var mapUrl = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(s.adres);
+          h.push('      <div class="pat-order-addr">');
+          h.push('        <span>📍 ' + escH(s.adres) + '</span>');
+          h.push('        <a href="' + mapUrl + '" target="_blank" rel="noopener" style="font-size:11px; margin-left:4px; color:var(--accent); text-decoration:none;" title="Haritada Göster">↗ Harita</a>');
+          h.push('      </div>');
+        }
+        h.push('    </div>');
+        h.push('    <div class="pat-order-date">📅 ' + escH(s.siparisTarih || "") + '</div>');
+        h.push('  </div>');
+
+        // Sipariş Detay Kutusu
+        h.push('  <div class="pat-order-summary-box">');
+        h.push('    <div class="pat-order-sack-desc">');
+        h.push('      <span>🥔 <strong>' + fmtSayi(s.cuvalAdet) + ' Çuval</strong> · ' + escH(cTipiAd) + '</span>');
+        h.push('      <span style="font-size:11.5px; color:var(--muted);">(Birim: ' + fmtTl(s.birimFiyat) + ')</span>');
+        h.push('    </div>');
+        h.push('    <div class="pat-order-amount">' + fmtTl(s.toplamTutar) + '</div>');
+        h.push('  </div>');
+
+        if(s.not){
+          h.push('  <div class="pat-order-note">📝 Not: ' + escH(s.not) + '</div>');
+        }
+
+        // Tek tıkla kontrol butonları
+        h.push('  <div class="pat-order-actions-grid">');
+        if(s.teslimEdildi){
+          h.push('    <button type="button" class="pat-status-btn btn-teslim-edildi" data-pattoggle-teslim="' + s.id + '" title="Teslimatı geri al">🚚 Teslim Edildi ' + (s.teslimTarih ? '(' + escH(s.teslimTarih) + ')' : '') + ' ✓</button>');
+        } else {
+          h.push('    <button type="button" class="pat-status-btn btn-teslim-bekliyor" data-pattoggle-teslim="' + s.id + '" title="Teslim edildi olarak işaretle">⏳ Dağıtım Bekliyor (Tik Yap)</button>');
+        }
+
+        if(s.odendi){
+          h.push('    <button type="button" class="pat-status-btn btn-odeme-odendi" data-pattoggle-odeme="' + s.id + '" title="Ödemeyi geri al">💰 Parası Alındı ✓</button>');
+        } else {
+          h.push('    <button type="button" class="pat-status-btn btn-odeme-bekliyor" data-pattoggle-odeme="' + s.id + '" title="Parası alındı olarak işaretle">❌ Ödenmedi (' + fmtTl(s.toplamTutar) + ' Borç)</button>');
+        }
+        h.push('  </div>');
+
+        // Alt Eylem Butonları
+        h.push('  <div class="pat-order-card-foot">');
+        h.push('    <div style="font-size:11.5px; color:var(--muted); font-family:monospace;">ID: ' + escH(s.id.slice(0, 8)) + '</div>');
+        h.push('    <div class="pat-card-btns">');
+        h.push('      <button type="button" class="btn ghost sm" data-pattekrar="' + s.id + '" title="Bu müşteriye yeni bir sipariş aç">🔄 Tekrar Sipariş</button>');
+        h.push('      <button type="button" class="btn ghost sm" data-patduzenle="' + s.id + '" title="Siparişi Düzenle">✏️ Düzenle</button>');
+        h.push('      <button type="button" class="btn ghost sm" data-patsil="' + s.id + '" style="color:var(--loss);" title="Siparişi Sil">🗑️ Sil</button>');
+        h.push('    </div>');
+        h.push('  </div>');
+
+        h.push('</div>');
+      });
+    }
+    h.push('</div>');
+  }
+
+  // SEKME 2: SEVKİYATLAR & ARAÇ YÜKLEME
+  else if(aktifSekme === "stok"){
+    h.push('<div class="pat-stock-grid">');
+
+    // Kolon 1: Başka İlden Gelen Çuvallar
+    h.push('  <div class="pat-stock-box">');
+    h.push('    <div class="pat-stock-head">');
+    h.push('      <div class="pat-stock-title">📦 Gelen Sevkiyatlar (Depo Girişi)</div>');
+    h.push('      <button type="button" class="btn sm" id="patAddSevkiyatBtn">+ Sevkiyat Ekle</button>');
+    h.push('    </div>');
+    h.push('    <div style="font-size:12.5px; color:var(--muted);">Başka ilden gelen tır/kamyon çuval sevkiyatları. Toplam: <b>' + fmtSayi(ozet.gelenCuval) + ' çuval</b></div>');
+    h.push('    <div class="pat-stock-list">');
+    var sevkiyatlar = pat.sevkiyatlar || [];
+    if(sevkiyatlar.length === 0){
+      h.push('      <div style="padding:18px; text-align:center; color:var(--muted); font-size:13px;">Henüz sevkiyat girişi yapılmadı.</div>');
+    } else {
+      sevkiyatlar.slice().reverse().forEach(function(sev){
+        h.push('      <div class="pat-stock-item">');
+        h.push('        <div class="pat-stock-item-info">');
+        h.push('          <div class="pat-stock-item-name">' + escH(sev.turAdi || "Sevkiyat") + '</div>');
+        h.push('          <div class="pat-stock-item-meta">📅 ' + escH(sev.tarih || "") + (sev.not ? ' · ' + escH(sev.not) : '') + '</div>');
+        h.push('        </div>');
+        h.push('        <div style="display:flex; align-items:center; gap:8px;">');
+        h.push('          <span class="pat-stock-item-badge">+' + fmtSayi(sev.cuval) + ' Çuval</span>');
+        h.push('          <button type="button" class="icobtn" data-patsil-sev="' + sev.id + '" title="Sil" style="color:var(--loss);">✕</button>');
+        h.push('        </div>');
+        h.push('      </div>');
+      });
+    }
+    h.push('    </div>');
+    h.push('  </div>');
+
+    // Kolon 2: Araca Yüklenen Çuvallar
+    h.push('  <div class="pat-stock-box">');
+    h.push('    <div class="pat-stock-head">');
+    h.push('      <div class="pat-stock-title">🚚 Araca Yüklenenler (Dağıtıma Çıkan)</div>');
+    h.push('      <button type="button" class="btn sm" id="patAddAracBtn">+ Araca Yükle</button>');
+    h.push('    </div>');
+    h.push('    <div style="font-size:12.5px; color:var(--muted);">Depodan dağıtım aracına yüklenen çuvallar. Toplam Yüklenen: <b>' + fmtSayi(ozet.yuklenenCuval) + ' çuval</b></div>');
+    h.push('    <div class="pat-stock-list">');
+    var aracYuklemeler = pat.aracYuklemeler || [];
+    if(aracYuklemeler.length === 0){
+      h.push('      <div style="padding:18px; text-align:center; color:var(--muted); font-size:13px;">Henüz araç yükleme girişi yapılmadı.</div>');
+    } else {
+      aracYuklemeler.slice().reverse().forEach(function(ay){
+        h.push('      <div class="pat-stock-item">');
+        h.push('        <div class="pat-stock-item-info">');
+        h.push('          <div class="pat-stock-item-name">' + escH(ay.plaka || "Dağıtım Aracı") + '</div>');
+        h.push('          <div class="pat-stock-item-meta">📅 ' + escH(ay.tarih || "") + (ay.not ? ' · ' + escH(ay.not) : '') + '</div>');
+        h.push('        </div>');
+        h.push('        <div style="display:flex; align-items:center; gap:8px;">');
+        h.push('          <span class="pat-stock-item-badge" style="color:var(--brass);">' + fmtSayi(ay.cuval) + ' Çuval</span>');
+        h.push('          <button type="button" class="icobtn" data-patsil-arac="' + ay.id + '" title="Sil" style="color:var(--loss);">✕</button>');
+        h.push('        </div>');
+        h.push('      </div>');
+      });
+    }
+    h.push('    </div>');
+    h.push('  </div>');
+
+    h.push('</div>');
+  }
+
+  // SEKME 3: ÇUVAL TİPLERİ & FİYATLAR
+  else if(aktifSekme === "cuvallar"){
+    h.push('<div class="panel" style="padding:18px 20px; border-radius:10px;">');
+    h.push('  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">');
+    h.push('    <div>');
+    h.push('      <h3 style="margin:0; font-size:16px;">🥔 Çuval Tipleri ve Satış Fiyatları</h3>');
+    h.push('      <p style="margin:2px 0 0; font-size:12.5px; color:var(--muted);">Farklı çuval boyutları (36 kg, 18 kg vb.) ve güncel fiyat tanımları</p>');
+    h.push('    </div>');
+    h.push('    <button type="button" class="btn sm" id="patAddCuvalTipBtn">+ Yeni Çuval Tipi Ekle</button>');
+    h.push('  </div>');
+
+    h.push('  <div class="pat-cuval-list">');
+    (pat.cuvalTipleri || []).forEach(function(c){
+      h.push('    <div class="pat-cuval-card">');
+      h.push('      <div class="pat-cuval-top">');
+      h.push('        <div>');
+      h.push('          <div class="pat-cuval-title">' + escH(c.ad) + '</div>');
+      h.push('          <div class="pat-cuval-kg">Ağırlık: ' + (c.kg ? escH(c.kg) + ' kg' : 'Standart') + '</div>');
+      h.push('        </div>');
+      h.push('        <div class="pat-cuval-price">' + fmtTl(c.fiyat) + '</div>');
+      h.push('      </div>');
+      h.push('      <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:6px; padding-top:6px; border-top:1px solid var(--line-soft);">');
+      h.push('        <button type="button" class="btn ghost sm" data-patedit-cuval="' + c.id + '">✏️ Düzenle</button>');
+      if((pat.cuvalTipleri||[]).length > 1){
+        h.push('        <button type="button" class="btn ghost sm" data-patsil-cuval="' + c.id + '" style="color:var(--loss);">🗑️ Sil</button>');
+      }
+      h.push('      </div>');
+      h.push('    </div>');
+    });
+    h.push('  </div>');
+    h.push('</div>');
+  }
+
+  h.push('</div>'); // .pat-container
+
+  // MODAL ALANI
+  if(modalTip){
+    h.push(renderModalHtml(pat));
+  }
+
+  root.innerHTML = h.join("");
+
+  // Olay Dinleyicileri
+  bindPatatesEvents(root, pat);
+}
+
+function renderModalHtml(pat){
+  var m = [];
+  m.push('<div class="pat-modal-backdrop" id="patModalBackdrop">');
+  m.push('  <div class="pat-modal" onclick="event.stopPropagation()">');
+
+  // MODAL: SİPARİŞ
+  if(modalTip === "siparis"){
+    var s = formTaslak || {};
+    var isEdit = !!duzenlenenId;
+    m.push('    <div class="pat-modal-head">');
+    m.push('      <h3>' + (isEdit ? "✏️ Siparişi Düzenle" : "📦 Yeni Müşteri Siparişi") + '</h3>');
+    m.push('      <button type="button" class="pat-modal-close" id="patModalClose">✕</button>');
+    m.push('    </div>');
+    m.push('    <form id="patSiparisForm" class="pat-modal-body">');
+
+    m.push('      <div class="pat-form-group">');
+    m.push('        <label for="fMusteriAd">Müşteri Adı / Ünvan *</label>');
+    m.push('        <input type="text" id="fMusteriAd" class="pat-form-input" placeholder="Örn: Ali (A Firması)" value="' + escH(s.musteriAd || "") + '" required>');
+    m.push('      </div>');
+
+    m.push('      <div class="pat-form-row">');
+    m.push('        <div class="pat-form-group">');
+    m.push('          <label for="fTelefon">Telefon</label>');
+    m.push('          <input type="tel" id="fTelefon" class="pat-form-input" placeholder="05xx xxx xx xx" value="' + escH(s.telefon || "") + '">');
+    m.push('        </div>');
+    m.push('        <div class="pat-form-group">');
+    m.push('          <label for="fSiparisTarih">Sipariş Tarihi *</label>');
+    m.push('          <input type="date" id="fSiparisTarih" class="pat-form-input" value="' + escH(s.siparisTarih || new Date().toISOString().slice(0, 10)) + '" required>');
+    m.push('        </div>');
+    m.push('      </div>');
+
+    m.push('      <div class="pat-form-group">');
+    m.push('        <label for="fAdres">Adres / Konum *</label>');
+    m.push('        <input type="text" id="fAdres" class="pat-form-input" placeholder="Örn: Turgut Özal Mah. / Yenimahalle / Ankara" value="' + escH(s.adres || "") + '" required>');
+    m.push('      </div>');
+
+    m.push('      <div class="pat-form-row">');
+    m.push('        <div class="pat-form-group">');
+    m.push('          <label for="fCuvalTipId">Çuval Tipi</label>');
+    m.push('          <select id="fCuvalTipId" class="pat-form-select">');
+    var curTipId = s.cuvalTipId || ((pat.cuvalTipleri && pat.cuvalTipleri[0]) ? pat.cuvalTipleri[0].id : "");
+    (pat.cuvalTipleri || []).forEach(function(c){
+      m.push('            <option value="' + c.id + '" data-fiyat="' + c.fiyat + '" ' + (c.id === curTipId ? 'selected' : '') + '>' + escH(c.ad) + ' (' + fmtTl(c.fiyat) + ')</option>');
+    });
+    m.push('          </select>');
+    m.push('        </div>');
+    m.push('        <div class="pat-form-group">');
+    m.push('          <label for="fCuvalAdet">Çuval Adedi *</label>');
+    m.push('          <input type="number" id="fCuvalAdet" class="pat-form-input" min="1" step="1" value="' + (s.cuvalAdet || 5) + '" required>');
+    m.push('        </div>');
+    m.push('      </div>');
+
+    m.push('      <div class="pat-form-row">');
+    m.push('        <div class="pat-form-group">');
+    m.push('          <label for="fBirimFiyat">Birim Fiyat (₺)</label>');
+    var defBirim = s.birimFiyat || ((pat.cuvalTipleri && pat.cuvalTipleri[0]) ? pat.cuvalTipleri[0].fiyat : 1300);
+    m.push('          <input type="number" id="fBirimFiyat" class="pat-form-input" min="0" step="any" value="' + defBirim + '" required>');
+    m.push('        </div>');
+    m.push('        <div class="pat-form-group">');
+    m.push('          <label for="fToplamTutar">Toplam Tutar (₺)</label>');
+    var defTop = s.toplamTutar || (defBirim * (s.cuvalAdet || 5));
+    m.push('          <input type="number" id="fToplamTutar" class="pat-form-input" style="font-weight:700; color:var(--gain);" min="0" step="any" value="' + defTop + '" required>');
+    m.push('        </div>');
+    m.push('      </div>');
+
+    m.push('      <div class="pat-form-row" style="background:var(--surface-2); padding:10px 12px; border-radius:8px;">');
+    m.push('        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:600; font-size:13px;">');
+    m.push('          <input type="checkbox" id="fTeslimEdildi" style="width:18px; height:18px; accent-color:var(--gain);" ' + (s.teslimEdildi ? 'checked' : '') + '>');
+    m.push('          <span>🚚 Teslim Edildi</span>');
+    m.push('        </label>');
+    m.push('        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:600; font-size:13px;">');
+    m.push('          <input type="checkbox" id="fOdendi" style="width:18px; height:18px; accent-color:var(--gain);" ' + (s.odendi ? 'checked' : '') + '>');
+    m.push('          <span>💰 Parası Alındı</span>');
+    m.push('        </label>');
+    m.push('      </div>');
+
+    m.push('      <div class="pat-form-group">');
+    m.push('        <label for="fNot">Özel Not</label>');
+    m.push('        <input type="text" id="fNot" class="pat-form-input" placeholder="İsteğe bağlı not..." value="' + escH(s.not || "") + '">');
+    m.push('      </div>');
+
+    m.push('      <div class="pat-modal-foot">');
+    m.push('        <button type="button" class="btn ghost sm" id="patModalIptal">İptal</button>');
+    m.push('        <button type="submit" class="btn sm">💾 Kaydet</button>');
+    m.push('      </div>');
+    m.push('    </form>');
+  }
+
+  // MODAL: SEVKİYAT (Depo Girişi)
+  else if(modalTip === "sevkiyat"){
+    m.push('    <div class="pat-modal-head">');
+    m.push('      <h3>📦 Yeni Çuval Sevkiyatı (Depo Girişi)</h3>');
+    m.push('      <button type="button" class="pat-modal-close" id="patModalClose">✕</button>');
+    m.push('    </div>');
+    m.push('    <form id="patSevkiyatForm" class="pat-modal-body">');
+    m.push('      <div class="pat-form-group">');
+    m.push('        <label for="fSevTur">Sevkiyat / Tur Adı *</label>');
+    m.push('        <input type="text" id="fSevTur" class="pat-form-input" placeholder="Örn: 1. Tur Sevkiyat (Niğde/Afyon)" required>');
+    m.push('      </div>');
+    m.push('      <div class="pat-form-row">');
+    m.push('        <div class="pat-form-group">');
+    m.push('          <label for="fSevTarih">Tarih *</label>');
+    m.push('          <input type="date" id="fSevTarih" class="pat-form-input" value="' + new Date().toISOString().slice(0, 10) + '" required>');
+    m.push('        </div>');
+    m.push('        <div class="pat-form-group">');
+    m.push('          <label for="fSevCuval">Gelen Çuval Adedi *</label>');
+    m.push('          <input type="number" id="fSevCuval" class="pat-form-input" min="1" step="1" placeholder="Örn: 400" required>');
+    m.push('        </div>');
+    m.push('      </div>');
+    m.push('      <div class="pat-form-group">');
+    m.push('        <label for="fSevNot">Plaka / Not</label>');
+    m.push('        <input type="text" id="fSevNot" class="pat-form-input" placeholder="Tır plakası veya açıklama...">');
+    m.push('      </div>');
+    m.push('      <div class="pat-modal-foot">');
+    m.push('        <button type="button" class="btn ghost sm" id="patModalIptal">İptal</button>');
+    m.push('        <button type="submit" class="btn sm">💾 Sevkiyatı Ekle</button>');
+    m.push('      </div>');
+    m.push('    </form>');
+  }
+
+  // MODAL: ARACA YÜKLEME
+  else if(modalTip === "arac"){
+    m.push('    <div class="pat-modal-head">');
+    m.push('      <h3>🚚 Araca Çuval Yükleme (Dağıtım)</h3>');
+    m.push('      <button type="button" class="pat-modal-close" id="patModalClose">✕</button>');
+    m.push('    </div>');
+    m.push('    <form id="patAracForm" class="pat-modal-body">');
+    m.push('      <div class="pat-form-group">');
+    m.push('        <label for="fAracPlaka">Araç / Şoför / Plaka *</label>');
+    m.push('        <input type="text" id="fAracPlaka" class="pat-form-input" placeholder="Örn: 06 ABC 123 (Dağıtım Aracı)" required>');
+    m.push('      </div>');
+    m.push('      <div class="pat-form-row">');
+    m.push('        <div class="pat-form-group">');
+    m.push('          <label for="fAracTarih">Yükleme Tarihi *</label>');
+    m.push('          <input type="date" id="fAracTarih" class="pat-form-input" value="' + new Date().toISOString().slice(0, 10) + '" required>');
+    m.push('        </div>');
+    m.push('        <div class="pat-form-group">');
+    m.push('          <label for="fAracCuval">Yüklenen Çuval Adedi *</label>');
+    m.push('          <input type="number" id="fAracCuval" class="pat-form-input" min="1" step="1" placeholder="Örn: 50" required>');
+    m.push('        </div>');
+    m.push('      </div>');
+    m.push('      <div class="pat-form-group">');
+    m.push('        <label for="fAracNot">Açıklama / Not</label>');
+    m.push('        <input type="text" id="fAracNot" class="pat-form-input" placeholder="İsteğe bağlı not...">');
+    m.push('      </div>');
+    m.push('      <div class="pat-modal-foot">');
+    m.push('        <button type="button" class="btn ghost sm" id="patModalIptal">İptal</button>');
+    m.push('        <button type="submit" class="btn sm">💾 Araca Yükle</button>');
+    m.push('      </div>');
+    m.push('    </form>');
+  }
+
+  // MODAL: ÇUVAL TİPİ
+  else if(modalTip === "cuval"){
+    var cTip = formTaslak || {};
+    var isEditC = !!duzenlenenId;
+    m.push('    <div class="pat-modal-head">');
+    m.push('      <h3>' + (isEditC ? "✏️ Çuval Tipini Düzenle" : "🥔 Yeni Çuval Tipi Ekle") + '</h3>');
+    m.push('      <button type="button" class="pat-modal-close" id="patModalClose">✕</button>');
+    m.push('    </div>');
+    m.push('    <form id="patCuvalForm" class="pat-modal-body">');
+    m.push('      <div class="pat-form-group">');
+    m.push('        <label for="fCuvalAd">Çuval Adı *</label>');
+    m.push('        <input type="text" id="fCuvalAd" class="pat-form-input" placeholder="Örn: Standart Çuval (~36 kg)" value="' + escH(cTip.ad || "") + '" required>');
+    m.push('      </div>');
+    m.push('      <div class="pat-form-row">');
+    m.push('        <div class="pat-form-group">');
+    m.push('          <label for="fCuvalKg">Yaklaşık Ağırlık (kg)</label>');
+    m.push('          <input type="number" id="fCuvalKg" class="pat-form-input" min="1" step="any" placeholder="36" value="' + (cTip.kg || 36) + '">');
+    m.push('        </div>');
+    m.push('        <div class="pat-form-group">');
+    m.push('          <label for="fCuvalFiyat">Birim Satış Fiyatı (₺) *</label>');
+    m.push('          <input type="number" id="fCuvalFiyat" class="pat-form-input" min="0" step="any" placeholder="1300" value="' + (cTip.fiyat || 1300) + '" required>');
+    m.push('        </div>');
+    m.push('      </div>');
+    m.push('      <div class="pat-modal-foot">');
+    m.push('        <button type="button" class="btn ghost sm" id="patModalIptal">İptal</button>');
+    m.push('        <button type="submit" class="btn sm">💾 Kaydet</button>');
+    m.push('      </div>');
+    m.push('    </form>');
+  }
+
+  m.push('  </div>');
+  m.push('</div>');
+  return m.join("");
+}
+
+function bindPatatesEvents(root, pat){
+  // Sekme butonları
+  var tabBtns = root.querySelectorAll("[data-pattab]");
+  for(var i=0; i<tabBtns.length; i++)(function(btn){
+    btn.onclick = function(){
+      aktifSekme = btn.getAttribute("data-pattab");
+      patatesModulunuYukle();
+    };
+  })(tabBtns[i]);
+
+  // Filtre çipleri
+  var chipBtns = root.querySelectorAll("[data-patflt]");
+  for(var j=0; j<chipBtns.length; j++)(function(btn){
+    btn.onclick = function(){
+      aktifFiltre = btn.getAttribute("data-patflt");
+      patatesModulunuYukle();
+    };
+  })(chipBtns[j]);
+
+  // Arama kutusu
+  var searchInp = document.getElementById("patSearchInp");
+  if(searchInp){
+    searchInp.oninput = function(){
+      aramaMetni = this.value;
+      // Anlık filtrele
+      var q = aramaMetni.trim().toLowerCase();
+      var cards = root.querySelectorAll(".pat-order-card");
+      for(var k=0; k<cards.length; k++){
+        var cTxt = cards[k].textContent.toLowerCase();
+        cards[k].style.display = (!q || cTxt.indexOf(q) > -1) ? "" : "none";
+      }
+    };
+  }
+
+  // Üst eylem butonları
+  var addSipBtn = document.getElementById("patYeniSiparisBtn");
+  if(addSipBtn){
+    addSipBtn.onclick = function(){
+      duzenlenenId = null;
+      formTaslak = null;
+      modalTip = "siparis";
+      patatesModulunuYukle();
+    };
+  }
+  var emptyAddBtn = document.getElementById("patEmptyAddBtn");
+  if(emptyAddBtn){
+    emptyAddBtn.onclick = function(){
+      duzenlenenId = null;
+      formTaslak = null;
+      modalTip = "siparis";
+      patatesModulunuYukle();
+    };
+  }
+
+  var addSevBtn = document.getElementById("patYeniSevkiyatBtn");
+  if(addSevBtn){
+    addSevBtn.onclick = function(){
+      aktifSekme = "stok";
+      modalTip = "sevkiyat";
+      patatesModulunuYukle();
+    };
+  }
+  var addSevBtn2 = document.getElementById("patAddSevkiyatBtn");
+  if(addSevBtn2){
+    addSevBtn2.onclick = function(){
+      modalTip = "sevkiyat";
+      patatesModulunuYukle();
+    };
+  }
+
+  var addAracBtn = document.getElementById("patAddAracBtn");
+  if(addAracBtn){
+    addAracBtn.onclick = function(){
+      modalTip = "arac";
+      patatesModulunuYukle();
+    };
+  }
+
+  var cuvalAyarBtn = document.getElementById("patCuvalAyarBtn");
+  if(cuvalAyarBtn){
+    cuvalAyarBtn.onclick = function(){
+      aktifSekme = "cuvallar";
+      patatesModulunuYukle();
+    };
+  }
+  var addCuvalTipBtn = document.getElementById("patAddCuvalTipBtn");
+  if(addCuvalTipBtn){
+    addCuvalTipBtn.onclick = function(){
+      duzenlenenId = null;
+      formTaslak = null;
+      modalTip = "cuval";
+      patatesModulunuYukle();
+    };
+  }
+
+  // Hızlı Tek Tıkla Teslimat Tiki
+  var teslimBtns = root.querySelectorAll("[data-pattoggle-teslim]");
+  for(var t=0; t<teslimBtns.length; t++)(function(btn){
+    btn.onclick = function(e){
+      e.stopPropagation();
+      var id = btn.getAttribute("data-pattoggle-teslim");
+      var s = (pat.siparisler || []).find(function(x){ return x.id === id; });
+      if(!s) return;
+      s.teslimEdildi = !s.teslimEdildi;
+      s.teslimTarih = s.teslimEdildi ? new Date().toISOString().slice(0, 10) : "";
+      kaydet(s.teslimEdildi ? "Sipariş teslim edildi olarak güncellendi" : "Teslimat geri alındı");
+    };
+  })(teslimBtns[t]);
+
+  // Hızlı Tek Tıkla Ödeme Tiki
+  var odemeBtns = root.querySelectorAll("[data-pattoggle-odeme]");
+  for(var o=0; o<odemeBtns.length; o++)(function(btn){
+    btn.onclick = function(e){
+      e.stopPropagation();
+      var id = btn.getAttribute("data-pattoggle-odeme");
+      var s = (pat.siparisler || []).find(function(x){ return x.id === id; });
+      if(!s) return;
+      s.odendi = !s.odendi;
+      s.odemeTarih = s.odendi ? new Date().toISOString().slice(0, 10) : "";
+      kaydet(s.odendi ? "Ödeme tahsil edildi olarak güncellendi" : "Ödeme durumu geri alındı");
+    };
+  })(odemeBtns[o]);
+
+  // Tekrar Sipariş Butonu
+  var tekrarBtns = root.querySelectorAll("[data-pattekrar]");
+  for(var r=0; r<tekrarBtns.length; r++)(function(btn){
+    btn.onclick = function(e){
+      e.stopPropagation();
+      var id = btn.getAttribute("data-pattekrar");
+      var s = (pat.siparisler || []).find(function(x){ return x.id === id; });
+      if(!s) return;
+      duzenlenenId = null;
+      formTaslak = {
+        musteriAd: s.musteriAd,
+        telefon: s.telefon,
+        adres: s.adres,
+        cuvalTipId: s.cuvalTipId,
+        cuvalAdet: s.cuvalAdet,
+        birimFiyat: s.birimFiyat,
+        toplamTutar: s.toplamTutar,
+        siparisTarih: new Date().toISOString().slice(0, 10),
+        teslimEdildi: false,
+        odendi: false,
+        not: ""
+      };
+      modalTip = "siparis";
+      patatesModulunuYukle();
+    };
+  })(tekrarBtns[r]);
+
+  // Düzenle Butonu
+  var editBtns = root.querySelectorAll("[data-patduzenle]");
+  for(var ed=0; ed<editBtns.length; ed++)(function(btn){
+    btn.onclick = function(e){
+      e.stopPropagation();
+      var id = btn.getAttribute("data-patduzenle");
+      var s = (pat.siparisler || []).find(function(x){ return x.id === id; });
+      if(!s) return;
+      duzenlenenId = id;
+      formTaslak = Object.assign({}, s);
+      modalTip = "siparis";
+      patatesModulunuYukle();
+    };
+  })(editBtns[ed]);
+
+  // Sil Butonu
+  var delBtns = root.querySelectorAll("[data-patsil]");
+  for(var d=0; d<delBtns.length; d++)(function(btn){
+    btn.onclick = function(e){
+      e.stopPropagation();
+      var id = btn.getAttribute("data-patsil");
+      var s = (pat.siparisler || []).find(function(x){ return x.id === id; });
+      if(!s) return;
+      if(confirm((s.musteriAd || "Bu") + " siparişini silmek istediğinize emin misiniz?")){
+        pat.siparisler = (pat.siparisler || []).filter(function(x){ return x.id !== id; });
+        kaydet("Sipariş silindi");
+      }
+    };
+  })(delBtns[d]);
+
+  // Sevkiyat Sil
+  var delSevBtns = root.querySelectorAll("[data-patsil-sev]");
+  for(var ds=0; ds<delSevBtns.length; ds++)(function(btn){
+    btn.onclick = function(e){
+      e.stopPropagation();
+      var id = btn.getAttribute("data-patsil-sev");
+      if(confirm("Bu sevkiyat kaydını silmek istediğinize emin misiniz?")){
+        pat.sevkiyatlar = (pat.sevkiyatlar || []).filter(function(x){ return x.id !== id; });
+        kaydet("Sevkiyat kaydı silindi");
+      }
+    };
+  })(delSevBtns[ds]);
+
+  // Araç Yükleme Sil
+  var delAracBtns = root.querySelectorAll("[data-patsil-arac]");
+  for(var da=0; da<delAracBtns.length; da++)(function(btn){
+    btn.onclick = function(e){
+      e.stopPropagation();
+      var id = btn.getAttribute("data-patsil-arac");
+      if(confirm("Bu araç yükleme kaydını silmek istediğinize emin misiniz?")){
+        pat.aracYuklemeler = (pat.aracYuklemeler || []).filter(function(x){ return x.id !== id; });
+        kaydet("Araç yükleme kaydı silindi");
+      }
+    };
+  })(delAracBtns[da]);
+
+  // Çuval Düzenle & Sil
+  var editCuvalBtns = root.querySelectorAll("[data-patedit-cuval]");
+  for(var ec=0; ec<editCuvalBtns.length; ec++)(function(btn){
+    btn.onclick = function(e){
+      e.stopPropagation();
+      var id = btn.getAttribute("data-patedit-cuval");
+      var c = (pat.cuvalTipleri || []).find(function(x){ return x.id === id; });
+      if(!c) return;
+      duzenlenenId = id;
+      formTaslak = Object.assign({}, c);
+      modalTip = "cuval";
+      patatesModulunuYukle();
+    };
+  })(editCuvalBtns[ec]);
+
+  var delCuvalBtns = root.querySelectorAll("[data-patsil-cuval]");
+  for(var dc=0; dc<delCuvalBtns.length; dc++)(function(btn){
+    btn.onclick = function(e){
+      e.stopPropagation();
+      var id = btn.getAttribute("data-patsil-cuval");
+      if(confirm("Bu çuval tipini silmek istediğinize emin misiniz?")){
+        pat.cuvalTipleri = (pat.cuvalTipleri || []).filter(function(x){ return x.id !== id; });
+        kaydet("Çuval tipi silindi");
+      }
+    };
+  })(delCuvalBtns[dc]);
+
+  // Modal Kapatma
+  var backdrop = document.getElementById("patModalBackdrop");
+  if(backdrop){
+    backdrop.onclick = function(){ modalTip = null; patatesModulunuYukle(); };
+  }
+  var closeBtn = document.getElementById("patModalClose");
+  if(closeBtn){
+    closeBtn.onclick = function(){ modalTip = null; patatesModulunuYukle(); };
+  }
+  var iptalBtn = document.getElementById("patModalIptal");
+  if(iptalBtn){
+    iptalBtn.onclick = function(){ modalTip = null; patatesModulunuYukle(); };
+  }
+
+  // Modal Form Gönderimleri:
+  // 1. Sipariş Formu
+  var sipForm = document.getElementById("patSiparisForm");
+  if(sipForm){
+    var cTipSel = document.getElementById("fCuvalTipId");
+    var cAdetInp = document.getElementById("fCuvalAdet");
+    var birimInp = document.getElementById("fBirimFiyat");
+    var topInp = document.getElementById("fToplamTutar");
+
+    function recalcTotal(){
+      var bFiyat = parseFloat(birimInp.value) || 0;
+      var adet = parseInt(cAdetInp.value, 10) || 0;
+      topInp.value = bFiyat * adet;
+    }
+
+    if(cTipSel){
+      cTipSel.onchange = function(){
+        var opt = this.options[this.selectedIndex];
+        var f = opt ? parseFloat(opt.getAttribute("data-fiyat")) : 1300;
+        if(f > 0){
+          birimInp.value = f;
+          recalcTotal();
+        }
+      };
+    }
+    if(cAdetInp) cAdetInp.oninput = recalcTotal;
+    if(birimInp) birimInp.oninput = recalcTotal;
+
+    sipForm.onsubmit = function(e){
+      e.preventDefault();
+      var cTipId = cTipSel ? cTipSel.value : "";
+      var cTipObj = (pat.cuvalTipleri || []).find(function(x){ return x.id === cTipId; });
+      var cTipAd = cTipObj ? cTipObj.ad : "Standart Çuval";
+
+      var payload = {
+        id: duzenlenenId || pId("sip"),
+        musteriAd: document.getElementById("fMusteriAd").value.trim(),
+        telefon: document.getElementById("fTelefon").value.trim(),
+        adres: document.getElementById("fAdres").value.trim(),
+        siparisTarih: document.getElementById("fSiparisTarih").value || new Date().toISOString().slice(0, 10),
+        cuvalTipId: cTipId,
+        cuvalTipAd: cTipAd,
+        cuvalAdet: parseInt(document.getElementById("fCuvalAdet").value, 10) || 1,
+        birimFiyat: parseFloat(document.getElementById("fBirimFiyat").value) || 0,
+        toplamTutar: parseFloat(document.getElementById("fToplamTutar").value) || 0,
+        teslimEdildi: document.getElementById("fTeslimEdildi").checked,
+        teslimTarih: document.getElementById("fTeslimEdildi").checked ? new Date().toISOString().slice(0, 10) : "",
+        odendi: document.getElementById("fOdendi").checked,
+        odemeTarih: document.getElementById("fOdendi").checked ? new Date().toISOString().slice(0, 10) : "",
+        not: document.getElementById("fNot").value.trim()
+      };
+
+      if(duzenlenenId){
+        var idx = (pat.siparisler || []).findIndex(function(x){ return x.id === duzenlenenId; });
+        if(idx > -1) pat.siparisler[idx] = payload;
+      } else {
+        pat.siparisler.push(payload);
+      }
+
+      modalTip = null;
+      duzenlenenId = null;
+      kaydet(duzenlenenId ? "Sipariş güncellendi" : "Yeni sipariş kaydedildi");
+    };
+  }
+
+  // 2. Sevkiyat Formu
+  var sevForm = document.getElementById("patSevkiyatForm");
+  if(sevForm){
+    sevForm.onsubmit = function(e){
+      e.preventDefault();
+      var sPayload = {
+        id: pId("sev"),
+        turAdi: document.getElementById("fSevTur").value.trim(),
+        tarih: document.getElementById("fSevTarih").value || new Date().toISOString().slice(0, 10),
+        cuval: parseInt(document.getElementById("fSevCuval").value, 10) || 0,
+        not: document.getElementById("fSevNot").value.trim()
+      };
+      pat.sevkiyatlar.push(sPayload);
+      modalTip = null;
+      kaydet("Sevkiyat girişi kaydedildi");
+    };
+  }
+
+  // 3. Araç Yükleme Formu
+  var aracForm = document.getElementById("patAracForm");
+  if(aracForm){
+    aracForm.onsubmit = function(e){
+      e.preventDefault();
+      var aPayload = {
+        id: pId("arac"),
+        plaka: document.getElementById("fAracPlaka").value.trim(),
+        tarih: document.getElementById("fAracTarih").value || new Date().toISOString().slice(0, 10),
+        cuval: parseInt(document.getElementById("fAracCuval").value, 10) || 0,
+        not: document.getElementById("fAracNot").value.trim()
+      };
+      pat.aracYuklemeler.push(aPayload);
+      modalTip = null;
+      kaydet("Araca yükleme kaydedildi");
+    };
+  }
+
+  // 4. Çuval Tipi Formu
+  var cuvalForm = document.getElementById("patCuvalForm");
+  if(cuvalForm){
+    cuvalForm.onsubmit = function(e){
+      e.preventDefault();
+      var cPayload = {
+        id: duzenlenenId || pId("ct"),
+        ad: document.getElementById("fCuvalAd").value.trim(),
+        kg: parseFloat(document.getElementById("fCuvalKg").value) || 36,
+        fiyat: parseFloat(document.getElementById("fCuvalFiyat").value) || 0
+      };
+      if(duzenlenenId){
+        var cIdx = (pat.cuvalTipleri || []).findIndex(function(x){ return x.id === duzenlenenId; });
+        if(cIdx > -1) pat.cuvalTipleri[cIdx] = cPayload;
+      } else {
+        pat.cuvalTipleri.push(cPayload);
+      }
+      modalTip = null;
+      duzenlenenId = null;
+      kaydet(duzenlenenId ? "Çuval tipi güncellendi" : "Yeni çuval tipi eklendi");
+    };
+  }
+}
+
+// Dışa aktar ve ilk yükleme
+window.patatesModulunuYukle = patatesModulunuYukle;
+
+D.onState(function(){
+  if(document.getElementById("mod4") && !document.getElementById("mod4").hidden){
+    patatesModulunuYukle();
+  }
+});
+
+// Sayfa yüklendiğinde mod4 aktifse çiz
+setTimeout(function(){
+  if(document.getElementById("mod4") && !document.getElementById("mod4").hidden){
+    patatesModulunuYukle();
+  }
+}, 50);
+
+})();
+</script>
+
 <script id="tcmb-kur">
 (function(){
   var uk=document.getElementById("uk"), ek=document.getElementById("ek"), kt=document.getElementById("kt");
@@ -2613,7 +3825,8 @@ function isAdmin(){
 var kullaniciIzinleri = {
   doviz: { erisim: true, veri_modu: 'ozel' },
   butce: { erisim: true, veri_modu: 'ozel' },
-  odemeler: { erisim: true, veri_modu: 'ozel' }
+  odemeler: { erisim: true, veri_modu: 'ozel' },
+  patates: { erisim: true, veri_modu: 'ozel' }
 };
 
 function izinleriYukle(){
@@ -2621,7 +3834,8 @@ function izinleriYukle(){
     kullaniciIzinleri = {
       doviz: { erisim: true, veri_modu: 'ozel' },
       butce: { erisim: true, veri_modu: 'ozel' },
-      odemeler: { erisim: true, veri_modu: 'ozel' }
+      odemeler: { erisim: true, veri_modu: 'ozel' },
+      patates: { erisim: true, veri_modu: 'ozel' }
     };
     if(typeof API !== "undefined") API.kullaniciIzinleri = kullaniciIzinleri;
     return Promise.resolve(kullaniciIzinleri);
@@ -2630,7 +3844,8 @@ function izinleriYukle(){
     kullaniciIzinleri = {
       doviz: { erisim: true, veri_modu: 'ozel' },
       butce: { erisim: true, veri_modu: 'ozel' },
-      odemeler: { erisim: true, veri_modu: 'ozel' }
+      odemeler: { erisim: true, veri_modu: 'ozel' },
+      patates: { erisim: true, veri_modu: 'ozel' }
     };
     (rows||[]).forEach(function(r){
       if(r.modul && kullaniciIzinleri[r.modul]){
@@ -2653,7 +3868,8 @@ function modUids(){
   return {
     doviz: (kullaniciIzinleri.doviz.veri_modu === 'ortak' ? ADMIN_UID : u),
     butce: (kullaniciIzinleri.butce.veri_modu === 'ortak' ? ADMIN_UID : u),
-    odemeler: (kullaniciIzinleri.odemeler.veri_modu === 'ortak' ? ADMIN_UID : u)
+    odemeler: (kullaniciIzinleri.odemeler.veri_modu === 'ortak' ? ADMIN_UID : u),
+    patates: (kullaniciIzinleri.patates && kullaniciIzinleri.patates.veri_modu === 'ortak' ? ADMIN_UID : u)
   };
 }
 var zincir=Promise.resolve();
@@ -2764,10 +3980,11 @@ function yukle(){
     rest("butce_kalemler?user_id=eq."+m.butce+"&select=*&order=sira"),
     rest("odemeler?user_id=eq."+m.odemeler+"&select=*"),
     rest("odeme_durum?user_id=eq."+m.odemeler+"&select=*"),
-    rest("odeme_tutar?user_id=eq."+m.odemeler+"&select=*")
+    rest("odeme_tutar?user_id=eq."+m.odemeler+"&select=*"),
+    rest("patates_veriler?user_id=eq."+m.patates+"&select=*").catch(function(){ return []; })
   ]).then(function(r){
     var ayar=(r[0]&&r[0][0])||{}, dv=r[1]||[], tk=r[2]||[], ba=r[3]||[], bk=r[4]||[],
-        od=r[5]||[], odd=r[6]||[], odt=r[7]||[];
+        od=r[5]||[], odd=r[6]||[], odt=r[7]||[], patRow=(r[8]&&r[8][0])||null;
 
     tk.sort(function(a,b){
       if(a.sira !== undefined && b.sira !== undefined && a.sira !== b.sira){
@@ -2782,6 +3999,12 @@ function yukle(){
       }
       return (a.gun||0) - (b.gun||0);
     });
+
+    var defCuval = [
+      { id: "ct_std", ad: "Standart Çuval (~36 kg)", kg: 36, fiyat: 1300 },
+      { id: "ct_yarim", ad: "Yarım Çuval (~18 kg)", kg: 18, fiyat: 650 }
+    ];
+    var pat = (patRow && patRow.veri && typeof patRow.veri === "object") ? patRow.veri : {};
 
     var st={
       savedAt:Date.now(),
@@ -2799,7 +4022,7 @@ function yukle(){
             (k.tur==="fatura"?f:g).push({id:k.id,ad:k.ad,tutar:n(k.tutar),sira:n(k.sira)}); });
           f.sort(function(a,b){ return (a.sira||0) - (b.sira||0); });
           g.sort(function(a,b){ return (a.sira||0) - (b.sira||0); });
-          return {id:x.id,yil:x.yil,ay:x.ay,maas:n(x.maas),hesaba:n(x.hesaba),gonderimler:gonderimler,faturalar:f,giderler:g};
+          return {id:x.id,yil:x.yil,ay:x.ay,maas:n(a.maas),hesaba:n(a.hesaba),gonderimler:gonderimler,faturalar:f,giderler:g};
         })
       },
       odemeler:od.map(function(x){
@@ -2808,7 +4031,13 @@ function yukle(){
         odd.forEach(function(d){ if(d.odeme_id===x.id && d.odendi) o.odendi[K(d.yil,d.ay)]=1; });
         odt.forEach(function(t){ if(t.odeme_id===x.id) o.tutarlar[K(t.yil,t.ay)]=n(t.tutar); });
         return o;
-      })
+      }),
+      patates:{
+        cuvalTipleri: (Array.isArray(pat.cuvalTipleri) && pat.cuvalTipleri.length) ? pat.cuvalTipleri : defCuval,
+        sevkiyatlar: Array.isArray(pat.sevkiyatlar) ? pat.sevkiyatlar : [],
+        aracYuklemeler: Array.isArray(pat.aracYuklemeler) ? pat.aracYuklemeler : [],
+        siparisler: Array.isArray(pat.siparisler) ? pat.siparisler : []
+      }
     };
     snap=satirlar(st);
     return st;
@@ -2819,7 +4048,7 @@ function yukle(){
 function satirlar(st){
   var u=uid();
   var m=modUids();
-  var out={ayarlar:{},doviz:{},taksit:{},bay:{},bkalem:{},odeme:{},oddurum:{},odtutar:{}};
+  var out={ayarlar:{},doviz:{},taksit:{},bay:{},bkalem:{},odeme:{},oddurum:{},odtutar:{},patates:{}};
   out.ayarlar[m.doviz]={user_id:m.doviz,usd_kur:n(st.usdRate),eur_kur:n(st.eurRate),kur_tarihi:String(st.rateDate||"")};
   (st.rows||[]).forEach(function(r){
     if(!r.id) r.id=yeniId("d");
@@ -2855,6 +4084,9 @@ function satirlar(st){
     for(var k2 in t2){ var k3=parseInt(k2,10);
       out.odtutar[o.id+"|"+k3]={odeme_id:o.id,yil:kYil(k3),ay:kAy(k3),user_id:m.odemeler,tutar:n(t2[k2])}; }
   });
+  if(st.patates){
+    out.patates[m.patates]={user_id:m.patates,veri:st.patates,guncellendi:new Date().toISOString()};
+  }
   return out;
 }
 
@@ -2872,8 +4104,8 @@ function kaydet(st){
   return zincir;
 }
 function yaz(st){
-  var yeni=satirlar(st), eski=snap||{ayarlar:{},doviz:{},taksit:{},bay:{},bkalem:{},odeme:{},oddurum:{},odtutar:{}};
-  var f={}; ["ayarlar","doviz","taksit","bay","bkalem","odeme","oddurum","odtutar"].forEach(function(k){
+  var yeni=satirlar(st), eski=snap||{ayarlar:{},doviz:{},taksit:{},bay:{},bkalem:{},odeme:{},oddurum:{},odtutar:{},patates:{}};
+  var f={}; ["ayarlar","doviz","taksit","bay","bkalem","odeme","oddurum","odtutar","patates"].forEach(function(k){
     f[k]=fark(yeni[k],eski[k]); });
 
   var p=Promise.resolve();
@@ -2930,6 +4162,14 @@ function yaz(st){
   });
   p=p.then(function(){ return upsert("odeme_durum",f.oddurum.ekle,"odeme_id,yil,ay"); });
   p=p.then(function(){ return upsert("odeme_tutar",f.odtutar.ekle,"odeme_id,yil,ay"); });
+  if(f.patates && f.patates.ekle.length){
+    p=p.then(function(){
+      return upsert("patates_veriler", f.patates.ekle, "user_id").catch(function(err){
+        console.warn("patates_veriler tablosuna yazılamadı:", err);
+        return null;
+      });
+    });
+  }
   return p.then(function(){
     snap=yeni;
     var s=0; for(var k in f) s+=f[k].ekle.length+f[k].cikar.length;
@@ -3118,22 +4358,26 @@ window.isAdmin=isAdmin;
     var t1 = document.querySelector('.tabs .tab[data-tab="mod1"]');
     var t2 = document.querySelector('.tabs .tab[data-tab="mod2"]');
     var t3 = document.querySelector('.tabs .tab[data-tab="mod3"]');
+    var t4 = document.querySelector('.tabs .tab[data-tab="mod4"]');
 
     if(!isAdm){
       if(t1) t1.style.display = (kullaniciIzinleri.doviz && kullaniciIzinleri.doviz.erisim) ? "" : "none";
       if(t2) t2.style.display = (kullaniciIzinleri.butce && kullaniciIzinleri.butce.erisim) ? "" : "none";
       if(t3) t3.style.display = (kullaniciIzinleri.odemeler && kullaniciIzinleri.odemeler.erisim) ? "" : "none";
+      if(t4) t4.style.display = (kullaniciIzinleri.patates && kullaniciIzinleri.patates.erisim) ? "" : "none";
 
       var activeTab = document.querySelector('.tabs .tab.is-on');
       if(activeTab && activeTab.style.display === "none"){
         if(t1 && t1.style.display !== "none") t1.click();
         else if(t2 && t2.style.display !== "none") t2.click();
         else if(t3 && t3.style.display !== "none") t3.click();
+        else if(t4 && t4.style.display !== "none") t4.click();
       }
     } else {
       if(t1) t1.style.display = "";
       if(t2) t2.style.display = "";
       if(t3) t3.style.display = "";
+      if(t4) t4.style.display = "";
       adminPaneliniYukle();
     }
     if(typeof window.DEFTER_YUKLE_MODUL_MENUSU === "function"){
@@ -3237,6 +4481,7 @@ window.isAdmin=isAdmin;
         var dP = uP.doviz || { erisim: true, veri_modu: 'ozel' };
         var bP = uP.butce || { erisim: true, veri_modu: 'ozel' };
         var oP = uP.odemeler || { erisim: true, veri_modu: 'ozel' };
+        var pP = uP.patates || { erisim: true, veri_modu: 'ozel' };
 
         var cardHtml = '<div class="panel admin-user-card" data-uid="' + u.id + '">' +
           '<div class="admin-user-header">' +
@@ -3357,6 +4602,42 @@ window.isAdmin=isAdmin;
               '</div>' +
             '</div>' +
 
+            '<!-- Modül 4: Patates Dağıtım -->' +
+            '<div class="admin-mod-card">' +
+              '<div class="admin-mod-top">' +
+                '<div class="admin-mod-title">' +
+                  '<span class="admin-mod-ico">🥔</span>' +
+                  '<div>' +
+                    '<div class="admin-mod-name">Patates Dağıtım</div>' +
+                    '<div class="admin-mod-desc">Çuval stok, araç yükleme ve müşteri siparişleri</div>' +
+                  '</div>' +
+                '</div>' +
+                '<label class="admin-toggle-label">' +
+                  '<input type="checkbox" id="erisim_patates_' + u.id + '" ' + (pP.erisim ? 'checked' : '') + '> ' +
+                  '<span>Modülü görsün</span>' +
+                '</label>' +
+              '</div>' +
+              '<div class="admin-mod-mode-box">' +
+                '<div class="admin-mod-mode-label">Veri Paylaşım Modu:</div>' +
+                '<div class="admin-mod-mode-options">' +
+                  '<label class="admin-mode-pill">' +
+                    '<input type="radio" name="mod_patates_' + u.id + '" value="ozel" ' + (pP.veri_modu === 'ozel' ? 'checked' : '') + '> ' +
+                    '<div class="admin-pill-content">' +
+                      '<span class="admin-pill-title">🔒 Kendine Özel (Bağımsız)</span>' +
+                      '<span class="admin-pill-desc">Sadece kendi sipariş ve stok verilerini görür</span>' +
+                    '</div>' +
+                  '</label>' +
+                  '<label class="admin-mode-pill">' +
+                    '<input type="radio" name="mod_patates_' + u.id + '" value="ortak" ' + (pP.veri_modu === 'ortak' ? 'checked' : '') + '> ' +
+                    '<div class="admin-pill-content">' +
+                      '<span class="admin-pill-title">👥 Admin ile Ortak</span>' +
+                      '<span class="admin-pill-desc">Tüm sipariş ve stok verileri admin ile ortaktır</span>' +
+                    '</div>' +
+                  '</label>' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+
           '</div>' +
 
           '<div class="admin-save-bar">' +
@@ -3379,10 +4660,14 @@ window.isAdmin=isAdmin;
             var eO = document.getElementById("erisim_odemeler_" + u.id).checked;
             var mO = (panelContainer.querySelector('input[name="mod_odemeler_' + u.id + '"]:checked') || {}).value || 'ozel';
 
+            var eP = document.getElementById("erisim_patates_" + u.id).checked;
+            var mP = (panelContainer.querySelector('input[name="mod_patates_' + u.id + '"]:checked') || {}).value || 'ozel';
+
             var rows = [
               { user_id: u.id, modul: 'doviz', erisim: eD, veri_modu: mD, guncellendi: new Date().toISOString() },
               { user_id: u.id, modul: 'butce', erisim: eB, veri_modu: mB, guncellendi: new Date().toISOString() },
-              { user_id: u.id, modul: 'odemeler', erisim: eO, veri_modu: mO, guncellendi: new Date().toISOString() }
+              { user_id: u.id, modul: 'odemeler', erisim: eO, veri_modu: mO, guncellendi: new Date().toISOString() },
+              { user_id: u.id, modul: 'patates', erisim: eP, veri_modu: mP, guncellendi: new Date().toISOString() }
             ];
 
             saveBtn.disabled = true;
@@ -3393,7 +4678,8 @@ window.isAdmin=isAdmin;
               permMap[u.id] = {
                 doviz: { erisim: eD, veri_modu: mD },
                 butce: { erisim: eB, veri_modu: mB },
-                odemeler: { erisim: eO, veri_modu: mO }
+                odemeler: { erisim: eO, veri_modu: mO },
+                patates: { erisim: eP, veri_modu: mP }
               };
               if(dSpan) dSpan.textContent = "✅ İzinler başarıyla kaydedildi!";
               setTimeout(function(){ if(dSpan) dSpan.textContent = ""; }, 3000);
