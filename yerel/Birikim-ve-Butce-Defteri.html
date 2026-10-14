@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Birikim ve Bütçe Defteri</title>
 <link id="app-fonts" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap">
 <style id="app-style">
@@ -806,10 +809,16 @@ window.canAdminSort = function(){
     var raw = localStorage.getItem("defter-oturum");
     if(raw){
       var s = JSON.parse(raw);
-      if(s && s.email) return (s.email||"").trim().toLowerCase() === "kmlyklmz@gmail.com";
+      if(s && s.email){
+        var e = String(s.email||"").trim().toLowerCase().replace(/ı/g, "i").replace(/i̇/g, "i");
+        return e === "kmlyklmz@gmail.com";
+      }
     }
     var lastMail = localStorage.getItem("defter-son-eposta");
-    if(lastMail) return lastMail.trim().toLowerCase() === "kmlyklmz@gmail.com";
+    if(lastMail){
+      var em = String(lastMail||"").trim().toLowerCase().replace(/ı/g, "i").replace(/i̇/g, "i");
+      return em === "kmlyklmz@gmail.com";
+    }
   }catch(e){}
   return true;
 };
@@ -3818,8 +3827,12 @@ var snap=null;           /* en son bilinen DB hali */
 var ADMIN_EMAIL = "kmlyklmz@gmail.com";
 var ADMIN_UID = "049c0385-fa69-4faf-8630-031c2dbffd75";
 
+function normalizeEmail(e){
+  return String(e || "").trim().toLowerCase().replace(/ı/g, "i").replace(/i̇/g, "i");
+}
+
 function isAdmin(){
-  return (aktifEposta() || "").trim().toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  return normalizeEmail(aktifEposta()) === normalizeEmail(ADMIN_EMAIL);
 }
 
 var kullaniciIzinleri = {
@@ -4414,8 +4427,13 @@ window.isAdmin=isAdmin;
         permMap[r.user_id][r.modul] = { erisim: (r.erisim !== false), veri_modu: r.veri_modu || 'ozel' };
       });
 
-      var digerUsers = (users || []).filter(function(u){
-        return (u.email || '').toLowerCase() !== ADMIN_EMAIL.toLowerCase();
+      var allUsers = (users || []).slice();
+      allUsers.sort(function(a, b){
+        var aAdm = (normalizeEmail(a.email) === normalizeEmail(ADMIN_EMAIL));
+        var bAdm = (normalizeEmail(b.email) === normalizeEmail(ADMIN_EMAIL));
+        if(aAdm && !bAdm) return -1;
+        if(!aAdm && bAdm) return 1;
+        return (a.email || "").localeCompare(b.email || "");
       });
 
       var html = '<div class="admin-container">' +
@@ -4427,8 +4445,8 @@ window.isAdmin=isAdmin;
           '<button type="button" class="btn ghost sm" id="adminYenileBtn">🔄 Listeyi Yenile</button>' +
         '</div>';
 
-      if(digerUsers.length === 0){
-        html += '<div class="panel" style="padding:24px; text-align:center; color:var(--muted)">Henüz sistemde admin haricinde kayıtlı başka bir kullanıcı bulunmuyor. Yeni bir kullanıcı üye olduğunda burada listelenecektir.</div></div>';
+      if(allUsers.length === 0){
+        html += '<div class="panel" style="padding:24px; text-align:center; color:var(--muted)">Henüz sistemde kayıtlı kullanıcı bulunamadı.</div></div>';
         p.innerHTML = html;
         var rB0 = document.getElementById("adminYenileBtn");
         if(rB0) rB0.onclick = adminPaneliniYukle;
@@ -4438,7 +4456,7 @@ window.isAdmin=isAdmin;
       html += '<div class="panel admin-picker-panel">' +
         '<div class="admin-picker-top">' +
           '<label class="admin-picker-label" for="customUserTrigger">👤 Yönetilecek Kullanıcıyı Seçin:</label>' +
-          '<span id="adminUserCountText" class="admin-count-badge">Toplam ' + digerUsers.length + ' kullanıcı</span>' +
+          '<span id="adminUserCountText" class="admin-count-badge">Toplam ' + allUsers.length + ' kullanıcı</span>' +
         '</div>' +
         '<div class="custom-dropdown-wrap" id="customUserDropdown">' +
           '<button type="button" class="custom-dropdown-trigger" id="customUserTrigger" aria-haspopup="listbox" aria-expanded="false">' +
@@ -4451,7 +4469,7 @@ window.isAdmin=isAdmin;
               '<button type="button" class="custom-dropdown-clear-btn" id="customUserClearBtn" title="Temizle">✕</button>' +
             '</div>' +
             '<div class="custom-dropdown-list" id="customUserList"></div>' +
-            '<div class="custom-dropdown-footer" id="customUserFooter">Toplam ' + digerUsers.length + ' kullanıcı</div>' +
+            '<div class="custom-dropdown-footer" id="customUserFooter">Toplam ' + allUsers.length + ' kullanıcı</div>' +
           '</div>' +
         '</div>' +
       '</div>' +
@@ -4464,11 +4482,11 @@ window.isAdmin=isAdmin;
       if(rB) rB.onclick = adminPaneliniYukle;
 
       var panelContainer = document.getElementById("adminUserPanelContainer");
-      var selectedUid = digerUsers[0].id;
+      var selectedUid = allUsers[0].id;
 
       function renderCard(uId){
         selectedUid = uId;
-        var u = digerUsers.find(function(x){ return x.id === uId; });
+        var u = allUsers.find(function(x){ return x.id === uId; });
         if(!u){
           panelContainer.innerHTML = '<div class="panel" style="padding:32px; text-align:center; color:var(--muted); border-radius:10px;">' +
             '<div style="font-size:24px; margin-bottom:8px;">👥</div>' +
@@ -4477,19 +4495,26 @@ window.isAdmin=isAdmin;
           return;
         }
 
+        var isAdmUser = (normalizeEmail(u.email) === normalizeEmail(ADMIN_EMAIL));
         var uP = permMap[u.id] || {};
         var dP = uP.doviz || { erisim: true, veri_modu: 'ozel' };
         var bP = uP.butce || { erisim: true, veri_modu: 'ozel' };
         var oP = uP.odemeler || { erisim: true, veri_modu: 'ozel' };
         var pP = uP.patates || { erisim: true, veri_modu: 'ozel' };
 
+        var badgeHtml = isAdmUser 
+          ? '<span class="dbdurum ok" style="padding:5px 12px; font-size:12px; background:var(--accent-soft); color:var(--accent); border-color:var(--accent); font-weight:600;">👑 Sistem Yöneticisi (Admin)</span>' 
+          : '<span class="dbdurum ok" style="padding:5px 12px; font-size:12px;">Kayıtlı Kullanıcı</span>';
+
+        var userEmailHtml = isAdmUser ? ('👑 ' + u.email) : ('👤 ' + u.email);
+
         var cardHtml = '<div class="panel admin-user-card" data-uid="' + u.id + '">' +
           '<div class="admin-user-header">' +
             '<div class="admin-user-info">' +
-              '<div class="admin-user-email">👤 ' + u.email + '</div>' +
+              '<div class="admin-user-email">' + userEmailHtml + '</div>' +
               '<div class="admin-user-id">Kullanıcı ID: ' + u.id + '</div>' +
             '</div>' +
-            '<span class="dbdurum ok" style="padding:5px 12px; font-size:12px;">Kayıtlı Kullanıcı</span>' +
+            badgeHtml +
           '</div>' +
 
           '<div class="admin-modules-list">' +
@@ -4681,6 +4706,12 @@ window.isAdmin=isAdmin;
                 odemeler: { erisim: eO, veri_modu: mO },
                 patates: { erisim: eP, veri_modu: mP }
               };
+              if(normalizeEmail(u.email) === normalizeEmail(aktifEposta())){
+                kullaniciIzinleri = permMap[u.id];
+                if(typeof API !== "undefined") API.kullaniciIzinleri = kullaniciIzinleri;
+                if(window.DEFTER_DB) window.DEFTER_DB.kullaniciIzinleri = kullaniciIzinleri;
+                uygulaIzinArayuz();
+              }
               if(dSpan) dSpan.textContent = "✅ İzinler başarıyla kaydedildi!";
               setTimeout(function(){ if(dSpan) dSpan.textContent = ""; }, 3000);
             }).catch(function(err){
@@ -4752,8 +4783,13 @@ window.isAdmin=isAdmin;
       function updateTriggerLabel(u){
         if(!triggerText) return;
         if(u){
+          var isAdmUser = (normalizeEmail(u.email) === normalizeEmail(ADMIN_EMAIL));
           var shortId = u.id ? (u.id.slice(0, 8) + "…") : "";
-          triggerText.innerHTML = '👤 <strong>' + (u.email || "") + '</strong> <span style="opacity:0.75; font-weight:normal; font-size:12px; margin-left:6px;">(ID: ' + shortId + ')</span>';
+          if(isAdmUser){
+            triggerText.innerHTML = '👑 <strong>' + (u.email || "") + '</strong> <span style="background:var(--accent-soft);color:var(--accent);font-weight:600;font-size:11px;padding:2px 6px;border-radius:4px;margin-left:6px;">Yönetici (Admin)</span>';
+          } else {
+            triggerText.innerHTML = '👤 <strong>' + (u.email || "") + '</strong> <span style="opacity:0.75; font-weight:normal; font-size:12px; margin-left:6px;">(ID: ' + shortId + ')</span>';
+          }
         } else {
           triggerText.textContent = "👤 Kullanıcı seçin...";
         }
@@ -4761,12 +4797,12 @@ window.isAdmin=isAdmin;
 
       function renderDropdownList(q){
         q = (q || "").trim().toLowerCase();
-        var matches = digerUsers.filter(function(x){
+        var matches = allUsers.filter(function(x){
           if(!q) return true;
           return (x.email || "").toLowerCase().indexOf(q) > -1 || (x.id || "").toLowerCase().indexOf(q) > -1;
         });
 
-        var countStr = q ? ("Eşleşen " + matches.length + " / " + digerUsers.length + " kullanıcı") : ("Toplam " + digerUsers.length + " kullanıcı");
+        var countStr = q ? ("Eşleşen " + matches.length + " / " + allUsers.length + " kullanıcı") : ("Toplam " + allUsers.length + " kullanıcı");
         if(countText) countText.textContent = countStr;
         if(footerText) footerText.textContent = countStr;
 
@@ -4783,15 +4819,18 @@ window.isAdmin=isAdmin;
 
         matches.forEach(function(u){
           var isSel = (u.id === selectedUid);
+          var isAdmUser = (normalizeEmail(u.email) === normalizeEmail(ADMIN_EMAIL));
           var item = document.createElement("div");
           item.className = "custom-dropdown-item" + (isSel ? " is-selected" : "");
           item.setAttribute("role", "option");
           item.setAttribute("aria-selected", isSel ? "true" : "false");
 
           var shortId = u.id ? (u.id.slice(0, 8) + "…") : "";
-          item.innerHTML = '<span class="custom-item-ico">👤</span>' +
+          var ico = isAdmUser ? "👑" : "👤";
+          var badge = isAdmUser ? ' <span style="background:var(--accent-soft);color:var(--accent);font-weight:600;font-size:10px;padding:1px 5px;border-radius:3px;margin-left:4px;">Admin</span>' : '';
+          item.innerHTML = '<span class="custom-item-ico">' + ico + '</span>' +
             '<div class="custom-item-info">' +
-              '<span class="custom-item-email">' + (u.email || "") + '</span>' +
+              '<span class="custom-item-email">' + (u.email || "") + badge + '</span>' +
               '<span class="custom-item-id">ID: ' + shortId + '</span>' +
             '</div>' +
             '<span class="custom-item-check" style="' + (isSel ? '' : 'display:none;') + '">✓</span>';
@@ -4827,7 +4866,7 @@ window.isAdmin=isAdmin;
       }
 
       // Başlangıçta ilk kullanıcıyı seç ve listeyi oluştur
-      var initUser = digerUsers.find(function(x){ return x.id === selectedUid; }) || digerUsers[0];
+      var initUser = allUsers.find(function(x){ return x.id === selectedUid; }) || allUsers[0];
       if(initUser){
         selectedUid = initUser.id;
         updateTriggerLabel(initUser);
