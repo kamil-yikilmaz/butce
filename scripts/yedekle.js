@@ -1,5 +1,6 @@
 // scripts/yedekle.js
-// Supabase veritabanındaki verileri çekip Bütçe Defteri formatında JSON yedek dosyası oluşturur.
+// Supabase veritabanındaki TÜM tabloları çekip eksiksiz ham veritabanı dökümü
+// ve Bütçe Defteri web uygulaması uyumlu formatta JSON yedek dosyası oluşturur.
 
 const fs = require('fs');
 const path = require('path');
@@ -19,8 +20,49 @@ const URL = rawUrl;
 const DEFAULT_KEY = 'sb_publishable_xV8OnKCk-OYwDVDV6et6fw_669TJ9KQ';
 const ENV_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || '').trim();
 
+// Sistemde yer alan tüm çekirdek tablolar
+const BILINEN_TABLOLAR = [
+  'ayarlar',
+  'doviz_aylar',
+  'taksitler',
+  'butce_aylar',
+  'butce_kalemler',
+  'odemeler',
+  'odeme_durum',
+  'odeme_tutar',
+  'kullanici_izinleri',
+  'patates_veriler'
+];
+
+// Supabase OpenAPI şemasından ek tablolar varsa dinamik keşfet
+async function kesfetTablolar() {
+  const tablolar = new Set(BILINEN_TABLOLAR);
+  try {
+    const key = ENV_KEY || DEFAULT_KEY;
+    const res = await fetch(`${URL}/rest/v1/`, {
+      method: 'GET',
+      headers: {
+        'apikey': key,
+        'Authorization': `Bearer ${key}`
+      }
+    });
+    if (res.ok) {
+      const spec = await res.json();
+      if (spec && spec.definitions) {
+        Object.keys(spec.definitions).forEach(t => {
+          if (!t.startsWith('rpc_') && !t.startsWith('_')) tablolar.add(t);
+        });
+      }
+    }
+  } catch (e) {
+    // Şema keşfi opsiyoneldir, hata durumunda bilinen tablolar kullanılır
+  }
+  return Array.from(tablolar);
+}
+
+// Belirtilen tablodaki TÜM satır ve sütunları eksiksiz çeker (100.000 satıra kadar)
 async function get(tablo) {
-  const url = `${URL}/rest/v1/${tablo}?select=*`;
+  const url = `${URL}/rest/v1/${tablo}?select=*&limit=100000`;
   const keysToTry = ENV_KEY ? [ENV_KEY, DEFAULT_KEY] : [DEFAULT_KEY];
 
   for (const k of keysToTry) {
@@ -38,62 +80,106 @@ async function get(tablo) {
       if (res.ok && !text.trim().startsWith('<')) {
         const data = JSON.parse(text);
         const rows = Array.isArray(data) ? data : [];
-        console.log(`- ${tablo}: ${rows.length} satır okundu (HTTP ${res.status})`);
+        console.log(`  ✓ ${tablo.padEnd(20)}: ${rows.length} satır çekildi (HTTP ${res.status})`);
         return rows;
       } else {
-        console.warn(`[UYARI] ${tablo} okunamadı (HTTP ${res.status}): ${text.slice(0, 80)}`);
+        console.warn(`  ⚠ ${tablo.padEnd(20)}: Okunamadı (HTTP ${res.status}) - ${text.slice(0, 80)}`);
       }
     } catch (e) {
-      console.warn(`[UYARI] ${tablo} hatası:`, e.message);
+      console.warn(`  ⚠ ${tablo.padEnd(20)} hatası: ${e.message}`);
     }
   }
   return [];
 }
 
+// Kullanıcı listesini (varsa service_role yetkisi ile) çekmeyi dener
+async function getKullanicilar() {
+  if (!ENV_KEY) return [];
+  try {
+    const res = await fetch(`${URL}/auth/v1/admin/users`, {
+      method: 'GET',
+      headers: {
+        'apikey': ENV_KEY,
+        'Authorization': `Bearer ${ENV_KEY}`
+      }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const users = (data && data.users) || (Array.isArray(data) ? data : []);
+      return users.map(u => ({
+        id: u.id,
+        email: u.email,
+        created_at: u.created_at,
+        last_sign_in_at: u.last_sign_in_at
+      }));
+    }
+  } catch (e) {}
+  return [];
+}
+
 async function calistir() {
-  console.log(`Hedef Supabase API: ${URL}`);
+  console.log(`=======================================================`);
+  console.log(`Supabase Tam Veritabanı Yedekleme Aracı`);
+  console.log(`Hedef API: ${URL}`);
+  console.log(`Yetki Türü: ${ENV_KEY ? 'SERVICE_ROLE KEY (Tam Erişim)' : 'ANON / PUBLISHABLE KEY'}`);
+  console.log(`=======================================================\n`);
 
-  console.log('Tablolar okunuyor:');
-  const [ayarRows, dvRows, tkRows, baRows, bkRows, odRows, oddRows, odtRows] = await Promise.all([
-    get('ayarlar'),
-    get('doviz_aylar'),
-    get('taksitler'),
-    get('butce_aylar'),
-    get('butce_kalemler'),
-    get('odemeler'),
-    get('odeme_durum'),
-    get('odeme_tutar')
-  ]);
+  const hedefTablolar = await kesfetTablolar();
+  console.log(`Yedeklenecek tablolar (${hedefTablolar.length} adet):`);
 
-  const a = (ayarRows && ayarRows[0]) || {};
-  const dv = (dvRows || []).sort((x, y) => ((x.yil || 0) * 12 + (x.ay || 0)) - ((y.yil || 0) * 12 + (y.ay || 0)));
-  const tk = (tkRows || []).sort((x, y) => {
+  const veritabani = {};
+  let toplamSatir = 0;
+
+  for (const tablo of hedefTablolar) {
+    const satirlar = await get(tablo);
+    veritabani[tablo] = satirlar;
+    toplamSatir += satirlar.length;
+  }
+
+  const kullanicilar = await getKullanicilar();
+  if (kullanicilar.length > 0) {
+    console.log(`  ✓ ${'auth.users'.padEnd(20)}: ${kullanicilar.length} kayıtlı kullanıcı listesi çekildi`);
+  }
+
+  console.log(`\n-------------------------------------------------------`);
+  console.log(`Veritabanı Satır Özeti: Toplam ${toplamSatir} satır`);
+  Object.keys(veritabani).forEach(t => {
+    console.log(`  • ${t.padEnd(22)}: ${veritabani[t].length}`);
+  });
+  console.log(`-------------------------------------------------------\n`);
+
+  if (toplamSatir === 0) {
+    throw new Error('Veritabanında hiç satır bulunamadı veya yetki anahtarı yetersiz!');
+  }
+
+  // Bütçe Defteri Web Uygulaması için state nesnesi oluştur
+  // (Web arayüzündeki "Yedeği yükle" butonu ile doğrudan geri yüklenebilmesi için)
+  const ayarRows = veritabani.ayarlar || [];
+  const dvRows = (veritabani.doviz_aylar || []).sort((x, y) => ((x.yil || 0) * 12 + (x.ay || 0)) - ((y.yil || 0) * 12 + (y.ay || 0)));
+  const tkRows = (veritabani.taksitler || []).sort((x, y) => {
     if (x.sira !== undefined && y.sira !== undefined && x.sira !== y.sira) return (x.sira || 0) - (y.sira || 0);
     return ((x.bas_yil || 0) * 12 + (x.bas_ay || 0)) - ((y.bas_yil || 0) * 12 + (y.bas_ay || 0));
   });
-  const ba = (baRows || []).sort((x, y) => ((x.yil || 0) * 12 + (x.ay || 0)) - ((y.yil || 0) * 12 + (y.ay || 0)));
-  const bk = (bkRows || []).sort((x, y) => (x.sira || 0) - (y.sira || 0));
-  const od = (odRows || []).sort((x, y) => {
+  const baRows = (veritabani.butce_aylar || []).sort((x, y) => ((x.yil || 0) * 12 + (x.ay || 0)) - ((y.yil || 0) * 12 + (y.ay || 0)));
+  const bkRows = (veritabani.butce_kalemler || []).sort((x, y) => (x.sira || 0) - (y.sira || 0));
+  const odRows = (veritabani.odemeler || []).sort((x, y) => {
     if (x.sira !== undefined && y.sira !== undefined && x.sira !== y.sira) return (x.sira || 0) - (y.sira || 0);
     return (x.gun || 0) - (y.gun || 0);
   });
-  const odd = oddRows || [];
-  const odt = odtRows || [];
+  const oddRows = veritabani.odeme_durum || [];
+  const odtRows = veritabani.odeme_tutar || [];
+  const patRows = veritabani.patates_veriler || [];
 
-  console.log(`\nToplam Veri Özeti:`);
-  console.log(`Döviz: ${dv.length}, Taksit: ${tk.length}, Bütçe Ay: ${ba.length}, Kalem: ${bk.length}, Ödeme: ${od.length}`);
-
-  const toplamSatir = dv.length + tk.length + ba.length + bk.length + od.length;
-  if (toplamSatir === 0) {
-    throw new Error('Veritabanında hiç satır bulunamadı veya adres hatalı!');
-  }
+  const a = ayarRows[0] || {};
+  const patRow = patRows[0] || {};
+  const patVeri = (patRow && patRow.veri && typeof patRow.veri === 'object') ? patRow.veri : {};
 
   const state = {
     savedAt: Date.now(),
     usdRate: Number(a.usd_kur || 0),
     eurRate: Number(a.eur_kur || 0),
     rateDate: String(a.kur_tarihi || ''),
-    rows: dv.map(x => ({
+    rows: dvRows.map(x => ({
       id: x.id,
       year: x.yil,
       month: x.ay,
@@ -107,7 +193,7 @@ async function calistir() {
       eurDoc: x.eur_dekont || null
     })),
     butce: {
-      taksitler: tk.map(x => ({
+      taksitler: tkRows.map(x => ({
         id: x.id,
         ad: x.ad || '',
         tutar: Number(x.tutar || 0),
@@ -116,9 +202,9 @@ async function calistir() {
         sYil: x.bit_yil,
         sAy: x.bit_ay
       })),
-      aylar: ba.map(x => {
+      aylar: baRows.map(x => {
         const f = [], g = [];
-        bk.filter(k => k.ay_id === x.id).forEach(k => {
+        bkRows.filter(k => k.ay_id === x.id).forEach(k => {
           (k.tur === 'fatura' ? f : g).push({
             id: k.id,
             ad: k.ad || '',
@@ -140,12 +226,12 @@ async function calistir() {
         };
       })
     },
-    odemeler: od.map(x => {
+    odemeler: odRows.map(x => {
       const d = {}, t = {};
-      odd.filter(k => k.odeme_id === x.id).forEach(k => {
+      oddRows.filter(k => k.odeme_id === x.id).forEach(k => {
         d[`${k.yil}-${k.ay}`] = !!k.odendi;
       });
-      odt.filter(k => k.odeme_id === x.id).forEach(k => {
+      odtRows.filter(k => k.odeme_id === x.id).forEach(k => {
         t[`${k.yil}-${k.ay}`] = Number(k.tutar || 0);
       });
       return {
@@ -160,13 +246,34 @@ async function calistir() {
         odenen: d,
         tutarlar: t
       };
-    })
+    }),
+    patates: {
+      cuvalTipleri: Array.isArray(patVeri.cuvalTipleri) ? patVeri.cuvalTipleri : [],
+      sevkiyatlar: Array.isArray(patVeri.sevkiyatlar) ? patVeri.sevkiyatlar : [],
+      aracYuklemeler: Array.isArray(patVeri.aracYuklemeler) ? patVeri.aracYuklemeler : [],
+      siparisler: Array.isArray(patVeri.siparisler) ? patVeri.siparisler : []
+    }
   };
 
+  // EKSİKSİZ TAM VERİTABANI YEDEK PAKETİ
   const paket = {
-    format: 'doviz-defteri',
-    v: 1,
+    format: 'doviz-defteri', // Web arayüzü ile geriye dönük tam uyumluluk
+    tam_veritabani_yedegi: true,
+    versiyon: 2,
     alindi: new Date().toISOString(),
+    supabase_url: URL,
+    ozet: {
+      toplamTablo: Object.keys(veritabani).length,
+      toplamSatir: toplamSatir,
+      tabloSatirSayilari: Object.fromEntries(
+        Object.entries(veritabani).map(([k, v]) => [k, v.length])
+      )
+    },
+    // TÜM VERİTABANI: Her bir tablonun ham (raw) tüm satır ve sütunları
+    veritabani: veritabani,
+    // KULLANICILAR (auth.users)
+    kullanicilar: kullanicilar,
+    // WEB UYGULAMASI DOĞRUDAN YÜKLEME DURUMU
     state: state,
     docs: {}
   };
@@ -175,10 +282,14 @@ async function calistir() {
   const ciktiDosyasi = path.resolve(process.cwd(), `butce-yedek-${bugun}.json`);
   fs.writeFileSync(ciktiDosyasi, JSON.stringify(paket, null, 2), 'utf8');
 
-  console.log(`✅ Yedek başarıyla kaydedildi: ${ciktiDosyasi} (${fs.statSync(ciktiDosyasi).size} bayt)`);
+  const boyutKb = (fs.statSync(ciktiDosyasi).size / 1024).toFixed(1);
+  console.log(`✅ Tam Veritabanı Yedeği Kaydedildi:`);
+  console.log(`   Dosya: ${ciktiDosyasi}`);
+  console.log(`   Boyut: ${boyutKb} KB`);
+  console.log(`   Tablolar: ${Object.keys(veritabani).join(', ')}`);
 }
 
 calistir().catch(err => {
-  console.error('Kritik hata:', err.message || err);
+  console.error('\n❌ Kritik Hata:', err.message || err);
   process.exit(1);
 });
