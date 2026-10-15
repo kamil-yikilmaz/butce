@@ -679,7 +679,8 @@ td.odn,.odn{font-size:12.5px; white-space:nowrap}
 }
 .pat-order-card.status-tamam{border-left-color:var(--gain)}
 .pat-order-card.status-borclu{border-left-color:var(--loss)}
-.pat-order-card.status-bekliyor{border-left-color:var(--brass)}
+.pat-order-card.status-kismi{border-left-color:var(--brass)}
+.pat-order-card.status-bekliyor{border-left-color:var(--accent)}
 
 .pat-order-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap}
 .pat-order-main-info{min-width:0; flex:1 1 auto}
@@ -730,6 +731,9 @@ td.odn,.odn{font-size:12.5px; white-space:nowrap}
 
 .pat-status-btn.btn-odeme-bekliyor{
   background:var(--loss-soft); color:var(--loss); border-color:transparent;
+}
+.pat-status-btn.btn-odeme-kismi{
+  background:var(--brass-soft); color:var(--brass); border-color:transparent;
 }
 .pat-status-btn.btn-odeme-odendi{
   background:var(--gain-soft); color:var(--gain); border-color:transparent;
@@ -2695,7 +2699,8 @@ function hesaplaOzet(pat){
     var tutar = Number(s.toplamTutar) || 0;
     toplamCiro += tutar;
     if(s.teslimEdildi) teslimCuval += cAdet;
-    if(s.odendi) tahsilEdilen += tutar;
+    var odenen = (s.odenenTutar != null) ? Number(s.odenenTutar) : (s.odendi ? tutar : 0);
+    tahsilEdilen += odenen;
   });
 
   var aractaKalan = Math.max(0, yuklenenCuval - teslimCuval);
@@ -2725,8 +2730,18 @@ function patatesModulunuYukle(){
   var sayiHepsi = sList.length;
   var sayiBekleyen = sList.filter(function(x){ return !x.teslimEdildi; }).length;
   var sayiTeslim = sList.filter(function(x){ return !!x.teslimEdildi; }).length;
-  var sayiOdenmeyen = sList.filter(function(x){ return !x.odendi; }).length;
-  var sayiOdenen = sList.filter(function(x){ return !!x.odendi; }).length;
+  var sayiOdenmeyen = sList.filter(function(x){
+    var odenen = (x.odenenTutar != null) ? Number(x.odenenTutar) : (x.odendi ? Number(x.toplamTutar) : 0);
+    return odenen < Number(x.toplamTutar);
+  }).length;
+  var sayiKismi = sList.filter(function(x){
+    var odenen = (x.odenenTutar != null) ? Number(x.odenenTutar) : (x.odendi ? Number(x.toplamTutar) : 0);
+    return odenen > 0 && odenen < Number(x.toplamTutar);
+  }).length;
+  var sayiOdenen = sList.filter(function(x){
+    var odenen = (x.odenenTutar != null) ? Number(x.odenenTutar) : (x.odendi ? Number(x.toplamTutar) : 0);
+    return odenen >= Number(x.toplamTutar);
+  }).length;
 
   var h = [];
   h.push('<div class="pat-container">');
@@ -2784,8 +2799,11 @@ function patatesModulunuYukle(){
     h.push('      <button type="button" class="pat-chip ' + (aktifFiltre === "hepsi" ? "is-active" : "") + '" data-patflt="hepsi">Tümü <span class="pat-chip-count">' + sayiHepsi + '</span></button>');
     h.push('      <button type="button" class="pat-chip ' + (aktifFiltre === "bekleyen" ? "is-active" : "") + '" data-patflt="bekleyen">⏳ Dağıtım Bekleyen <span class="pat-chip-count">' + sayiBekleyen + '</span></button>');
     h.push('      <button type="button" class="pat-chip chip-gain ' + (aktifFiltre === "teslim" ? "is-active" : "") + '" data-patflt="teslim">🚚 Teslim Edilenler <span class="pat-chip-count">' + sayiTeslim + '</span></button>');
-    h.push('      <button type="button" class="pat-chip chip-loss ' + (aktifFiltre === "odenmeyen" ? "is-active" : "") + '" data-patflt="odenmeyen">❌ Ödenmeyen (Borçlu) <span class="pat-chip-count">' + sayiOdenmeyen + '</span></button>');
-    h.push('      <button type="button" class="pat-chip chip-gain ' + (aktifFiltre === "odenen" ? "is-active" : "") + '" data-patflt="odenen">✅ Ödenenler <span class="pat-chip-count">' + sayiOdenen + '</span></button>');
+    h.push('      <button type="button" class="pat-chip chip-loss ' + (aktifFiltre === "odenmeyen" ? "is-active" : "") + '" data-patflt="odenmeyen">❌ Kalan Borçlu <span class="pat-chip-count">' + sayiOdenmeyen + '</span></button>');
+    if(sayiKismi > 0){
+      h.push('      <button type="button" class="pat-chip ' + (aktifFiltre === "kismi" ? "is-active" : "") + '" style="' + (aktifFiltre === "kismi" ? "background:var(--brass); color:#fff; border-color:var(--brass);" : "") + '" data-patflt="kismi">⚠️ Kısmi Ödeme <span class="pat-chip-count">' + sayiKismi + '</span></button>');
+    }
+    h.push('      <button type="button" class="pat-chip chip-gain ' + (aktifFiltre === "odenen" ? "is-active" : "") + '" data-patflt="odenen">✅ Tamamı Ödenenler <span class="pat-chip-count">' + sayiOdenen + '</span></button>');
     h.push('    </div>');
     h.push('  </div>');
     h.push('  <div class="pat-search-wrap">');
@@ -2800,10 +2818,16 @@ function patatesModulunuYukle(){
     // Filtreleme mantığı
     var q = aramaMetni.trim().toLowerCase();
     var filtered = sList.filter(function(s){
+      var topT = Number(s.toplamTutar) || 0;
+      var odenenT = (s.odenenTutar != null) ? Number(s.odenenTutar) : (s.odendi ? topT : 0);
+      var tamOdendi = odenenT >= topT;
+      var kismiOdendi = odenenT > 0 && !tamOdendi;
+
       if(aktifFiltre === "bekleyen" && s.teslimEdildi) return false;
       if(aktifFiltre === "teslim" && !s.teslimEdildi) return false;
-      if(aktifFiltre === "odenmeyen" && s.odendi) return false;
-      if(aktifFiltre === "odenen" && !s.odendi) return false;
+      if(aktifFiltre === "odenmeyen" && tamOdendi) return false;
+      if(aktifFiltre === "kismi" && !kismiOdendi) return false;
+      if(aktifFiltre === "odenen" && !tamOdendi) return false;
 
       if(q){
         var metin = [s.musteriAd, s.telefon, s.adres, s.not].join(" ").toLowerCase();
@@ -2831,10 +2855,16 @@ function patatesModulunuYukle(){
       filtered.forEach(function(s){
         var cTipi = (pat.cuvalTipleri||[]).find(function(c){ return c.id === s.cuvalTipId; });
         var cTipiAd = cTipi ? cTipi.ad : (s.cuvalTipAd || "Standart Çuval");
+        var topTutar = Number(s.toplamTutar) || 0;
+        var odenenTutar = (s.odenenTutar != null) ? Number(s.odenenTutar) : (s.odendi ? topTutar : 0);
+        var kalanBorc = Math.max(0, topTutar - odenenTutar);
+        var tamOdendi = odenenTutar >= topTutar;
+        var kismiOdendi = odenenTutar > 0 && !tamOdendi;
         
         var cardClass = "pat-order-card";
-        if(s.teslimEdildi && s.odendi) cardClass += " status-tamam";
-        else if(!s.odendi) cardClass += " status-borclu";
+        if(s.teslimEdildi && tamOdendi) cardClass += " status-tamam";
+        else if(kismiOdendi) cardClass += " status-kismi";
+        else if(!tamOdendi) cardClass += " status-borclu";
         else cardClass += " status-bekliyor";
 
         h.push('<div class="' + cardClass + '">');
@@ -2842,6 +2872,15 @@ function patatesModulunuYukle(){
         h.push('    <div class="pat-order-main-info">');
         h.push('      <div class="pat-order-name">');
         h.push('        <span>👤 ' + escH(s.musteriAd || "İsimsiz Müşteri") + '</span>');
+        if(s.teslimEdildi && tamOdendi){
+          h.push('        <span class="pill up" style="font-size:11px;">TAMAMLANDI</span>');
+        } else if(kismiOdendi){
+          h.push('        <span class="pill flat" style="font-size:11px; background:var(--brass-soft); color:var(--brass); font-weight:700;">KISMİ: ' + fmtTl(odenenTutar) + ' (' + fmtTl(kalanBorc) + ' Kalan)</span>');
+        } else if(!tamOdendi){
+          h.push('        <span class="pill down" style="font-size:11px;">ÖDEME BEKLİYOR</span>');
+        } else if(!s.teslimEdildi){
+          h.push('        <span class="pill flat" style="font-size:11px;">DAĞITIMDA</span>');
+        }
         h.push('      </div>');
         if(s.telefon){
           var cleanTel = String(s.telefon).replace(/\s+/g,"");
@@ -2864,7 +2903,12 @@ function patatesModulunuYukle(){
         h.push('    <div class="pat-order-sack-desc" title="' + escH(cTipiAd) + ' · Birim: ' + fmtTl(s.birimFiyat) + '">');
         h.push('      <span>🥔 <strong>' + fmtSayi(s.cuvalAdet) + ' Çuval</strong> <span style="font-size:12px; font-weight:normal; color:var(--muted);">(' + escH(kgKisa) + ' · ' + fmtTl(s.birimFiyat) + ')</span></span>');
         h.push('    </div>');
-        h.push('    <div class="pat-order-amount">' + fmtTl(s.toplamTutar) + '</div>');
+        h.push('    <div style="text-align:right;">');
+        h.push('      <div class="pat-order-amount">' + fmtTl(topTutar) + '</div>');
+        if(kismiOdendi){
+          h.push('      <div style="font-size:11px; font-weight:700; color:var(--loss);">Kalan: ' + fmtTl(kalanBorc) + '</div>');
+        }
+        h.push('    </div>');
         h.push('  </div>');
 
         if(s.not){
@@ -2876,19 +2920,22 @@ function patatesModulunuYukle(){
         if(s.teslimEdildi){
           h.push('    <button type="button" class="pat-status-btn btn-teslim-edildi" data-pattoggle-teslim="' + s.id + '" title="Teslimatı geri al">🚚 Teslim Edildi ' + (s.teslimTarih ? '(' + escH(s.teslimTarih) + ')' : '') + ' ✓</button>');
         } else {
-          h.push('    <button type="button" class="pat-status-btn btn-teslim-bekliyor" data-pattoggle-teslim="' + s.id + '" title="Teslim edildi olarak işaretle">⏳ Dağıtım Bekliyor (Tik Yap)</button>');
+          h.push('    <button type="button" class="pat-status-btn btn-teslim-bekliyor" data-pattoggle-teslim="' + s.id + '" title="Teslim edildi olarak işaretle">⏳ Dağıtım Bekliyor</button>');
         }
 
-        if(s.odendi){
-          h.push('    <button type="button" class="pat-status-btn btn-odeme-odendi" data-pattoggle-odeme="' + s.id + '" title="Ödemeyi geri al">💰 Parası Alındı ✓</button>');
+        if(tamOdendi){
+          h.push('    <button type="button" class="pat-status-btn btn-odeme-odendi" data-pattoggle-odeme="' + s.id + '" title="Ödemeyi geri al / sıfırla">💰 Parası Alındı ✓</button>');
+        } else if(kismiOdendi){
+          h.push('    <button type="button" class="pat-status-btn btn-odeme-kismi" data-pattoggle-odeme="' + s.id + '" title="Tek tıkla kalan ' + fmtTl(kalanBorc) + ' borcu kapat">⚠️ Kısmi: ' + fmtTl(odenenTutar) + ' (Kapat: ' + fmtTl(kalanBorc) + ')</button>');
         } else {
-          h.push('    <button type="button" class="pat-status-btn btn-odeme-bekliyor" data-pattoggle-odeme="' + s.id + '" title="Parası alındı olarak işaretle">❌ Ödenmedi (' + fmtTl(s.toplamTutar) + ' Borç)</button>');
+          h.push('    <button type="button" class="pat-status-btn btn-odeme-bekliyor" data-pattoggle-odeme="' + s.id + '" title="Tek tıkla tamamını ödendi yap">❌ Ödenmedi (' + fmtTl(topTutar) + ' Borç)</button>');
         }
         h.push('  </div>');
 
         // Alt Eylem Butonları (ID kaldırıldı)
         h.push('  <div class="pat-order-card-foot">');
         h.push('    <div class="pat-card-btns">');
+        h.push('      <button type="button" class="btn ghost sm" data-patkismi="' + s.id + '" style="color:var(--brass); border-color:var(--brass); font-weight:600;" title="Kısmi ödeme kaydet veya güncelle">💳 Kısmi Ödeme</button>');
         h.push('      <button type="button" class="btn ghost sm" data-pattekrar="' + s.id + '" title="Bu müşteriye yeni bir sipariş aç">🔄 Tekrar Sipariş</button>');
         h.push('      <button type="button" class="btn ghost sm" data-patduzenle="' + s.id + '" title="Siparişi Düzenle">✏️ Düzenle</button>');
         h.push('      <button type="button" class="btn ghost sm" data-patsil="' + s.id + '" style="color:var(--loss);" title="Siparişi Sil">🗑️ Sil</button>');
@@ -2987,8 +3034,12 @@ function renderModalHtml(pat){
     m.push('        </label>');
     m.push('        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:600; font-size:13px;">');
     m.push('          <input type="checkbox" id="fOdendi" style="width:18px; height:18px; accent-color:var(--gain);" ' + (s.odendi ? 'checked' : '') + '>');
-    m.push('          <span>💰 Parası Alındı</span>');
+    m.push('          <span>💰 Parası Alındı (Tamamı)</span>');
     m.push('        </label>');
+    m.push('      </div>');
+    m.push('      <div class="pat-form-group" id="fOdenenTutarWrap" style="' + (s.odendi ? 'display:none;' : '') + '">');
+    m.push('        <label for="fOdenenTutar">Tahsil Edilen Kısmi Tutar (₺) <span style="font-weight:normal; font-size:11.5px; color:var(--muted);">(Peşinat veya kısmi ödeme varsa girin, ödenmediyse 0)</span></label>');
+    m.push('        <input type="number" id="fOdenenTutar" class="pat-form-input" min="0" step="any" placeholder="0" value="' + ((s.odenenTutar != null) ? s.odenenTutar : (s.odendi ? defTop : 0)) + '">');
     m.push('      </div>');
 
     m.push('      <div class="pat-form-group">');
@@ -3220,6 +3271,73 @@ function renderModalHtml(pat){
     m.push('    </div>');
   }
 
+  // MODAL: KISMİ / PARÇALI ÖDEME
+  else if(modalTip === "kismi_odeme"){
+    var sK = (pat.siparisler || []).find(function(x){ return x.id === duzenlenenId; }) || {};
+    var topTutar = Number(sK.toplamTutar) || 0;
+    var odenenTutar = (sK.odenenTutar != null) ? Number(sK.odenenTutar) : (sK.odendi ? topTutar : 0);
+    var kalanBorc = Math.max(0, topTutar - odenenTutar);
+
+    m.push('    <div class="pat-modal-head">');
+    m.push('      <h3>💳 Kısmi / Parçalı Ödeme Girişi</h3>');
+    m.push('      <button type="button" class="pat-modal-close" id="patModalClose">✕</button>');
+    m.push('    </div>');
+    m.push('    <form id="patKismiOdemeForm" class="pat-modal-body">');
+    
+    // Müşteri & Sipariş Özeti
+    m.push('      <div style="background:var(--surface-2); padding:12px 14px; border-radius:8px; display:flex; flex-direction:column; gap:6px;">');
+    m.push('        <div style="font-size:15px; font-weight:700; color:var(--ink);">👤 ' + escH(sK.musteriAd || "Müşteri") + '</div>');
+    m.push('        <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--muted);">');
+    m.push('          <span>Toplam Sipariş Tutarı (' + (sK.cuvalAdet || 0) + ' Çuval):</span>');
+    m.push('          <strong style="color:var(--ink); font-family:IBM Plex Mono,monospace;">' + fmtTl(topTutar) + '</strong>');
+    m.push('        </div>');
+    m.push('        <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--gain);">');
+    m.push('          <span>Şu Ana Kadar Alınan:</span>');
+    m.push('          <strong style="font-family:IBM Plex Mono,monospace;">' + fmtTl(odenenTutar) + '</strong>');
+    m.push('        </div>');
+    m.push('        <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:700; color:var(--loss); border-top:1px dashed var(--line); padding-top:4px;">');
+    m.push('          <span>Mevcut Kalan Borç:</span>');
+    m.push('          <strong style="font-family:IBM Plex Mono,monospace;">' + fmtTl(kalanBorc) + '</strong>');
+    m.push('        </div>');
+    m.push('      </div>');
+
+    // Bu Sefer Alınan Tutar
+    m.push('      <div class="pat-form-group">');
+    m.push('        <label for="fKismiYeniEklenen">Bu Sefer Alınan / Eklenen Tutar (₺) *</label>');
+    m.push('        <input type="number" id="fKismiYeniEklenen" class="pat-form-input" min="0" step="any" placeholder="Örn: 5000" autofocus required>');
+    m.push('      </div>');
+
+    // Hızlı Doldurma Butonları
+    m.push('      <div style="display:flex; gap:6px; flex-wrap:wrap;">');
+    if(kalanBorc > 0){
+      m.push('        <button type="button" class="btn ghost sm" id="btnKismiKalanKapat" style="color:var(--gain); font-weight:600;">Tamamını Kapat (' + fmtTl(kalanBorc) + ')</button>');
+    }
+    if(kalanBorc >= 1000){
+      m.push('        <button type="button" class="btn ghost sm" data-addhizli="1000">+1.000 ₺</button>');
+    }
+    if(kalanBorc >= 500){
+      m.push('        <button type="button" class="btn ghost sm" data-addhizli="500">+500 ₺</button>');
+    }
+    m.push('      </div>');
+
+    // Toplam Tahsil Edilecek Tutar (Canlı Hesaplanır)
+    m.push('      <div class="pat-form-group" style="margin-top:6px;">');
+    m.push('        <label for="fKismiToplamOdenen" style="font-size:12px; color:var(--muted);">Toplam Alınmış Olacak Tutar (₺):</label>');
+    m.push('        <input type="number" id="fKismiToplamOdenen" class="pat-form-input" min="0" max="' + topTutar + '" step="any" value="' + odenenTutar + '">');
+    m.push('      </div>');
+
+    // Canlı Bilgi Kutusu
+    m.push('      <div id="kismiCanliHesap" style="font-size:13px; padding:10px 12px; border-radius:8px; background:var(--surface-2); border:1px solid var(--line-soft);">');
+    m.push('        İşlem sonrası kalan borç: <strong id="kismiCanliKalan">' + fmtTl(kalanBorc) + '</strong>');
+    m.push('      </div>');
+
+    m.push('      <div class="pat-modal-foot">');
+    m.push('        <button type="button" class="btn ghost sm" id="patModalIptal">İptal</button>');
+    m.push('        <button type="submit" class="btn sm">💾 Ödemeyi Kaydet</button>');
+    m.push('      </div>');
+    m.push('    </form>');
+  }
+
   m.push('  </div>');
   m.push('</div>');
   return m.join("");
@@ -3372,11 +3490,32 @@ function bindPatatesEvents(root, pat){
       var id = btn.getAttribute("data-pattoggle-odeme");
       var s = (pat.siparisler || []).find(function(x){ return x.id === id; });
       if(!s) return;
-      s.odendi = !s.odendi;
-      s.odemeTarih = s.odendi ? new Date().toISOString().slice(0, 10) : "";
-      kaydet(s.odendi ? "Ödeme tahsil edildi olarak güncellendi" : "Ödeme durumu geri alındı");
+      var topTutar = Number(s.toplamTutar) || 0;
+      var curOdenen = (s.odenenTutar != null) ? Number(s.odenenTutar) : (s.odendi ? topTutar : 0);
+      if(curOdenen >= topTutar && topTutar > 0){
+        s.odenenTutar = 0;
+        s.odendi = false;
+        s.odemeTarih = "";
+        kaydet("Ödeme durumu geri alındı (ödenmedi yapıldı)");
+      } else {
+        s.odenenTutar = topTutar;
+        s.odendi = true;
+        s.odemeTarih = new Date().toISOString().slice(0, 10);
+        kaydet("Ödemenin tamamı tahsil edildi (" + fmtTl(topTutar) + ")");
+      }
     };
   })(odemeBtns[o]);
+
+  // Kısmi Ödeme Butonu
+  var kismiBtns = root.querySelectorAll("[data-patkismi]");
+  for(var kp=0; kp<kismiBtns.length; kp++)(function(btn){
+    btn.onclick = function(e){
+      e.stopPropagation();
+      duzenlenenId = btn.getAttribute("data-patkismi");
+      modalTip = "kismi_odeme";
+      patatesModulunuYukle();
+    };
+  })(kismiBtns[kp]);
 
   // Tekrar Sipariş Butonu
   var tekrarBtns = root.querySelectorAll("[data-pattekrar]");
@@ -3398,6 +3537,7 @@ function bindPatatesEvents(root, pat){
         siparisTarih: new Date().toISOString().slice(0, 10),
         teslimEdildi: false,
         odendi: false,
+        odenenTutar: 0,
         not: ""
       };
       modalTip = "siparis";
@@ -3638,11 +3778,37 @@ function bindPatatesEvents(root, pat){
       };
     }
 
+    var fOdendiCb = document.getElementById("fOdendi");
+    var fOdenenWrap = document.getElementById("fOdenenTutarWrap");
+    var fOdenenInp = document.getElementById("fOdenenTutar");
+    if(fOdendiCb && fOdenenWrap){
+      fOdendiCb.onchange = function(){
+        if(this.checked){
+          fOdenenWrap.style.display = "none";
+          if(fOdenenInp && topInp) fOdenenInp.value = topInp.value;
+        } else {
+          fOdenenWrap.style.display = "block";
+        }
+      };
+    }
+
     sipForm.onsubmit = function(e){
       e.preventDefault();
       var cTipId = cTipSel ? cTipSel.value : "";
       var cTipObj = (pat.cuvalTipleri || []).find(function(x){ return x.id === cTipId; });
       var cTipAd = cTipObj ? cTipObj.ad : "Standart Çuval";
+
+      var topTutarVal = parseFloat(document.getElementById("fToplamTutar").value) || 0;
+      var isOdendiCb = document.getElementById("fOdendi") ? document.getElementById("fOdendi").checked : false;
+      var odenenTutarVal = 0;
+      if(isOdendiCb){
+        odenenTutarVal = topTutarVal;
+      } else {
+        var inpOd = document.getElementById("fOdenenTutar");
+        odenenTutarVal = inpOd ? (parseFloat(inpOd.value) || 0) : 0;
+      }
+      var isTamOdendi = (topTutarVal > 0 && odenenTutarVal >= topTutarVal) || isOdendiCb;
+      if(isTamOdendi && odenenTutarVal < topTutarVal) odenenTutarVal = topTutarVal;
 
       var payload = {
         id: duzenlenenId || pId("sip"),
@@ -3654,11 +3820,12 @@ function bindPatatesEvents(root, pat){
         cuvalTipAd: cTipAd,
         cuvalAdet: parseInt(document.getElementById("fCuvalAdet").value, 10) || 1,
         birimFiyat: parseFloat(document.getElementById("fBirimFiyat").value) || 0,
-        toplamTutar: parseFloat(document.getElementById("fToplamTutar").value) || 0,
+        toplamTutar: topTutarVal,
+        odenenTutar: odenenTutarVal,
         teslimEdildi: document.getElementById("fTeslimEdildi").checked,
         teslimTarih: document.getElementById("fTeslimEdildi").checked ? new Date().toISOString().slice(0, 10) : "",
-        odendi: document.getElementById("fOdendi").checked,
-        odemeTarih: document.getElementById("fOdendi").checked ? new Date().toISOString().slice(0, 10) : "",
+        odendi: isTamOdendi,
+        odemeTarih: isTamOdendi ? new Date().toISOString().slice(0, 10) : (odenenTutarVal > 0 ? new Date().toISOString().slice(0, 10) : ""),
         not: document.getElementById("fNot").value.trim()
       };
 
@@ -3675,6 +3842,80 @@ function bindPatatesEvents(root, pat){
       formTaslak = null;
       kaydet(wasEditS ? "Sipariş güncellendi" : "Yeni sipariş kaydedildi");
     };
+  }
+
+  // 1.1 Kısmi / Parçalı Ödeme Formu
+  var kismiForm = document.getElementById("patKismiOdemeForm");
+  if(kismiForm){
+    var sK = (pat.siparisler || []).find(function(x){ return x.id === duzenlenenId; });
+    if(sK){
+      var kTopTutar = Number(sK.toplamTutar) || 0;
+      var kOncekiOdenen = (sK.odenenTutar != null) ? Number(sK.odenenTutar) : (sK.odendi ? kTopTutar : 0);
+      var fYeniEklenen = document.getElementById("fKismiYeniEklenen");
+      var fTopOdenen = document.getElementById("fKismiToplamOdenen");
+      var canliKalanEl = document.getElementById("kismiCanliKalan");
+      var btnKapat = document.getElementById("btnKismiKalanKapat");
+
+      function syncKismiCalculations(fromYeni){
+        var yVal = parseFloat(fYeniEklenen ? fYeniEklenen.value : 0) || 0;
+        var tVal = parseFloat(fTopOdenen ? fTopOdenen.value : 0) || 0;
+        if(fromYeni){
+          tVal = Math.min(kTopTutar, Math.max(0, kOncekiOdenen + yVal));
+          if(fTopOdenen) fTopOdenen.value = tVal;
+        } else {
+          yVal = Math.max(0, tVal - kOncekiOdenen);
+          if(fYeniEklenen) fYeniEklenen.value = yVal > 0 ? yVal : "";
+        }
+        var kalan = Math.max(0, kTopTutar - tVal);
+        if(canliKalanEl){
+          canliKalanEl.textContent = fmtTl(kalan);
+          canliKalanEl.style.color = kalan === 0 ? "var(--gain)" : "var(--loss)";
+        }
+      }
+
+      if(fYeniEklenen){
+        fYeniEklenen.oninput = function(){ syncKismiCalculations(true); };
+      }
+      if(fTopOdenen){
+        fTopOdenen.oninput = function(){ syncKismiCalculations(false); };
+      }
+
+      if(btnKapat){
+        btnKapat.onclick = function(){
+          var kalanSimdi = Math.max(0, kTopTutar - kOncekiOdenen);
+          if(fYeniEklenen) fYeniEklenen.value = kalanSimdi;
+          syncKismiCalculations(true);
+        };
+      }
+
+      var quickBtns = kismiForm.querySelectorAll("[data-addhizli]");
+      for(var qb=0; qb<quickBtns.length; qb++)(function(qBtn){
+        qBtn.onclick = function(){
+          var addAmount = parseFloat(qBtn.getAttribute("data-addhizli")) || 0;
+          var curY = parseFloat(fYeniEklenen ? fYeniEklenen.value : 0) || 0;
+          var maxCanAdd = Math.max(0, kTopTutar - kOncekiOdenen);
+          var nextY = Math.min(maxCanAdd, curY + addAmount);
+          if(fYeniEklenen) fYeniEklenen.value = nextY;
+          syncKismiCalculations(true);
+        };
+      })(quickBtns[qb]);
+
+      kismiForm.onsubmit = function(e){
+        e.preventDefault();
+        var nihaiOdenen = parseFloat(fTopOdenen ? fTopOdenen.value : 0) || 0;
+        if(nihaiOdenen > kTopTutar) nihaiOdenen = kTopTutar;
+        if(nihaiOdenen < 0) nihaiOdenen = 0;
+
+        sK.odenenTutar = nihaiOdenen;
+        sK.odendi = (nihaiOdenen >= kTopTutar && kTopTutar > 0);
+        sK.odemeTarih = (nihaiOdenen > 0) ? new Date().toISOString().slice(0, 10) : "";
+
+        modalTip = null;
+        duzenlenenId = null;
+        var mesaj = sK.odendi ? ("Ödemenin tamamı tahsil edildi (" + fmtTl(kTopTutar) + ")") : ("Kısmi ödeme kaydedildi (" + fmtTl(nihaiOdenen) + " / " + fmtTl(kTopTutar) + ")");
+        kaydet(mesaj);
+      };
+    }
   }
 
   // 2. Sevkiyat Formu
