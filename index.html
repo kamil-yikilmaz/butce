@@ -864,6 +864,34 @@ td.odn,.odn{font-size:12.5px; white-space:nowrap}
   align-items: center;
   justify-content: space-between;
 }
+.tahmin-header.is-accordion-toggle {
+  cursor: pointer;
+  user-select: none;
+  transition: background .2s ease;
+}
+.tahmin-header.is-accordion-toggle:hover {
+  background: var(--surface-2);
+}
+.tahmin-header.is-closed {
+  border-bottom: none;
+}
+.tahmin-chevron {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--accent);
+  padding: 5px 12px;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  transition: all .15s ease;
+}
+.tahmin-header.is-accordion-toggle:hover .tahmin-chevron {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
 .tahmin-title-wrap h2 {
   font-size: 18px;
   margin: 0;
@@ -1440,8 +1468,6 @@ document.getElementById("mod1").innerHTML = [
 
 '<section id="summary"></section>',
 
-'<section class="tahmin-card" id="tahminPanel"></section>',
-
 '<section class="panel">',
   '<div class="panel-head"><h2>Aylık kayıtlar</h2><span class="hint">Altı çizili tutar = dekont var, tıkla aç · <span id="rowcount"></span></span></div>',
   '<div class="tscroll" id="tableWrap"></div>',
@@ -1475,6 +1501,8 @@ document.getElementById("mod1").innerHTML = [
     '</div>',
   '</form>',
 '</section>',
+
+'<section class="tahmin-card" id="tahminPanel"></section>',
 
 '<footer class="note">',
   '<b>Nasıl çalışıyor?</b> Alış kuru = ödenen ₺ ÷ döviz adedi. Vergi iadesi = (dolar ₺ + euro ₺ + ek ₺) × dilim %. ',
@@ -1586,6 +1614,7 @@ function chip(k,v){ return '<div class="chip"><span class="k">'+k+'</span><span 
    DÖVİZ BİRİKİM TAHMİNİ & 60 AYLIK KUR PROJEKSİYONU
    ========================================================================== */
 var tahminState = {
+  accordionAcik: false,
   vadeAy: 60,
   aylikUsd: null,
   aylikEur: null,
@@ -1749,18 +1778,22 @@ function renderTahmin(tot){
     }
   }
 
+  var isAccOpen = !!tahminState.accordionAcik;
+
   var h = [];
-  h.push('<div class="tahmin-header">');
+  h.push('<div class="tahmin-header is-accordion-toggle' + (!isAccOpen ? ' is-closed' : '') + '" id="tahminAccordionToggle" title="Projeksiyonu ' + (isAccOpen ? 'kapatmak' : 'açmak') + ' için tıklayın">');
   h.push('  <div class="tahmin-title-wrap">');
-  h.push('    <h2><span>🔮</span> Döviz Birikim & Kur Projeksiyonu</h2>');
-  h.push('    <div class="tahmin-desc">Şimdiye kadar girilmiş döviz birikimleriniz ve aylık bileşik kur artış tahminleriyle gelecek simülasyonu</div>');
+  h.push('    <h2><span>🔮</span> ' + activeVade + ' Aylık Döviz Birikim & Kur Projeksiyonu</h2>');
+  h.push('    <div class="tahmin-desc">' + (isAccOpen ? 'Şimdiye kadar girilmiş döviz birikimleriniz ve aylık bileşik kur artış tahminleriyle gelecek simülasyonu' : '🎯 ' + activeVade + ' Ay Hedefi: ~' + tl(finalItem.pVal, 0) + ' (' + fmt(finalItem.cumUsd, 0) + ' $ + ' + fmt(finalItem.cumEur, 0) + ' €) · İncelemek için tıklayın') + '</div>');
   h.push('  </div>');
   h.push('  <div style="display:flex; align-items:center; gap:8px;">');
-  h.push('    <span class="tahmin-badge">🎯 ' + activeVade + ' Ay (' + (activeVade/12).toFixed(1).replace('.0','') + ' Yıl) Hedefi</span>');
+  h.push('    <span class="tahmin-badge">🎯 ' + activeVade + ' Ay (' + (activeVade/12).toFixed(1).replace('.0','') + ' Yıl)</span>');
+  h.push('    <div class="tahmin-chevron">' + (isAccOpen ? '▲ Kapat' : '▼ Aç / İncele') + '</div>');
   h.push('  </div>');
   h.push('</div>');
 
-  h.push('<div class="tahmin-body">');
+  if(isAccOpen){
+    h.push('<div class="tahmin-body">');
 
   // PARAMETRE KONTROL KUTUSU
   h.push('  <div class="tahmin-controls-box">');
@@ -2002,12 +2035,23 @@ function renderTahmin(tot){
   }
 
   h.push('</div>'); // end tahmin-body
+  }
 
   root.innerHTML = h.join("");
   bindTahminEvents(root, raporMetni);
 }
 
 function bindTahminEvents(root, raporMetni){
+  var accToggle = document.getElementById("tahminAccordionToggle");
+  if(accToggle){
+    accToggle.onclick = function(e){
+      e.stopPropagation();
+      tahminState.accordionAcik = !tahminState.accordionAcik;
+      renderTahmin();
+    };
+  }
+  if(!tahminState.accordionAcik) return;
+
   var vBtns = root.querySelectorAll("[data-setvade]");
   for(var i=0; i<vBtns.length; i++)(function(btn){
     btn.onclick = function(){
