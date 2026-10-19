@@ -1032,26 +1032,37 @@ td.odn,.odn{font-size:12.5px; white-space:nowrap}
 }
 .tahmin-ctrl-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 14px;
 }
 .tahmin-field label {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
-  font-size: 11px;
+  align-items: center;
+  font-size: 11.5px;
   font-weight: 700;
-  letter-spacing: .06em;
+  letter-spacing: .04em;
   text-transform: uppercase;
   color: var(--muted);
   margin-bottom: 6px;
+  white-space: nowrap;
+  gap: 6px;
+  min-width: 0;
+}
+.tahmin-field label .lbl-txt {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
 }
 .tahmin-field label .auto-hint {
   font-size: 10.5px;
   color: var(--accent);
   text-transform: none;
   letter-spacing: 0;
-  font-weight: 500;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .tahmin-inp {
   width: 100%;
@@ -1122,11 +1133,20 @@ td.odn,.odn{font-size:12.5px; white-space:nowrap}
   font-size: 11.5px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: .08em;
+  letter-spacing: .06em;
   color: var(--muted);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  white-space: nowrap;
+  gap: 6px;
+  overflow: hidden;
+}
+.tahmin-res-lbl > span:first-child {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 .tahmin-res-val {
   font-family: "IBM Plex Mono", monospace;
@@ -2179,7 +2199,7 @@ function renderTahmin(tot){
     if (activeTab === 'usd') {
       // 1. Vade
       h.push('      <div class="tahmin-field">');
-      h.push('        <label for="tahminVadeInp">Poliçe Süresi (Vade) <span>' + usdConfig.vadeAy + ' Ay</span></label>');
+      h.push('        <label for="tahminVadeInp"><span class="lbl-txt">Poliçe Süresi</span><span class="auto-hint">' + usdConfig.vadeAy + ' Ay</span></label>');
       h.push('        <input type="number" id="tahminVadeInp" class="tahmin-inp" min="1" max="240" step="1" value="' + usdConfig.vadeAy + '">');
       h.push('        <div class="tahmin-presets">');
       [12, 24, 36, 60, 120].forEach(function(v){
@@ -2191,7 +2211,7 @@ function renderTahmin(tot){
 
       // 2. Aylık Dolar
       h.push('      <div class="tahmin-field">');
-      h.push('        <label for="tahminUsdInp">Aylık Dolar Yatırımı ($) <span class="auto-hint">Ort: ' + usdDef.avgAmt + ' $</span></label>');
+      h.push('        <label for="tahminUsdInp"><span class="lbl-txt">Aylık Dolar ($)</span><span class="auto-hint">Ort: ' + usdDef.avgAmt + ' $</span></label>');
       h.push('        <input type="number" id="tahminUsdInp" class="tahmin-inp" min="0" step="10" value="' + usdConfig.aylikMiktar + '">');
       h.push('        <div class="tahmin-presets">');
       [100, 200, 250, 500, 1000].forEach(function(u){
@@ -2203,7 +2223,7 @@ function renderTahmin(tot){
 
       // 3. Yıllık Dolar Kur Artışı
       h.push('      <div class="tahmin-field">');
-      h.push('        <label for="tahminArtisInp">Yıllık Dolar Artış Tahmini (%) <span class="auto-hint">TCMB Trendi: ~%' + usdDef.histCagr + '</span></label>');
+      h.push('        <label for="tahminArtisInp"><span class="lbl-txt">Yıllık Dolar Artışı (%)</span><span class="auto-hint">TCMB: ~%' + usdDef.histCagr + '</span></label>');
       h.push('        <input type="number" id="tahminArtisInp" class="tahmin-inp" min="0" max="200" step="1" value="' + usdConfig.yillikArtis + '">');
       h.push('        <div class="tahmin-presets">');
       var usdPresets = [25, 30, usdDef.histCagr, 45, 60].filter(function(v, i, a){ return v > 0 && a.indexOf(v) === i; }).sort(function(a,b){ return a-b; });
@@ -2216,7 +2236,7 @@ function renderTahmin(tot){
 
       // 4. Vergi İadesi
       h.push('      <div class="tahmin-field">');
-      h.push('        <label for="tahminTaxInp">Ort. Vergi İadesi Oranı (%) <span class="auto-hint">Maaş İadesi</span></label>');
+      h.push('        <label for="tahminTaxInp"><span class="lbl-txt">Vergi İadesi (%)</span><span class="auto-hint">Maaş İadesi</span></label>');
       h.push('        <input type="number" id="tahminTaxInp" class="tahmin-inp" min="0" max="50" step="1" value="' + usdConfig.taxRate + '">');
       h.push('        <div class="tahmin-presets">');
       [15, 20, 27, 35, 40].forEach(function(tRate){
@@ -2229,7 +2249,7 @@ function renderTahmin(tot){
     } else if (activeTab === 'eur') {
       // 1. Vade
       h.push('      <div class="tahmin-field">');
-      h.push('        <label for="tahminVadeInp">Poliçe Süresi (Vade) <span>' + eurConfig.vadeAy + ' Ay</span></label>');
+      h.push('        <label for="tahminVadeInp"><span class="lbl-txt">Poliçe Süresi</span><span class="auto-hint">' + eurConfig.vadeAy + ' Ay</span></label>');
       h.push('        <input type="number" id="tahminVadeInp" class="tahmin-inp" min="1" max="240" step="1" value="' + eurConfig.vadeAy + '">');
       h.push('        <div class="tahmin-presets">');
       [12, 24, 36, 60, 120].forEach(function(v){
@@ -2241,7 +2261,7 @@ function renderTahmin(tot){
 
       // 2. Aylık Euro
       h.push('      <div class="tahmin-field">');
-      h.push('        <label for="tahminEurInp">Aylık Euro Yatırımı (€) <span class="auto-hint">Ort: ' + eurDef.avgAmt + ' €</span></label>');
+      h.push('        <label for="tahminEurInp"><span class="lbl-txt">Aylık Euro (€)</span><span class="auto-hint">Ort: ' + eurDef.avgAmt + ' €</span></label>');
       h.push('        <input type="number" id="tahminEurInp" class="tahmin-inp" min="0" step="10" value="' + eurConfig.aylikMiktar + '">');
       h.push('        <div class="tahmin-presets">');
       [50, 100, 150, 300, 500].forEach(function(e){
@@ -2253,7 +2273,7 @@ function renderTahmin(tot){
 
       // 3. Yıllık Euro Kur Artışı
       h.push('      <div class="tahmin-field">');
-      h.push('        <label for="tahminArtisInp">Yıllık Euro Artış Tahmini (%) <span class="auto-hint">TCMB Trendi: ~%' + eurDef.histCagr + '</span></label>');
+      h.push('        <label for="tahminArtisInp"><span class="lbl-txt">Yıllık Euro Artışı (%)</span><span class="auto-hint">TCMB: ~%' + eurDef.histCagr + '</span></label>');
       h.push('        <input type="number" id="tahminArtisInp" class="tahmin-inp" min="0" max="200" step="1" value="' + eurConfig.yillikArtis + '">');
       h.push('        <div class="tahmin-presets">');
       var eurPresets = [25, 30, eurDef.histCagr, 45, 60].filter(function(v, i, a){ return v > 0 && a.indexOf(v) === i; }).sort(function(a,b){ return a-b; });
@@ -2266,7 +2286,7 @@ function renderTahmin(tot){
 
       // 4. Vergi İadesi
       h.push('      <div class="tahmin-field">');
-      h.push('        <label for="tahminTaxInp">Ort. Vergi İadesi Oranı (%) <span class="auto-hint">Maaş İadesi</span></label>');
+      h.push('        <label for="tahminTaxInp"><span class="lbl-txt">Vergi İadesi (%)</span><span class="auto-hint">Maaş İadesi</span></label>');
       h.push('        <input type="number" id="tahminTaxInp" class="tahmin-inp" min="0" max="50" step="1" value="' + eurConfig.taxRate + '">');
       h.push('        <div class="tahmin-presets">');
       [15, 20, 27, 35, 40].forEach(function(tRate){
@@ -2279,22 +2299,22 @@ function renderTahmin(tot){
     } else {
       // Birleşik Sekme Kontrolleri
       h.push('      <div class="tahmin-field">');
-      h.push('        <label for="tahminUsdInp">Aylık Dolar Hedefi ($)</label>');
+      h.push('        <label for="tahminUsdInp"><span class="lbl-txt">Aylık Dolar ($)</span></label>');
       h.push('        <input type="number" id="tahminUsdInp" class="tahmin-inp" min="0" step="10" value="' + usdConfig.aylikMiktar + '">');
       h.push('      </div>');
 
       h.push('      <div class="tahmin-field">');
-      h.push('        <label for="tahminEurInp">Aylık Euro Hedefi (€)</label>');
+      h.push('        <label for="tahminEurInp"><span class="lbl-txt">Aylık Euro (€)</span></label>');
       h.push('        <input type="number" id="tahminEurInp" class="tahmin-inp" min="0" step="10" value="' + eurConfig.aylikMiktar + '">');
       h.push('      </div>');
 
       h.push('      <div class="tahmin-field">');
-      h.push('        <label for="tahminArtisUsdInp">Yıllık $ Kur Artışı (%)</label>');
+      h.push('        <label for="tahminArtisUsdInp"><span class="lbl-txt">Yıllık $ Artışı (%)</span></label>');
       h.push('        <input type="number" id="tahminArtisUsdInp" class="tahmin-inp" min="0" max="200" step="1" value="' + usdConfig.yillikArtis + '">');
       h.push('      </div>');
 
       h.push('      <div class="tahmin-field">');
-      h.push('        <label for="tahminArtisEurInp">Yıllık € Kur Artışı (%)</label>');
+      h.push('        <label for="tahminArtisEurInp"><span class="lbl-txt">Yıllık € Artışı (%)</span></label>');
       h.push('        <input type="number" id="tahminArtisEurInp" class="tahmin-inp" min="0" max="200" step="1" value="' + eurConfig.yillikArtis + '">');
       h.push('      </div>');
     }
@@ -2308,8 +2328,8 @@ function renderTahmin(tot){
     // HERO KART: Portföy Değeri
     h.push('    <div class="tahmin-res-card is-hero">');
     h.push('      <div class="tahmin-res-lbl">');
-    h.push('        <span>🏆 ' + activeVade + '. Ay Sonu Tahmini Portföy Değeri (' + endLabel + ')</span>');
-    h.push('        <span class="tahmin-growth-pill">🚀 ' + finalItem.mult.toFixed(2) + 'x Kat Büyüme</span>');
+    h.push('        <span>🏆 ' + activeVade + '. Ay Portföy Değeri (' + endLabel + ')</span>');
+    h.push('        <span class="tahmin-growth-pill">🚀 ' + finalItem.mult.toFixed(2) + 'x Kat</span>');
     h.push('      </div>');
     h.push('      <div class="tahmin-res-val">' + tl(finalItem.pVal, 0) + '</div>');
     h.push('      <div class="tahmin-res-sub">');
@@ -2319,7 +2339,7 @@ function renderTahmin(tot){
 
     // KART 1: Toplam Biriken Döviz
     h.push('    <div class="tahmin-res-card">');
-    h.push('      <div class="tahmin-res-lbl">' + (activeTab === 'usd' ? '💵 Toplam Dolar Birikimi' : (activeTab === 'eur' ? '💶 Toplam Euro Birikimi' : '💰 Toplam Portföy Birikimi')) + '</div>');
+    h.push('      <div class="tahmin-res-lbl"><span>' + (activeTab === 'usd' ? '💵 Toplam Dolar Birikimi' : (activeTab === 'eur' ? '💶 Toplam Euro Birikimi' : '💰 Toplam Portföy')) + '</span></div>');
     h.push('      <div class="tahmin-res-val" style="color:' + (activeTab === 'usd' ? 'var(--accent)' : (activeTab === 'eur' ? 'var(--brass)' : 'var(--gain)')) + ';">');
     if (activeTab === 'usd') {
       h.push(fmt(finalItem.cumAmount, 0) + ' $');
@@ -2342,7 +2362,7 @@ function renderTahmin(tot){
 
     // KART 2: Vade Sonu Kuru
     h.push('    <div class="tahmin-res-card">');
-    h.push('      <div class="tahmin-res-lbl">📈 Vade Sonundaki Tahmini Kurlar (' + endLabel + ')</div>');
+    h.push('      <div class="tahmin-res-lbl"><span>📈 Vade Sonu Kurları (' + endLabel + ')</span></div>');
     h.push('      <div class="tahmin-res-val" style="font-size:20px;">');
     if (activeTab === 'usd') {
       h.push(fmt(finalItem.rate, 2) + ' ₺');
@@ -2367,7 +2387,7 @@ function renderTahmin(tot){
 
     // KART 3: Cepten Çıkan Toplam Maliyet
     h.push('    <div class="tahmin-res-card">');
-    h.push('      <div class="tahmin-res-lbl">💳 Cepten Çıkan Net Maliyet</div>');
+    h.push('      <div class="tahmin-res-lbl"><span>💳 Cepten Çıkan Net Maliyet</span></div>');
     h.push('      <div class="tahmin-res-val" style="color:var(--ink);">' + tl(finalItem.cumNetTl, 0) + '</div>');
     h.push('      <div class="tahmin-res-sub">');
     h.push('        Maaş bordronuza geri dönen vergi iadeleri cepten çıkan maliyetten düşülmüştür');
@@ -2376,7 +2396,7 @@ function renderTahmin(tot){
 
     // KART 4: Net Sermaye Kazancı (Kâr)
     h.push('    <div class="tahmin-res-card">');
-    h.push('      <div class="tahmin-res-lbl">💰 Net Sermaye Kazancı (Kâr)</div>');
+    h.push('      <div class="tahmin-res-lbl"><span>💰 Net Sermaye Kazancı (Kâr)</span></div>');
     h.push('      <div class="tahmin-res-val" style="color:var(--gain);">+' + tl(finalItem.profit, 0) + '</div>');
     h.push('      <div class="tahmin-res-sub">');
     h.push('        Net getiri oranı: <strong>+%' + fmt(finalItem.roi, 1) + '</strong> (Paranız <strong>' + finalItem.mult.toFixed(2) + ' katına</strong> ulaştı)');
