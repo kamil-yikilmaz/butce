@@ -916,6 +916,105 @@ td.odn,.odn{font-size:12.5px; white-space:nowrap}
   color: var(--muted);
   margin-top: 4px;
 }
+.tahmin-tabs {
+  display: flex;
+  gap: 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 4px;
+  flex-wrap: wrap;
+}
+.tahmin-tab {
+  cursor: pointer;
+  border: none;
+  background: none;
+  border-radius: 7px;
+  padding: 8px 16px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--muted);
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  transition: all .15s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tahmin-tab:hover {
+  color: var(--ink);
+  background: rgba(255,255,255,0.04);
+}
+.tahmin-tab.is-active {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+.tahmin-tab.is-active[data-ttab="usd"] {
+  color: var(--accent);
+  border: 1px solid rgba(147,169,234,0.35);
+}
+.tahmin-tab.is-active[data-ttab="eur"] {
+  color: var(--brass);
+  border: 1px solid rgba(217,174,99,0.35);
+}
+.tahmin-tab.is-active[data-ttab="all"] {
+  color: var(--gain);
+  border: 1px solid rgba(93,207,160,0.35);
+}
+.badge-actual {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--gain-soft);
+  color: var(--gain);
+  border: 1px solid rgba(93,207,160,0.3);
+}
+.badge-projected {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid rgba(147,169,234,0.3);
+}
+.badge-final {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--brass-soft);
+  color: var(--brass);
+  border: 1px solid rgba(217,174,99,0.4);
+}
+.tahmin-policy-info {
+  background: var(--surface-2);
+  border-left: 4px solid var(--accent);
+  padding: 10px 14px;
+  border-radius: 0 8px 8px 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+.tahmin-policy-info.eur {
+  border-left-color: var(--brass);
+}
+.tahmin-policy-info.all {
+  border-left-color: var(--gain);
+}
 .tahmin-body {
   padding: 20px;
   display: flex;
@@ -1611,143 +1710,243 @@ function render(){
 function chip(k,v){ return '<div class="chip"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>'; }
 
 /* ==========================================================================
-   DÖVİZ BİRİKİM TAHMİNİ & 60 AYLIK KUR PROJEKSİYONU
+   DÖVİZ BİRİKİM TAHMİNİ & 60 AYLIK AYRI SİGORTA PROJEKSİYONU
    ========================================================================== */
 var tahminState = {
   accordionAcik: false,
-  vadeAy: 60,
-  aylikUsd: null,
-  aylikEur: null,
-  yillikArtis: 30,
-  vergiDilimi: null,
-  mevcutDahil: true,
+  activeTab: "usd", // "usd" | "eur" | "all"
+  usd: {
+    vadeAy: 60,
+    aylikMiktar: null,
+    yillikArtis: null,
+    taxRate: null
+  },
+  eur: {
+    vadeAy: 60,
+    aylikMiktar: null,
+    yillikArtis: null,
+    taxRate: null
+  },
   tabloAcik: false,
   raporAcik: false
 };
 
-function olusturTahminRaporu(data){
-  var lines = [];
-  lines.push("📊 " + data.activeVade + " AYLIK DÖVİZ BİRİKİMİ & KUR TAHMİNİ PROJEKSİYON RAPORU");
-  lines.push("═════════════════════════════════════════════════════════════════");
-  lines.push("📅 Simülasyon Dönemi       : " + data.activeVade + " Ay (" + (data.activeVade/12).toFixed(1).replace('.0','') + " Yıl) [" + data.startLabel + " ➔ " + data.endLabel + "]");
-  lines.push("💵 Güncel TCMB Kurları     : 1 $ = " + fmt(data.baseUsdRate,2) + " ₺ | 1 € = " + fmt(data.baseEurRate,2) + " ₺");
-  lines.push("📈 Yıllık Kur Artış Tahmini : %" + fmt(data.activeArtis,1) + " (Aylık bileşik kur artış modeli)");
-  lines.push("💼 Vergi İadesi Oranı      : %" + fmt(data.activeTax,0) + " (Maaşa iade edilen ortalama oran)");
-  lines.push("");
-  lines.push("📌 BAŞLANGIÇ DURUMU (Mevcut Birikim):");
-  if(data.activeMevcut && (data.t.usd > 0 || data.t.eur > 0)){
-    lines.push("• Toplam Mevcut Dolar      : " + fmt(data.t.usd,0) + " $");
-    lines.push("• Toplam Mevcut Euro       : " + fmt(data.t.eur,0) + " €");
-    lines.push("• Bugünkü Portföy TL Değeri: " + tl(data.t.bugun,0));
-    lines.push("• Cepten Çıkan Net Maliyet : " + tl(data.t.net,0));
-  } else {
-    lines.push("• Sıfırdan yeni birikim modeli baz alınmıştır.");
+function findPolicyStart(rows, cur) {
+  var sorted = rows.filter(function(r){ return (r[cur] || 0) > 0; })
+                   .sort(function(a,b){ return (a.year * 12 + a.month) - (b.year * 12 + b.month); });
+  if (sorted.length > 0) {
+    return { year: sorted[0].year, month: sorted[0].month };
   }
-  lines.push("");
-  lines.push("🎯 DÜZENLİ AYLIK YATIRIM HEDEFİ:");
-  lines.push("• Her ay alınacak döviz    : +" + fmt(data.activeUsd,0) + " $ ve +" + fmt(data.activeEur,0) + " €");
-  lines.push("• " + data.activeVade + " ayda eklenecek toplam : +" + fmt(data.totalAddedUsd,0) + " $ ve +" + fmt(data.totalAddedEur,0) + " €");
-  lines.push("");
-  lines.push("🏆 " + data.activeVade + ". AY SONU NİHAİ BEKLENTİ (" + data.endLabel + "):");
-  lines.push("• Tahmini Dolar Kuru        : " + fmt(data.finalItem.usdRate,2) + " ₺ (+%" + fmt(((data.finalItem.usdRate/data.baseUsdRate)-1)*100,0) + " artış)");
-  lines.push("• Tahmini Euro Kuru         : " + fmt(data.finalItem.eurRate,2) + " ₺ (+%" + fmt(((data.finalItem.eurRate/data.baseEurRate)-1)*100,0) + " artış)");
-  lines.push("• Toplam Biriken Dolar      : " + fmt(data.finalItem.cumUsd,0) + " $");
-  lines.push("• Toplam Biriken Euro       : " + fmt(data.finalItem.cumEur,0) + " €");
-  lines.push("• Portföyün Toplam TL Değeri : " + tl(data.finalItem.pVal,0));
-  lines.push("• Cepten Çıkan Toplam Net ₺ : " + tl(data.finalItem.cumNetTl,0));
-  lines.push("• Net Sermaye Kazancı (Kâr) : +" + tl(data.finalItem.profit,0));
-  lines.push("• Sermaye Büyüme Katsayısı  : Yatırılan paranın " + data.finalItem.mult.toFixed(2) + " katı (+%" + fmt(data.finalItem.roi,1) + " net getiri)");
-  lines.push("");
-  lines.push("📍 YILLIK DÖNÜM NOKTALARI (ÖZET GELİŞİM):");
-  data.milestoneMonths.forEach(function(mIdx){
-    var item = data.timeline[mIdx - 1];
-    if(!item) return;
-    var yilText = (mIdx % 12 === 0) ? (mIdx/12 + ". Yıl (" + mIdx + ". Ay)") : (mIdx + ". Ay");
-    lines.push("  - " + (yilText + ":").padEnd(19) + tl(item.pVal,0) + " | Kurlar: " + fmt(item.usdRate,1) + " $ / " + fmt(item.eurRate,1) + " € | Birikim: " + fmt(item.cumUsd,0) + " $ + " + fmt(item.cumEur,0) + " €");
-  });
-  lines.push("═════════════════════════════════════════════════════════════════");
-  return lines.join("\n");
+  return cur === "usd" ? { year: 2026, month: 4 } : { year: 2026, month: 6 };
 }
 
-function renderTahmin(tot){
-  var root = document.getElementById("tahminPanel");
-  if(!root) return;
-  var t = tot || totals();
-  var rows = state.rows || [];
-  var rowCount = rows.length;
+function calcHistoricalCagr(rows, cur, baseRate) {
+  var sorted = rows.filter(function(r){ return (r[cur] || 0) > 0; })
+                   .sort(function(a,b){ return (a.year * 12 + a.month) - (b.year * 12 + b.month); });
+  if (sorted.length < 2) return cur === "usd" ? 32 : 30;
+  var first = sorted[0];
+  var firstTl = cur === "usd" ? first.usdTl : first.eurTl;
+  var firstAmt = first[cur];
+  if (!firstAmt || !firstTl) return cur === "usd" ? 32 : 30;
+  var firstRate = firstTl / firstAmt;
 
-  var autoAvgUsd = rowCount > 0 ? Math.round(t.usd / rowCount) : 250;
-  var autoAvgEur = rowCount > 0 ? Math.round(t.eur / rowCount) : 150;
-  var autoAvgTax = (t.yatan > 0 && t.iade > 0) ? Math.round((t.iade / t.yatan) * 100) : 27;
-  if(autoAvgUsd <= 0) autoAvgUsd = 250;
-  if(autoAvgEur <= 0) autoAvgEur = 150;
-  if(autoAvgTax <= 0) autoAvgTax = 27;
+  var last = sorted[sorted.length - 1];
+  var monthDiff = (last.year * 12 + last.month) - (first.year * 12 + first.month);
+  if (monthDiff < 1) return cur === "usd" ? 32 : 30;
 
-  var activeVade = Math.max(1, parseInt(tahminState.vadeAy, 10) || 60);
-  var activeUsd = (tahminState.aylikUsd !== null && tahminState.aylikUsd !== undefined) ? Number(tahminState.aylikUsd) : autoAvgUsd;
-  var activeEur = (tahminState.aylikEur !== null && tahminState.aylikEur !== undefined) ? Number(tahminState.aylikEur) : autoAvgEur;
-  var activeArtis = (tahminState.yillikArtis !== null && tahminState.yillikArtis !== undefined) ? Number(tahminState.yillikArtis) : 30;
-  var activeTax = (tahminState.vergiDilimi !== null && tahminState.vergiDilimi !== undefined) ? Number(tahminState.vergiDilimi) : autoAvgTax;
-  var activeMevcut = !!tahminState.mevcutDahil;
+  var currentRate = num(baseRate) || (cur === "usd" ? 48.07 : 55.98);
+  var growth = currentRate / firstRate;
+  var annualized = Math.pow(growth, 12 / monthDiff) - 1;
+  var pct = Math.round(annualized * 100);
+  if (isNaN(pct) || pct <= 5 || pct > 120) return cur === "usd" ? 32 : 30;
+  return pct;
+}
 
-  var baseUsdRate = num(state.usdRate) || 48.07;
-  var baseEurRate = num(state.eurRate) || 55.98;
+function getPolicyDefaults(rows, cur, baseRate) {
+  var sorted = rows.filter(function(r){ return (r[cur] || 0) > 0; });
+  var count = sorted.length;
+  var sumAmt = 0, sumTl = 0, sumTax = 0;
+  sorted.forEach(function(r){
+    sumAmt += r[cur] || 0;
+    sumTl += (cur === "usd" ? r.usdTl : r.eurTl) || 0;
+    sumTax += r.tax || 0;
+  });
+  var avgAmt = count > 0 ? Math.round(sumAmt / count) : (cur === "usd" ? 250 : 150);
+  var avgTax = count > 0 ? Math.round(sumTax / count) : 27;
+  var histCagr = calcHistoricalCagr(rows, cur, baseRate);
+  return {
+    avgAmt: avgAmt,
+    avgTax: avgTax,
+    histCagr: histCagr
+  };
+}
 
-  var startYear = new Date().getFullYear();
-  var startMonth = new Date().getMonth() + 2;
-  if(rows.length > 0){
-    var maxKey = 0, lastRow = null;
-    rows.forEach(function(r){
-      var k = (r.year || 0) * 12 + (r.month || 0);
-      if(k > maxKey){ maxKey = k; lastRow = r; }
-    });
-    if(lastRow){
-      startYear = lastRow.year;
-      startMonth = lastRow.month + 1;
-      if(startMonth > 12){ startYear++; startMonth = 1; }
-    }
-  } else if(startMonth > 12){
-    startYear++; startMonth = 1;
-  }
+function simulateSinglePolicy(cur, config) {
+  var rows = config.rows || [];
+  var baseRate = config.baseRate;
+  var start = config.start;
+  var vadeAy = config.vadeAy;
+  var aylikMiktar = config.aylikMiktar;
+  var yillikArtis = config.yillikArtis;
+  var taxRate = config.taxRate;
+  var refKey = config.refKey;
 
-  var annualFactor = Math.max(0.01, 1 + (activeArtis / 100));
+  var annualFactor = Math.max(0.01, 1 + (yillikArtis / 100));
   var monthlyCompound = Math.pow(annualFactor, 1 / 12);
 
-  var cumUsd = activeMevcut ? (t.usd || 0) : 0;
-  var cumEur = activeMevcut ? (t.eur || 0) : 0;
-  var cumNetTl = activeMevcut ? (t.net || 0) : 0;
+  var rowMap = {};
+  rows.forEach(function(r){
+    if ((r[cur] || 0) > 0) {
+      rowMap[r.year + "-" + r.month] = r;
+    }
+  });
 
+  var cumAmount = 0;
+  var cumNetTl = 0;
   var timeline = [];
 
-  for(var m = 1; m <= activeVade; m++){
-    var usdRate = baseUsdRate * Math.pow(monthlyCompound, m);
-    var eurRate = baseEurRate * Math.pow(monthlyCompound, m);
+  for (var m = 1; m <= vadeAy; m++) {
+    var totalM = (start.month - 1) + (m - 1);
+    var y = start.year + Math.floor(totalM / 12);
+    var mo = (totalM % 12) + 1;
+    var itemKey = y * 12 + mo;
+    var existing = rowMap[y + "-" + mo];
+    var isActual = false;
 
-    cumUsd += activeUsd;
-    cumEur += activeEur;
+    var rate = 0;
+    var addAmount = 0;
+    var netTl = 0;
 
-    var grossDep = (activeUsd * usdRate) + (activeEur * eurRate);
-    var refund = grossDep * (activeTax / 100);
-    var netDep = grossDep - refund;
-    cumNetTl += netDep;
+    if (existing && itemKey <= refKey) {
+      isActual = true;
+      addAmount = existing[cur];
+      var grossTl = cur === "usd" ? existing.usdTl : existing.eurTl;
+      rate = addAmount > 0 ? (grossTl / addAmount) : baseRate;
+      var refund = grossTl * (existing.tax / 100);
+      netTl = grossTl - refund;
+    } else {
+      isActual = false;
+      addAmount = aylikMiktar;
+      var futureDiff = Math.max(0, itemKey - refKey);
+      rate = baseRate * Math.pow(monthlyCompound, futureDiff);
+      var gross = addAmount * rate;
+      var ref = gross * (taxRate / 100);
+      netTl = gross - ref;
+    }
 
-    var pVal = (cumUsd * usdRate) + (cumEur * eurRate);
+    cumAmount += addAmount;
+    cumNetTl += netTl;
+    var pVal = cumAmount * rate;
     var profit = pVal - cumNetTl;
     var roi = cumNetTl > 0 ? (profit / cumNetTl * 100) : 0;
     var mult = cumNetTl > 0 ? (pVal / cumNetTl) : 0;
 
-    var totalM = (startMonth - 1) + (m - 1);
-    var mYear = startYear + Math.floor(totalM / 12);
-    var mMonth = (totalM % 12) + 1;
+    var curSym = cur === "usd" ? "$" : "€";
 
     timeline.push({
       m: m,
-      year: mYear,
-      month: mMonth,
-      label: AYLAR[mMonth - 1] + " " + mYear,
-      usdRate: usdRate,
-      eurRate: eurRate,
-      netDep: netDep,
+      year: y,
+      month: mo,
+      label: AYLAR[mo - 1] + " " + y,
+      isActual: isActual,
+      rate: rate,
+      usdRate: cur === "usd" ? rate : 0,
+      eurRate: cur === "eur" ? rate : 0,
+      addAmount: addAmount,
+      curSym: curSym,
+      addAmountText: "+" + fmt(addAmount, 0) + " " + curSym,
+      addUsd: cur === "usd" ? addAmount : 0,
+      addEur: cur === "eur" ? addAmount : 0,
+      netTl: netTl,
+      cumAmount: cumAmount,
+      cumUsd: cur === "usd" ? cumAmount : 0,
+      cumEur: cur === "eur" ? cumAmount : 0,
+      cumNetTl: cumNetTl,
+      pVal: pVal,
+      profit: profit,
+      roi: roi,
+      mult: mult
+    });
+  }
+
+  return timeline;
+}
+
+function simulateCombinedPolicy(config) {
+  var usdTimeline = config.usdTimeline;
+  var eurTimeline = config.eurTimeline;
+  var baseUsdRate = config.baseUsdRate;
+  var baseEurRate = config.baseEurRate;
+
+  var usdMap = {}, eurMap = {};
+  var minKey = Infinity, maxKey = -Infinity;
+
+  usdTimeline.forEach(function(item){
+    var k = item.year * 12 + item.month;
+    usdMap[k] = item;
+    if (k < minKey) minKey = k;
+    if (k > maxKey) maxKey = k;
+  });
+
+  eurTimeline.forEach(function(item){
+    var k = item.year * 12 + item.month;
+    eurMap[k] = item;
+    if (k < minKey) minKey = k;
+    if (k > maxKey) maxKey = k;
+  });
+
+  var timeline = [];
+  var mIdx = 0;
+  var cumNetTl = 0;
+
+  for (var k = minKey; k <= maxKey; k++) {
+    mIdx++;
+    var y = Math.floor((k - 1) / 12);
+    var mo = ((k - 1) % 12) + 1;
+    var uItem = usdMap[k];
+    var eItem = eurMap[k];
+
+    var addUsd = uItem ? uItem.addAmount : 0;
+    var addEur = eItem ? eItem.addAmount : 0;
+    var uRate = uItem ? uItem.rate : (timeline.length ? timeline[timeline.length - 1].usdRate : baseUsdRate);
+    var eRate = eItem ? eItem.rate : (timeline.length ? timeline[timeline.length - 1].eurRate : baseEurRate);
+    var netTl = (uItem ? uItem.netTl : 0) + (eItem ? eItem.netTl : 0);
+    cumNetTl += netTl;
+
+    var cumUsd = uItem ? uItem.cumAmount : (timeline.length ? timeline[timeline.length - 1].cumUsd : 0);
+    var cumEur = eItem ? eItem.cumAmount : (timeline.length ? timeline[timeline.length - 1].cumEur : 0);
+
+    var pVal = (cumUsd * uRate) + (cumEur * eRate);
+    var profit = pVal - cumNetTl;
+    var roi = cumNetTl > 0 ? (profit / cumNetTl * 100) : 0;
+    var mult = cumNetTl > 0 ? (pVal / cumNetTl) : 0;
+
+    var addAmountText = "";
+    if (addUsd > 0 && addEur > 0) {
+      addAmountText = "+" + fmt(addUsd, 0) + " $ / +" + fmt(addEur, 0) + " €";
+    } else if (addUsd > 0) {
+      addAmountText = "+" + fmt(addUsd, 0) + " $";
+    } else if (addEur > 0) {
+      addAmountText = "+" + fmt(addEur, 0) + " €";
+    } else {
+      addAmountText = "—";
+    }
+
+    var isActual = (uItem && uItem.isActual) || (eItem && eItem.isActual);
+
+    timeline.push({
+      m: mIdx,
+      year: y,
+      month: mo,
+      label: AYLAR[mo - 1] + " " + y,
+      isActual: isActual,
+      usdRate: uRate,
+      eurRate: eRate,
+      rate: 0,
+      addUsd: addUsd,
+      addEur: addEur,
+      addAmountText: addAmountText,
+      netTl: netTl,
       cumUsd: cumUsd,
       cumEur: cumEur,
       cumNetTl: cumNetTl,
@@ -1758,24 +1957,176 @@ function renderTahmin(tot){
     });
   }
 
-  var finalItem = timeline[timeline.length - 1];
-  var totalAddedUsd = activeVade * activeUsd;
-  var totalAddedEur = activeVade * activeEur;
-  var usdRateGrowth = ((finalItem.usdRate / baseUsdRate) - 1) * 100;
+  return timeline;
+}
 
-  var milestoneMonths = [];
-  if(activeVade <= 12){
-    milestoneMonths = [Math.floor(activeVade / 2), activeVade].filter(function(x){ return x > 0; });
+function olusturTahminRaporu(data){
+  var lines = [];
+  var tab = data.activeTab;
+  var isAll = tab === "all";
+  var isUsd = tab === "usd";
+  var title = isAll ? "BİRLEŞİK TÜM DÖVİZ SİGORTALARI" : (isUsd ? "DOLAR BİRİKİMLİ HAYAT SİGORTASI" : "EURO BİRİKİMLİ HAYAT SİGORTASI");
+
+  lines.push("📊 " + data.activeVade + " AYLIK " + title + " PROJEKSİYON RAPORU");
+  lines.push("═════════════════════════════════════════════════════════════════");
+  lines.push("📅 Başlangıç & Vade Sonu   : " + data.activeVade + " Ay [" + data.startLabel + " ➔ " + data.endLabel + "]");
+  if (isAll) {
+    lines.push("💵 Güncel TCMB Kurları     : 1 $ = " + fmt(data.baseUsdRate,2) + " ₺ | 1 € = " + fmt(data.baseEurRate,2) + " ₺");
+    lines.push("📈 Yıllık Artış Tahmini    : Dolar: %" + fmt(data.usdArtis,1) + " | Euro: %" + fmt(data.eurArtis,1) + " (Aylık bileşik kur artış modeli)");
+    lines.push("💼 Vergi İadesi Oranları   : Dolar: %" + fmt(data.usdTax,0) + " | Euro: %" + fmt(data.eurTax,0) + " (Maaşa iade edilen ortalama oran)");
   } else {
-    for(var step = 12; step < activeVade; step += 12){
-      milestoneMonths.push(step);
+    var curSym = isUsd ? "$" : "€";
+    var bRate = isUsd ? data.baseUsdRate : data.baseEurRate;
+    lines.push("💵 Güncel TCMB Kuru        : 1 " + curSym + " = " + fmt(bRate,2) + " ₺");
+    lines.push("📈 Yıllık Kur Artış Tahmini: %" + fmt(data.activeArtis,1) + " (Aylık bileşik kur artış modeli · TCMB geçmiş verileriyle uyumlu)");
+    lines.push("💼 Vergi İadesi Oranı      : %" + fmt(data.activeTax,0) + " (Maaşa iade edilen ortalama oran)");
+  }
+  lines.push("");
+  lines.push("🎯 SİGORTA BİRİKİM HEDEFLERİ:");
+  if (isAll) {
+    lines.push("• Her ay alınacak döviz    : +" + fmt(data.usdAmt,0) + " $ ve +" + fmt(data.eurAmt,0) + " €");
+    lines.push("• Vade sonu toplam birikim : " + fmt(data.finalItem.cumUsd,0) + " $ ve " + fmt(data.finalItem.cumEur,0) + " €");
+  } else {
+    lines.push("• Her ay yatırılan tutar   : +" + fmt(data.activeAmt,0) + " " + (isUsd ? "$" : "€"));
+    lines.push("• Vade sonu toplam birikim : " + fmt(data.finalItem.cumAmount,0) + " " + (isUsd ? "$" : "€"));
+  }
+  lines.push("");
+  lines.push("🏆 " + data.activeVade + ". AY SONU NİHAİ BEKLENTİ (" + data.endLabel + "):");
+  if (!isAll) {
+    var fRate = data.finalItem.rate;
+    var bR = isUsd ? data.baseUsdRate : data.baseEurRate;
+    lines.push("• Vade Sonu Tahmini Kur    : " + fmt(fRate,2) + " ₺ (+%" + fmt(((fRate/bR)-1)*100,0) + " artış)");
+    lines.push("• Toplam Biriken Döviz     : " + fmt(data.finalItem.cumAmount,0) + " " + (isUsd ? "$" : "€"));
+  } else {
+    lines.push("• Vade Sonu Kurları        : " + fmt(data.finalItem.usdRate,2) + " $ · " + fmt(data.finalItem.eurRate,2) + " €");
+    lines.push("• Toplam Biriken Döviz     : " + fmt(data.finalItem.cumUsd,0) + " $ + " + fmt(data.finalItem.cumEur,0) + " €");
+  }
+  lines.push("• Toplam Portföy TL Değeri : " + tl(data.finalItem.pVal,0));
+  lines.push("• Cepten Çıkan Toplam Net ₺: " + tl(data.finalItem.cumNetTl,0));
+  lines.push("• Net Sermaye Kazancı (Kâr): +" + tl(data.finalItem.profit,0));
+  lines.push("• Sermaye Büyüme Katsayısı : Yatırılan paranın " + data.finalItem.mult.toFixed(2) + " katı (+%" + fmt(data.finalItem.roi,1) + " net getiri)");
+  lines.push("");
+  lines.push("📍 YILLIK DÖNÜM NOKTALARI (ÖZET GELİŞİM):");
+  data.milestones.forEach(function(item){
+    var yilText = (item.m % 12 === 0) ? (item.m/12 + ". Yıl (" + item.m + ". Ay)") : (item.m + ". Ay");
+    if (!isAll) {
+      lines.push("  - " + (yilText + ":").padEnd(19) + tl(item.pVal,0) + " | Kur: " + fmt(item.rate,1) + " ₺ | Birikim: " + fmt(item.cumAmount,0) + " " + item.curSym + " | Net Maliyet: " + tl(item.cumNetTl,0));
+    } else {
+      lines.push("  - " + (yilText + ":").padEnd(19) + tl(item.pVal,0) + " | Kurlar: " + fmt(item.usdRate,1) + " $ / " + fmt(item.eurRate,1) + " € | Birikim: " + fmt(item.cumUsd,0) + " $ + " + fmt(item.cumEur,0) + " €");
     }
-    milestoneMonths.push(activeVade);
-    if(milestoneMonths.length > 5){
-      milestoneMonths = milestoneMonths.filter(function(_, idx, arr){
-        return idx === 0 || idx === arr.length - 1 || idx % 2 === 0;
-      });
-    }
+  });
+  lines.push("═════════════════════════════════════════════════════════════════");
+  return lines.join("\n");
+}
+
+function renderTahmin(tot){
+  var root = document.getElementById("tahminPanel");
+  if(!root) return;
+  var rows = state.rows || [];
+
+  var baseUsdRate = num(state.usdRate) || 48.07;
+  var baseEurRate = num(state.eurRate) || 55.98;
+
+  // Reference date: last entered record month/year or current clock
+  var refKey = (new Date().getFullYear()) * 12 + (new Date().getMonth() + 1);
+  if (rows.length > 0) {
+    var maxKey = 0;
+    rows.forEach(function(r){
+      var k = (r.year || 0) * 12 + (r.month || 0);
+      if (k > maxKey) maxKey = k;
+    });
+    if (maxKey > refKey) refKey = maxKey;
+  }
+
+  // Currency specific starts and defaults
+  var usdStart = findPolicyStart(rows, "usd");
+  var eurStart = findPolicyStart(rows, "eur");
+
+  var usdDef = getPolicyDefaults(rows, "usd", baseUsdRate);
+  var eurDef = getPolicyDefaults(rows, "eur", baseEurRate);
+
+  // Active configurations
+  var usdConfig = {
+    vadeAy: Math.max(1, parseInt(tahminState.usd.vadeAy, 10) || 60),
+    aylikMiktar: (tahminState.usd.aylikMiktar !== null && tahminState.usd.aylikMiktar !== undefined) ? Number(tahminState.usd.aylikMiktar) : usdDef.avgAmt,
+    yillikArtis: (tahminState.usd.yillikArtis !== null && tahminState.usd.yillikArtis !== undefined) ? Number(tahminState.usd.yillikArtis) : Math.min(45, Math.max(25, usdDef.histCagr || 32)),
+    taxRate: (tahminState.usd.taxRate !== null && tahminState.usd.taxRate !== undefined) ? Number(tahminState.usd.taxRate) : usdDef.avgTax
+  };
+
+  var eurConfig = {
+    vadeAy: Math.max(1, parseInt(tahminState.eur.vadeAy, 10) || 60),
+    aylikMiktar: (tahminState.eur.aylikMiktar !== null && tahminState.eur.aylikMiktar !== undefined) ? Number(tahminState.eur.aylikMiktar) : eurDef.avgAmt,
+    yillikArtis: (tahminState.eur.yillikArtis !== null && tahminState.eur.yillikArtis !== undefined) ? Number(tahminState.eur.yillikArtis) : Math.min(45, Math.max(25, eurDef.histCagr || 30)),
+    taxRate: (tahminState.eur.taxRate !== null && tahminState.eur.taxRate !== undefined) ? Number(tahminState.eur.taxRate) : eurDef.avgTax
+  };
+
+  // Run single simulations
+  var usdTimeline = simulateSinglePolicy("usd", {
+    rows: rows,
+    baseRate: baseUsdRate,
+    start: usdStart,
+    vadeAy: usdConfig.vadeAy,
+    aylikMiktar: usdConfig.aylikMiktar,
+    yillikArtis: usdConfig.yillikArtis,
+    taxRate: usdConfig.taxRate,
+    refKey: refKey
+  });
+
+  var eurTimeline = simulateSinglePolicy("eur", {
+    rows: rows,
+    baseRate: baseEurRate,
+    start: eurStart,
+    vadeAy: eurConfig.vadeAy,
+    aylikMiktar: eurConfig.aylikMiktar,
+    yillikArtis: eurConfig.yillikArtis,
+    taxRate: eurConfig.taxRate,
+    refKey: refKey
+  });
+
+  // Active tab selection
+  var activeTab = tahminState.activeTab || "usd";
+  if (activeTab !== "usd" && activeTab !== "eur" && activeTab !== "all") {
+    activeTab = "usd";
+  }
+
+  var activeTimeline = [];
+  var activeVade = 60;
+  var startLabel = "";
+  var endLabel = "";
+  var finalItem = null;
+  var milestones = [];
+
+  if (activeTab === "usd") {
+    activeTimeline = usdTimeline;
+    activeVade = usdConfig.vadeAy;
+    startLabel = activeTimeline[0].label;
+    endLabel = activeTimeline[activeTimeline.length - 1].label;
+    finalItem = activeTimeline[activeTimeline.length - 1];
+  } else if (activeTab === "eur") {
+    activeTimeline = eurTimeline;
+    activeVade = eurConfig.vadeAy;
+    startLabel = activeTimeline[0].label;
+    endLabel = activeTimeline[activeTimeline.length - 1].label;
+    finalItem = activeTimeline[activeTimeline.length - 1];
+  } else {
+    activeTimeline = simulateCombinedPolicy({
+      usdTimeline: usdTimeline,
+      eurTimeline: eurTimeline,
+      baseUsdRate: baseUsdRate,
+      baseEurRate: baseEurRate
+    });
+    activeVade = activeTimeline.length;
+    startLabel = activeTimeline[0].label;
+    endLabel = activeTimeline[activeTimeline.length - 1].label;
+    finalItem = activeTimeline[activeTimeline.length - 1];
+  }
+
+  // Milestones: yearly and end
+  for (var step = 12; step < activeTimeline.length; step += 12) {
+    milestones.push(activeTimeline[step - 1]);
+  }
+  if (milestones.indexOf(finalItem) === -1) {
+    milestones.push(finalItem);
   }
 
   var isAccOpen = !!tahminState.accordionAcik;
@@ -1783,11 +2134,11 @@ function renderTahmin(tot){
   var h = [];
   h.push('<div class="tahmin-header is-accordion-toggle' + (!isAccOpen ? ' is-closed' : '') + '" id="tahminAccordionToggle" title="Projeksiyonu ' + (isAccOpen ? 'kapatmak' : 'açmak') + ' için tıklayın">');
   h.push('  <div class="tahmin-title-wrap">');
-  h.push('    <h2><span>🔮</span> ' + activeVade + ' Aylık Döviz Birikim & Kur Projeksiyonu</h2>');
-  h.push('    <div class="tahmin-desc">' + (isAccOpen ? 'Şimdiye kadar girilmiş döviz birikimleriniz ve aylık bileşik kur artış tahminleriyle gelecek simülasyonu' : '🎯 ' + activeVade + ' Ay Hedefi: ~' + tl(finalItem.pVal, 0) + ' (' + fmt(finalItem.cumUsd, 0) + ' $ + ' + fmt(finalItem.cumEur, 0) + ' €) · İncelemek için tıklayın') + '</div>');
+  h.push('    <h2><span>🔮</span> Hayat Sigortası Döviz Birikimi & Kur Projeksiyonu</h2>');
+  h.push('    <div class="tahmin-desc">' + (isAccOpen ? 'Dolar ve Euro sigortalarınızın gerçek başlangıç tarihlerine göre bağımsız 60 aylık kur ve birikim simülasyonu' : '🎯 Dolar (Mart 2031): ~' + tl(usdTimeline[usdTimeline.length-1].pVal, 0) + ' · Euro (Mayıs 2031): ~' + tl(eurTimeline[eurTimeline.length-1].pVal, 0) + ' · İncelemek için tıklayın') + '</div>');
   h.push('  </div>');
   h.push('  <div style="display:flex; align-items:center; gap:8px;">');
-  h.push('    <span class="tahmin-badge">🎯 ' + activeVade + ' Ay (' + (activeVade/12).toFixed(1).replace('.0','') + ' Yıl)</span>');
+  h.push('    <span class="tahmin-badge">🎯 60 Ay Vade</span>');
   h.push('    <div class="tahmin-chevron">' + (isAccOpen ? '▲ Kapat' : '▼ Aç / İncele') + '</div>');
   h.push('  </div>');
   h.push('</div>');
@@ -1795,246 +2146,407 @@ function renderTahmin(tot){
   if(isAccOpen){
     h.push('<div class="tahmin-body">');
 
-  // PARAMETRE KONTROL KUTUSU
-  h.push('  <div class="tahmin-controls-box">');
-  h.push('    <div style="font-size:12px; font-weight:700; color:var(--ink); text-transform:uppercase; letter-spacing:.05em; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">');
-  h.push('      <span>⚙️ Projeksiyon Parametreleri (Değiştirildiğinde Anında Hesaplanır)</span>');
-  h.push('      <span style="font-size:11.5px; font-weight:normal; color:var(--muted);">Güncel TCMB: ' + fmt(baseUsdRate,2) + ' $ / ' + fmt(baseEurRate,2) + ' €</span>');
-  h.push('    </div>');
+    // POLİÇE SEÇİM SEKMELERİ (TABS)
+    h.push('  <div class="tahmin-tabs">');
+    h.push('    <button type="button" class="tahmin-tab' + (activeTab === 'usd' ? ' is-active' : '') + '" data-ttab="usd">💵 Dolar Sigortası (' + usdConfig.vadeAy + ' Ay)</button>');
+    h.push('    <button type="button" class="tahmin-tab' + (activeTab === 'eur' ? ' is-active' : '') + '" data-ttab="eur">💶 Euro Sigortası (' + eurConfig.vadeAy + ' Ay)</button>');
+    h.push('    <button type="button" class="tahmin-tab' + (activeTab === 'all' ? ' is-active' : '') + '" data-ttab="all">📊 Birleşik Genel Toplam (Tüm Sigortalar)</button>');
+    h.push('  </div>');
 
-  h.push('    <div class="tahmin-ctrl-grid">');
-  
-  // 1. Vade / Süre
-  h.push('      <div class="tahmin-field">');
-  h.push('        <label for="tahminVadeInp">Vade / Süre <span>' + activeVade + ' Ay</span></label>');
-  h.push('        <input type="number" id="tahminVadeInp" class="tahmin-inp" min="1" max="240" step="1" value="' + activeVade + '">');
-  h.push('        <div class="tahmin-presets">');
-  [12, 24, 36, 60, 120].forEach(function(v){
-    var isA = activeVade === v;
-    h.push('          <button type="button" class="tahmin-chip-btn' + (isA ? ' is-active' : '') + '" data-setvade="' + v + '">' + (v >= 12 ? (v/12 + ' Yıl') : (v + ' Ay')) + '</button>');
-  });
-  h.push('        </div>');
-  h.push('      </div>');
+    // POLİÇE BİLGİLENDİRME ŞERİDİ
+    h.push('  <div class="tahmin-policy-info">');
+    if (activeTab === 'usd') {
+      h.push('    <div>🗓️ <strong>Başlangıç:</strong> ' + AYLAR[usdStart.month - 1] + ' ' + usdStart.year + ' (Kayıtlı ilk ay) ➔ 🏁 <strong>Vade Sonu:</strong> ' + endLabel + ' (' + usdConfig.vadeAy + '. Ay)</div>');
+      h.push('    <div>💵 <strong>Aylık Katkı:</strong> ' + usdConfig.aylikMiktar + ' $/ay &nbsp;|&nbsp; 📈 <strong>TCMB Doları:</strong> ' + fmt(baseUsdRate,2) + ' ₺</div>');
+    } else if (activeTab === 'eur') {
+      h.push('    <div>🗓️ <strong>Başlangıç:</strong> ' + AYLAR[eurStart.month - 1] + ' ' + eurStart.year + ' (Kayıtlı ilk ay) ➔ 🏁 <strong>Vade Sonu:</strong> ' + endLabel + ' (' + eurConfig.vadeAy + '. Ay)</div>');
+      h.push('    <div>💶 <strong>Aylık Katkı:</strong> ' + eurConfig.aylikMiktar + ' €/ay &nbsp;|&nbsp; 📈 <strong>TCMB Eurosu:</strong> ' + fmt(baseEurRate,2) + ' ₺</div>');
+    } else {
+      h.push('    <div>🗓️ <strong>Dolar:</strong> ' + AYLAR[usdStart.month-1] + ' ' + usdStart.year + ' ➔ ' + usdTimeline[usdTimeline.length-1].label + ' &nbsp;|&nbsp; <strong>Euro:</strong> ' + AYLAR[eurStart.month-1] + ' ' + eurStart.year + ' ➔ ' + eurTimeline[eurTimeline.length-1].label + '</div>');
+      h.push('    <div>📊 <strong>Birleşik Portföy:</strong> Toplam ' + activeTimeline.length + ' Aylık Simülasyon</div>');
+    }
+    h.push('  </div>');
 
-  // 2. Aylık Dolar
-  h.push('      <div class="tahmin-field">');
-  h.push('        <label for="tahminUsdInp">Aylık Dolar ($) <span class="auto-hint">Ort: ' + autoAvgUsd + ' $</span></label>');
-  h.push('        <input type="number" id="tahminUsdInp" class="tahmin-inp" min="0" step="10" value="' + activeUsd + '">');
-  h.push('        <div class="tahmin-presets">');
-  [100, 200, 250, 500, 1000].forEach(function(u){
-    var isU = activeUsd === u;
-    h.push('          <button type="button" class="tahmin-chip-btn' + (isU ? ' is-active' : '') + '" data-setusd="' + u + '">' + u + ' $</button>');
-  });
-  h.push('        </div>');
-  h.push('      </div>');
-
-  // 3. Aylık Euro
-  h.push('      <div class="tahmin-field">');
-  h.push('        <label for="tahminEurInp">Aylık Euro (€) <span class="auto-hint">Ort: ' + autoAvgEur + ' €</span></label>');
-  h.push('        <input type="number" id="tahminEurInp" class="tahmin-inp" min="0" step="10" value="' + activeEur + '">');
-  h.push('        <div class="tahmin-presets">');
-  [50, 100, 150, 300, 500].forEach(function(e){
-    var isE = activeEur === e;
-    h.push('          <button type="button" class="tahmin-chip-btn' + (isE ? ' is-active' : '') + '" data-seteur="' + e + '">' + e + ' €</button>');
-  });
-  h.push('        </div>');
-  h.push('      </div>');
-
-  // 4. Yıllık Kur Artışı
-  h.push('      <div class="tahmin-field">');
-  h.push('        <label for="tahminArtisInp">Yıllık Kur Artış (%) <span class="auto-hint">Bileşik</span></label>');
-  h.push('        <input type="number" id="tahminArtisInp" class="tahmin-inp" min="0" max="200" step="1" value="' + activeArtis + '">');
-  h.push('        <div class="tahmin-presets">');
-  [20, 30, 40, 50].forEach(function(a){
-    var isArt = activeArtis === a;
-    h.push('          <button type="button" class="tahmin-chip-btn' + (isArt ? ' is-active' : '') + '" data-setartis="' + a + '">%' + a + '</button>');
-  });
-  h.push('        </div>');
-  h.push('      </div>');
-
-  // 5. Vergi İadesi & Mevcut Dahil
-  h.push('      <div class="tahmin-field">');
-  h.push('        <label for="tahminTaxInp">Vergi İadesi (%) <span class="auto-hint">Ort: %' + autoAvgTax + '</span></label>');
-  h.push('        <input type="number" id="tahminTaxInp" class="tahmin-inp" min="0" max="50" step="1" value="' + activeTax + '">');
-  h.push('        <label style="display:flex; align-items:center; gap:7px; cursor:pointer; text-transform:none; font-size:12px; margin-top:8px; font-weight:600; color:var(--ink);">');
-  h.push('          <input type="checkbox" id="tahminMevcutCb" style="width:16px; height:16px; accent-color:var(--gain);" ' + (activeMevcut ? 'checked' : '') + '>');
-  h.push('          <span>Mevcut birikimi (' + fmt(t.usd,0) + ' $ + ' + fmt(t.eur,0) + ' €) dahil et</span>');
-  h.push('        </label>');
-  h.push('      </div>');
-
-  h.push('    </div>');
-  h.push('  </div>');
-
-  // SONUÇ KARTLARI (GRID)
-  h.push('  <div class="tahmin-results-grid">');
-
-  // HERO KART: Portföy Değeri
-  h.push('    <div class="tahmin-res-card is-hero">');
-  h.push('      <div class="tahmin-res-lbl">');
-  h.push('        <span>🏆 ' + activeVade + ' Ay Sonu Tahmini Toplam Portföy Değeri (' + finalItem.label + ')</span>');
-  h.push('        <span class="tahmin-growth-pill">🚀 ' + finalItem.mult.toFixed(2) + 'x Kat Büyüme</span>');
-  h.push('      </div>');
-  h.push('      <div class="tahmin-res-val">' + tl(finalItem.pVal, 0) + '</div>');
-  h.push('      <div class="tahmin-res-sub">');
-  h.push('        Cepten çıkacak toplam net maliyet <strong>' + tl(finalItem.cumNetTl, 0) + '</strong> ➔ Oluşan tahmini net kâr <strong>+' + tl(finalItem.profit, 0) + '</strong> (+%' + fmt(finalItem.roi, 1) + ')');
-  h.push('      </div>');
-  h.push('    </div>');
-
-  // KART 1: Toplam Dolar
-  h.push('    <div class="tahmin-res-card">');
-  h.push('      <div class="tahmin-res-lbl">💵 Toplam Dolar Birikimi</div>');
-  h.push('      <div class="tahmin-res-val" style="color:var(--accent);">' + fmt(finalItem.cumUsd, 0) + ' $</div>');
-  h.push('      <div class="tahmin-res-sub">');
-  if(activeMevcut && t.usd > 0){
-    h.push('        Mevcut: <strong>' + fmt(t.usd, 0) + ' $</strong> + ' + activeVade + ' ayda yeni: <strong>+' + fmt(totalAddedUsd, 0) + ' $</strong>');
-  } else {
-    h.push('        ' + activeVade + ' ay boyunca aylık ' + activeUsd + ' $ alımı');
-  }
-  h.push('      </div>');
-  h.push('    </div>');
-
-  // KART 2: Toplam Euro
-  h.push('    <div class="tahmin-res-card">');
-  h.push('      <div class="tahmin-res-lbl">💶 Toplam Euro Birikimi</div>');
-  h.push('      <div class="tahmin-res-val" style="color:var(--brass);">' + fmt(finalItem.cumEur, 0) + ' €</div>');
-  h.push('      <div class="tahmin-res-sub">');
-  if(activeMevcut && t.eur > 0){
-    h.push('        Mevcut: <strong>' + fmt(t.eur, 0) + ' €</strong> + ' + activeVade + ' ayda yeni: <strong>+' + fmt(totalAddedEur, 0) + ' €</strong>');
-  } else {
-    h.push('        ' + activeVade + ' ay boyunca aylık ' + activeEur + ' € alımı');
-  }
-  h.push('      </div>');
-  h.push('    </div>');
-
-  // KART 3: Tahmini Kurlar
-  h.push('    <div class="tahmin-res-card">');
-  h.push('      <div class="tahmin-res-lbl">📈 ' + activeVade + '. Aydaki Kurlar (' + finalItem.label + ')</div>');
-  h.push('      <div class="tahmin-res-val" style="font-size:20px;">' + fmt(finalItem.usdRate, 2) + ' $ · ' + fmt(finalItem.eurRate, 2) + ' €</div>');
-  h.push('      <div class="tahmin-res-sub">');
-  h.push('        Bugünkü kura göre (1 $=' + fmt(baseUsdRate,2) + ' ₺) <strong>+%' + fmt(usdRateGrowth, 0) + '</strong> kümülatif kur artışı');
-  h.push('      </div>');
-  h.push('    </div>');
-
-  // KART 4: Net Sermaye Kazancı
-  h.push('    <div class="tahmin-res-card">');
-  h.push('      <div class="tahmin-res-lbl">💰 Net Sermaye Kazancı (Kâr)</div>');
-  h.push('      <div class="tahmin-res-val" style="color:var(--gain);">+' + tl(finalItem.profit, 0) + '</div>');
-  h.push('      <div class="tahmin-res-sub">');
-  h.push('        Vergi iadesi avantajıyla net cebe kalan kazanç oranı <strong>+%' + fmt(finalItem.roi, 1) + '</strong>');
-  h.push('      </div>');
-  h.push('    </div>');
-
-  h.push('  </div>');
-
-  // DÖNÜM NOKTALARI (MILESTONES)
-  h.push('  <div class="tahmin-milestones-box">');
-  h.push('    <h3>📍 Yıllara Göre Birikim ve Kur Yol Haritası</h3>');
-  h.push('    <div class="tahmin-milestones-grid">');
-
-  // Başlangıç Kartı
-  h.push('      <div class="tahmin-mile-card">');
-  h.push('        <div class="tahmin-mile-period">Bugün (Başlangıç)</div>');
-  h.push('        <div class="tahmin-mile-val">' + tl(activeMevcut ? t.bugun : 0, 0) + '</div>');
-  h.push('        <div class="tahmin-mile-detail">Kurlar: ' + fmt(baseUsdRate,2) + ' $ / ' + fmt(baseEurRate,2) + ' €<br>Varlık: ' + fmt(activeMevcut ? t.usd : 0,0) + ' $ + ' + fmt(activeMevcut ? t.eur : 0,0) + ' €</div>');
-  h.push('      </div>');
-
-  milestoneMonths.forEach(function(mIdx){
-    var item = timeline[mIdx - 1];
-    if(!item) return;
-    var isLast = mIdx === activeVade;
-    var yilLabel = (mIdx % 12 === 0) ? (mIdx / 12 + '. Yıl (' + mIdx + '. Ay)') : (mIdx + '. Ay');
-    h.push('      <div class="tahmin-mile-card' + (isLast ? ' is-final' : '') + '">');
-    h.push('        <div class="tahmin-mile-period">' + (isLast ? '🏆 ' : '') + yilLabel + '</div>');
-    h.push('        <div class="tahmin-mile-val">' + tl(item.pVal, 0) + '</div>');
-    h.push('        <div class="tahmin-mile-detail">' + item.label + '<br>Kurlar: ' + fmt(item.usdRate,1) + ' $ / ' + fmt(item.eurRate,1) + ' €<br>Portföy: ' + fmt(item.cumUsd,0) + ' $ + ' + fmt(item.cumEur,0) + ' €</div>');
-    h.push('      </div>');
-  });
-
-  h.push('    </div>');
-  h.push('  </div>');
-
-  // EYLEM BUTONLARI
-  var raporMetni = olusturTahminRaporu({
-    activeVade: activeVade,
-    startLabel: timeline[0].label,
-    endLabel: finalItem.label,
-    baseUsdRate: baseUsdRate,
-    baseEurRate: baseEurRate,
-    activeArtis: activeArtis,
-    activeTax: activeTax,
-    activeUsd: activeUsd,
-    activeEur: activeEur,
-    activeMevcut: activeMevcut,
-    t: t,
-    finalItem: finalItem,
-    totalAddedUsd: totalAddedUsd,
-    totalAddedEur: totalAddedEur,
-    milestoneMonths: milestoneMonths,
-    timeline: timeline
-  });
-
-  h.push('  <div class="tahmin-acts-row">');
-  h.push('    <button type="button" class="btn sm" id="btnToggleTahminTablo">📋 ' + (tahminState.tabloAcik ? 'Aylık Detay Tablosunu Gizle ▲' : (activeVade + ' Aylık Ay Ay Detay Tablosunu Aç ▼')) + '</button>');
-  h.push('    <button type="button" class="btn ghost sm" id="btnToggleTahminRapor">📄 ' + (tahminState.raporAcik ? 'Özet Metin Raporunu Gizle' : 'Bilgilendirme Metin Raporunu Göster') + '</button>');
-  h.push('    <button type="button" class="btn ghost sm" id="btnKopyalaTahminRapor">📋 Raporu Kopyala</button>');
-  h.push('    <span id="tahminKopyaStatus" style="font-size:12.5px; color:var(--gain); font-weight:600; display:none;">✓ Kopyalandı!</span>');
-  h.push('  </div>');
-
-  // RAPOR METİN KUTUSU
-  if(tahminState.raporAcik){
-    h.push('  <div class="tahmin-report-box" id="tahminRaporMetin">' + attr(raporMetni) + '</div>');
-  }
-
-  // 60 AYLIK DETAYLI TABLO
-  if(tahminState.tabloAcik){
-    h.push('  <div style="display:flex; flex-direction:column; gap:8px;">');
-    h.push('    <div style="font-size:13px; font-weight:700; color:var(--ink); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">');
-    h.push('      <span>📊 ' + activeVade + ' Aylık Detaylı Simülasyon Çizelgesi</span>');
-    h.push('      <span style="font-size:11.5px; color:var(--muted); font-weight:normal;">(Her 12. ay ve vade sonu vurgulanmıştır)</span>');
+    // PARAMETRE KONTROL KUTUSU
+    h.push('  <div class="tahmin-controls-box">');
+    h.push('    <div style="font-size:12px; font-weight:700; color:var(--ink); text-transform:uppercase; letter-spacing:.05em; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">');
+    h.push('      <span>⚙️ ' + (activeTab === 'usd' ? 'Dolar Sigortası' : (activeTab === 'eur' ? 'Euro Sigortası' : 'Genel')) + ' Parametreleri (Anında Hesaplanır)</span>');
+    h.push('      <span style="font-size:11.5px; font-weight:normal; color:var(--muted);">Güncel TCMB: 1 $ = ' + fmt(baseUsdRate,2) + ' ₺ | 1 € = ' + fmt(baseEurRate,2) + ' ₺</span>');
     h.push('    </div>');
-    h.push('    <div class="tscroll" style="border:1px solid var(--line); border-radius:10px; max-height:480px; overflow-y:auto;">');
-    h.push('      <table><thead>');
-    h.push('        <tr>');
-    h.push('          <th class="l">Dönem</th>');
-    h.push('          <th>Ay No</th>');
-    h.push('          <th class="sep">Tahmini $ Kuru</th>');
-    h.push('          <th>Tahmini € Kuru</th>');
-    h.push('          <th class="sep">O Ay Ekleme</th>');
-    h.push('          <th>O Ay Cepten ₺</th>');
-    h.push('          <th class="sep">Toplam $</th>');
-    h.push('          <th>Toplam €</th>');
-    h.push('          <th class="sep">Cepten Toplam ₺</th>');
-    h.push('          <th>Portföy Değeri (₺)</th>');
-    h.push('          <th>Net Kâr (₺)</th>');
-    h.push('          <th>Getiri %</th>');
-    h.push('        </tr>');
-    h.push('      </thead><tbody>');
 
-    timeline.forEach(function(row){
-      var isMile = (row.m % 12 === 0) || (row.m === activeVade);
-      var trStyle = isMile ? ' style="background:var(--accent-soft); font-weight:600;"' : '';
-      h.push('        <tr' + trStyle + '>');
-      h.push('          <td class="l">' + (isMile ? '⭐ ' : '') + row.label + '</td>');
-      h.push('          <td>' + row.m + '. Ay</td>');
-      h.push('          <td class="sep">' + fmt(row.usdRate, 2) + ' ₺</td>');
-      h.push('          <td>' + fmt(row.eurRate, 2) + ' ₺</td>');
-      h.push('          <td class="sep">+' + row.addUsd + ' $ / +' + row.addEur + ' €</td>');
-      h.push('          <td>' + fmt(row.netDep, 0) + ' ₺</td>');
-      h.push('          <td class="sep" style="color:var(--accent);">' + fmt(row.cumUsd, 0) + ' $</td>');
-      h.push('          <td style="color:var(--brass);">' + fmt(row.cumEur, 0) + ' €</td>');
-      h.push('          <td class="sep">' + fmt(row.cumNetTl, 0) + ' ₺</td>');
-      h.push('          <td style="font-weight:700; color:var(--gain);">' + fmt(row.pVal, 0) + ' ₺</td>');
-      h.push('          <td style="color:var(--gain);">+' + fmt(row.profit, 0) + ' ₺</td>');
-      h.push('          <td><span class="pill up">+%' + fmt(row.roi, 0) + '</span></td>');
-      h.push('        </tr>');
-    });
+    h.push('    <div class="tahmin-ctrl-grid">');
 
-    h.push('      </tbody></table>');
+    if (activeTab === 'usd') {
+      // 1. Vade
+      h.push('      <div class="tahmin-field">');
+      h.push('        <label for="tahminVadeInp">Poliçe Süresi (Vade) <span>' + usdConfig.vadeAy + ' Ay</span></label>');
+      h.push('        <input type="number" id="tahminVadeInp" class="tahmin-inp" min="1" max="240" step="1" value="' + usdConfig.vadeAy + '">');
+      h.push('        <div class="tahmin-presets">');
+      [12, 24, 36, 60, 120].forEach(function(v){
+        var isA = usdConfig.vadeAy === v;
+        h.push('          <button type="button" class="tahmin-chip-btn' + (isA ? ' is-active' : '') + '" data-setvade="' + v + '">' + (v >= 12 ? (v/12 + ' Yıl') : (v + ' Ay')) + '</button>');
+      });
+      h.push('        </div>');
+      h.push('      </div>');
+
+      // 2. Aylık Dolar
+      h.push('      <div class="tahmin-field">');
+      h.push('        <label for="tahminUsdInp">Aylık Dolar Yatırımı ($) <span class="auto-hint">Ort: ' + usdDef.avgAmt + ' $</span></label>');
+      h.push('        <input type="number" id="tahminUsdInp" class="tahmin-inp" min="0" step="10" value="' + usdConfig.aylikMiktar + '">');
+      h.push('        <div class="tahmin-presets">');
+      [100, 200, 250, 500, 1000].forEach(function(u){
+        var isU = usdConfig.aylikMiktar === u;
+        h.push('          <button type="button" class="tahmin-chip-btn' + (isU ? ' is-active' : '') + '" data-setusd="' + u + '">' + u + ' $</button>');
+      });
+      h.push('        </div>');
+      h.push('      </div>');
+
+      // 3. Yıllık Dolar Kur Artışı
+      h.push('      <div class="tahmin-field">');
+      h.push('        <label for="tahminArtisInp">Yıllık Dolar Artış Tahmini (%) <span class="auto-hint">TCMB Trendi: ~%' + usdDef.histCagr + '</span></label>');
+      h.push('        <input type="number" id="tahminArtisInp" class="tahmin-inp" min="0" max="200" step="1" value="' + usdConfig.yillikArtis + '">');
+      h.push('        <div class="tahmin-presets">');
+      var usdPresets = [25, 30, usdDef.histCagr, 45, 60].filter(function(v, i, a){ return v > 0 && a.indexOf(v) === i; }).sort(function(a,b){ return a-b; });
+      usdPresets.forEach(function(a){
+        var isArt = usdConfig.yillikArtis === a;
+        h.push('          <button type="button" class="tahmin-chip-btn' + (isArt ? ' is-active' : '') + '" data-setartis="' + a + '">%' + a + (a === usdDef.histCagr ? ' (TCMB)' : '') + '</button>');
+      });
+      h.push('        </div>');
+      h.push('      </div>');
+
+      // 4. Vergi İadesi
+      h.push('      <div class="tahmin-field">');
+      h.push('        <label for="tahminTaxInp">Ort. Vergi İadesi Oranı (%) <span class="auto-hint">Maaş İadesi</span></label>');
+      h.push('        <input type="number" id="tahminTaxInp" class="tahmin-inp" min="0" max="50" step="1" value="' + usdConfig.taxRate + '">');
+      h.push('        <div class="tahmin-presets">');
+      [15, 20, 27, 35, 40].forEach(function(tRate){
+        var isT = usdConfig.taxRate === tRate;
+        h.push('          <button type="button" class="tahmin-chip-btn' + (isT ? ' is-active' : '') + '" data-settax="' + tRate + '">%' + tRate + '</button>');
+      });
+      h.push('        </div>');
+      h.push('      </div>');
+
+    } else if (activeTab === 'eur') {
+      // 1. Vade
+      h.push('      <div class="tahmin-field">');
+      h.push('        <label for="tahminVadeInp">Poliçe Süresi (Vade) <span>' + eurConfig.vadeAy + ' Ay</span></label>');
+      h.push('        <input type="number" id="tahminVadeInp" class="tahmin-inp" min="1" max="240" step="1" value="' + eurConfig.vadeAy + '">');
+      h.push('        <div class="tahmin-presets">');
+      [12, 24, 36, 60, 120].forEach(function(v){
+        var isA = eurConfig.vadeAy === v;
+        h.push('          <button type="button" class="tahmin-chip-btn' + (isA ? ' is-active' : '') + '" data-setvade="' + v + '">' + (v >= 12 ? (v/12 + ' Yıl') : (v + ' Ay')) + '</button>');
+      });
+      h.push('        </div>');
+      h.push('      </div>');
+
+      // 2. Aylık Euro
+      h.push('      <div class="tahmin-field">');
+      h.push('        <label for="tahminEurInp">Aylık Euro Yatırımı (€) <span class="auto-hint">Ort: ' + eurDef.avgAmt + ' €</span></label>');
+      h.push('        <input type="number" id="tahminEurInp" class="tahmin-inp" min="0" step="10" value="' + eurConfig.aylikMiktar + '">');
+      h.push('        <div class="tahmin-presets">');
+      [50, 100, 150, 300, 500].forEach(function(e){
+        var isE = eurConfig.aylikMiktar === e;
+        h.push('          <button type="button" class="tahmin-chip-btn' + (isE ? ' is-active' : '') + '" data-seteur="' + e + '">' + e + ' €</button>');
+      });
+      h.push('        </div>');
+      h.push('      </div>');
+
+      // 3. Yıllık Euro Kur Artışı
+      h.push('      <div class="tahmin-field">');
+      h.push('        <label for="tahminArtisInp">Yıllık Euro Artış Tahmini (%) <span class="auto-hint">TCMB Trendi: ~%' + eurDef.histCagr + '</span></label>');
+      h.push('        <input type="number" id="tahminArtisInp" class="tahmin-inp" min="0" max="200" step="1" value="' + eurConfig.yillikArtis + '">');
+      h.push('        <div class="tahmin-presets">');
+      var eurPresets = [25, 30, eurDef.histCagr, 45, 60].filter(function(v, i, a){ return v > 0 && a.indexOf(v) === i; }).sort(function(a,b){ return a-b; });
+      eurPresets.forEach(function(a){
+        var isArt = eurConfig.yillikArtis === a;
+        h.push('          <button type="button" class="tahmin-chip-btn' + (isArt ? ' is-active' : '') + '" data-setartis="' + a + '">%' + a + (a === eurDef.histCagr ? ' (TCMB)' : '') + '</button>');
+      });
+      h.push('        </div>');
+      h.push('      </div>');
+
+      // 4. Vergi İadesi
+      h.push('      <div class="tahmin-field">');
+      h.push('        <label for="tahminTaxInp">Ort. Vergi İadesi Oranı (%) <span class="auto-hint">Maaş İadesi</span></label>');
+      h.push('        <input type="number" id="tahminTaxInp" class="tahmin-inp" min="0" max="50" step="1" value="' + eurConfig.taxRate + '">');
+      h.push('        <div class="tahmin-presets">');
+      [15, 20, 27, 35, 40].forEach(function(tRate){
+        var isT = eurConfig.taxRate === tRate;
+        h.push('          <button type="button" class="tahmin-chip-btn' + (isT ? ' is-active' : '') + '" data-settax="' + tRate + '">%' + tRate + '</button>');
+      });
+      h.push('        </div>');
+      h.push('      </div>');
+
+    } else {
+      // Birleşik Sekme Kontrolleri
+      h.push('      <div class="tahmin-field">');
+      h.push('        <label for="tahminUsdInp">Aylık Dolar Hedefi ($)</label>');
+      h.push('        <input type="number" id="tahminUsdInp" class="tahmin-inp" min="0" step="10" value="' + usdConfig.aylikMiktar + '">');
+      h.push('      </div>');
+
+      h.push('      <div class="tahmin-field">');
+      h.push('        <label for="tahminEurInp">Aylık Euro Hedefi (€)</label>');
+      h.push('        <input type="number" id="tahminEurInp" class="tahmin-inp" min="0" step="10" value="' + eurConfig.aylikMiktar + '">');
+      h.push('      </div>');
+
+      h.push('      <div class="tahmin-field">');
+      h.push('        <label for="tahminArtisUsdInp">Yıllık $ Kur Artışı (%)</label>');
+      h.push('        <input type="number" id="tahminArtisUsdInp" class="tahmin-inp" min="0" max="200" step="1" value="' + usdConfig.yillikArtis + '">');
+      h.push('      </div>');
+
+      h.push('      <div class="tahmin-field">');
+      h.push('        <label for="tahminArtisEurInp">Yıllık € Kur Artışı (%)</label>');
+      h.push('        <input type="number" id="tahminArtisEurInp" class="tahmin-inp" min="0" max="200" step="1" value="' + eurConfig.yillikArtis + '">');
+      h.push('      </div>');
+    }
+
     h.push('    </div>');
     h.push('  </div>');
-  }
 
-  h.push('</div>'); // end tahmin-body
+    // SONUÇ KARTLARI (GRID)
+    h.push('  <div class="tahmin-results-grid">');
+
+    // HERO KART: Portföy Değeri
+    h.push('    <div class="tahmin-res-card is-hero">');
+    h.push('      <div class="tahmin-res-lbl">');
+    h.push('        <span>🏆 ' + activeVade + '. Ay Sonu Tahmini Portföy Değeri (' + endLabel + ')</span>');
+    h.push('        <span class="tahmin-growth-pill">🚀 ' + finalItem.mult.toFixed(2) + 'x Kat Büyüme</span>');
+    h.push('      </div>');
+    h.push('      <div class="tahmin-res-val">' + tl(finalItem.pVal, 0) + '</div>');
+    h.push('      <div class="tahmin-res-sub">');
+    h.push('        Cepten çıkan toplam net maliyet <strong>' + tl(finalItem.cumNetTl, 0) + '</strong> ➔ Oluşan tahmini net kâr <strong>+' + tl(finalItem.profit, 0) + '</strong> (+%' + fmt(finalItem.roi, 1) + ')');
+    h.push('      </div>');
+    h.push('    </div>');
+
+    // KART 1: Toplam Biriken Döviz
+    h.push('    <div class="tahmin-res-card">');
+    h.push('      <div class="tahmin-res-lbl">' + (activeTab === 'usd' ? '💵 Toplam Dolar Birikimi' : (activeTab === 'eur' ? '💶 Toplam Euro Birikimi' : '💰 Toplam Portföy Birikimi')) + '</div>');
+    h.push('      <div class="tahmin-res-val" style="color:' + (activeTab === 'usd' ? 'var(--accent)' : (activeTab === 'eur' ? 'var(--brass)' : 'var(--gain)')) + ';">');
+    if (activeTab === 'usd') {
+      h.push(fmt(finalItem.cumAmount, 0) + ' $');
+    } else if (activeTab === 'eur') {
+      h.push(fmt(finalItem.cumAmount, 0) + ' €');
+    } else {
+      h.push(fmt(finalItem.cumUsd, 0) + ' $ + ' + fmt(finalItem.cumEur, 0) + ' €');
+    }
+    h.push('      </div>');
+    h.push('      <div class="tahmin-res-sub">');
+    if (activeTab === 'usd') {
+      h.push('        Başlangıçtan bu yana aylık ortalama ' + usdConfig.aylikMiktar + ' $ birikim');
+    } else if (activeTab === 'eur') {
+      h.push('        Başlangıçtan bu yana aylık ortalama ' + eurConfig.aylikMiktar + ' € birikim');
+    } else {
+      h.push('        Dolar ve Euro sigortalarının birleşik kümülatif toplamı');
+    }
+    h.push('      </div>');
+    h.push('    </div>');
+
+    // KART 2: Vade Sonu Kuru
+    h.push('    <div class="tahmin-res-card">');
+    h.push('      <div class="tahmin-res-lbl">📈 Vade Sonundaki Tahmini Kurlar (' + endLabel + ')</div>');
+    h.push('      <div class="tahmin-res-val" style="font-size:20px;">');
+    if (activeTab === 'usd') {
+      h.push(fmt(finalItem.rate, 2) + ' ₺');
+    } else if (activeTab === 'eur') {
+      h.push(fmt(finalItem.rate, 2) + ' ₺');
+    } else {
+      h.push(fmt(finalItem.usdRate, 2) + ' $ · ' + fmt(finalItem.eurRate, 2) + ' €');
+    }
+    h.push('      </div>');
+    h.push('      <div class="tahmin-res-sub">');
+    if (activeTab === 'usd') {
+      var uInc = ((finalItem.rate / baseUsdRate) - 1) * 100;
+      h.push('        Bugünkü kura (1 $=' + fmt(baseUsdRate,2) + ' ₺) kıyasla <strong>+%' + fmt(uInc, 0) + '</strong> artış');
+    } else if (activeTab === 'eur') {
+      var eInc = ((finalItem.rate / baseEurRate) - 1) * 100;
+      h.push('        Bugünkü kura (1 €=' + fmt(baseEurRate,2) + ' ₺) kıyasla <strong>+%' + fmt(eInc, 0) + '</strong> artış');
+    } else {
+      h.push('        Aylık bileşik kur artış modeliyle hesaplanmıştır');
+    }
+    h.push('      </div>');
+    h.push('    </div>');
+
+    // KART 3: Cepten Çıkan Toplam Maliyet
+    h.push('    <div class="tahmin-res-card">');
+    h.push('      <div class="tahmin-res-lbl">💳 Cepten Çıkan Net Maliyet</div>');
+    h.push('      <div class="tahmin-res-val" style="color:var(--ink);">' + tl(finalItem.cumNetTl, 0) + '</div>');
+    h.push('      <div class="tahmin-res-sub">');
+    h.push('        Maaş bordronuza geri dönen vergi iadeleri cepten çıkan maliyetten düşülmüştür');
+    h.push('      </div>');
+    h.push('    </div>');
+
+    // KART 4: Net Sermaye Kazancı (Kâr)
+    h.push('    <div class="tahmin-res-card">');
+    h.push('      <div class="tahmin-res-lbl">💰 Net Sermaye Kazancı (Kâr)</div>');
+    h.push('      <div class="tahmin-res-val" style="color:var(--gain);">+' + tl(finalItem.profit, 0) + '</div>');
+    h.push('      <div class="tahmin-res-sub">');
+    h.push('        Net getiri oranı: <strong>+%' + fmt(finalItem.roi, 1) + '</strong> (Paranız <strong>' + finalItem.mult.toFixed(2) + ' katına</strong> ulaştı)');
+    h.push('      </div>');
+    h.push('    </div>');
+
+    h.push('  </div>');
+
+    // DÖNÜM NOKTALARI (MILESTONES)
+    h.push('  <div class="tahmin-milestones-box">');
+    h.push('    <h3>📍 Yıllara Göre Birikim ve Kur Yol Haritası</h3>');
+    h.push('    <div class="tahmin-milestones-grid">');
+
+    // Başlangıç Kartı
+    h.push('      <div class="tahmin-mile-card">');
+    h.push('        <div class="tahmin-mile-period">1. Ay (' + startLabel + ')</div>');
+    h.push('        <div class="tahmin-mile-val">' + tl(activeTimeline[0].pVal, 0) + '</div>');
+    h.push('        <div class="tahmin-mile-detail">');
+    if (activeTab === 'usd') {
+      h.push('Kur: ' + fmt(activeTimeline[0].rate, 2) + ' ₺<br>Birikim: ' + fmt(activeTimeline[0].cumAmount, 0) + ' $');
+    } else if (activeTab === 'eur') {
+      h.push('Kur: ' + fmt(activeTimeline[0].rate, 2) + ' ₺<br>Birikim: ' + fmt(activeTimeline[0].cumAmount, 0) + ' €');
+    } else {
+      h.push('Kurlar: ' + fmt(activeTimeline[0].usdRate, 1) + ' $ / ' + fmt(activeTimeline[0].eurRate, 1) + ' €<br>Birikim: ' + fmt(activeTimeline[0].cumUsd, 0) + ' $ + ' + fmt(activeTimeline[0].cumEur, 0) + ' €');
+    }
+    h.push('        </div>');
+    h.push('      </div>');
+
+    milestones.forEach(function(item){
+      var isLast = item.m === activeTimeline.length;
+      var yilLabel = (item.m % 12 === 0) ? (item.m / 12 + '. Yıl (' + item.m + '. Ay)') : (item.m + '. Ay');
+      h.push('      <div class="tahmin-mile-card' + (isLast ? ' is-final' : '') + '">');
+      h.push('        <div class="tahmin-mile-period">' + (isLast ? '🏆 ' : '') + yilLabel + '</div>');
+      h.push('        <div class="tahmin-mile-val">' + tl(item.pVal, 0) + '</div>');
+      h.push('        <div class="tahmin-mile-detail">' + item.label + '<br>');
+      if (activeTab === 'usd') {
+        h.push('Kur: ' + fmt(item.rate, 1) + ' ₺ | Birikim: ' + fmt(item.cumAmount, 0) + ' $');
+      } else if (activeTab === 'eur') {
+        h.push('Kur: ' + fmt(item.rate, 1) + ' ₺ | Birikim: ' + fmt(item.cumAmount, 0) + ' €');
+      } else {
+        h.push('Kurlar: ' + fmt(item.usdRate, 1) + ' $ / ' + fmt(item.eurRate, 1) + ' €<br>Portföy: ' + fmt(item.cumUsd, 0) + ' $ + ' + fmt(item.cumEur, 0) + ' €');
+      }
+      h.push('        </div>');
+      h.push('      </div>');
+    });
+
+    h.push('    </div>');
+    h.push('  </div>');
+
+    // EYLEM BUTONLARI & RAPOR METNİ
+    var raporMetni = olusturTahminRaporu({
+      activeTab: activeTab,
+      activeVade: activeVade,
+      startLabel: startLabel,
+      endLabel: endLabel,
+      baseUsdRate: baseUsdRate,
+      baseEurRate: baseEurRate,
+      usdArtis: usdConfig.yillikArtis,
+      eurArtis: eurConfig.yillikArtis,
+      activeArtis: activeTab === 'usd' ? usdConfig.yillikArtis : eurConfig.yillikArtis,
+      usdTax: usdConfig.taxRate,
+      eurTax: eurConfig.taxRate,
+      activeTax: activeTab === 'usd' ? usdConfig.taxRate : eurConfig.taxRate,
+      usdAmt: usdConfig.aylikMiktar,
+      eurAmt: eurConfig.aylikMiktar,
+      activeAmt: activeTab === 'usd' ? usdConfig.aylikMiktar : eurConfig.aylikMiktar,
+      finalItem: finalItem,
+      milestones: milestones,
+      timeline: activeTimeline
+    });
+
+    h.push('  <div class="tahmin-acts-row">');
+    h.push('    <button type="button" class="btn sm" id="btnToggleTahminTablo">📋 ' + (tahminState.tabloAcik ? 'Aylık Detay Tablosunu Gizle ▲' : (activeVade + ' Aylık Detay Tablosunu Aç ▼')) + '</button>');
+    h.push('    <button type="button" class="btn ghost sm" id="btnToggleTahminRapor">📄 ' + (tahminState.raporAcik ? 'Özet Metin Raporunu Gizle' : 'Bilgilendirme Metin Raporunu Göster') + '</button>');
+    h.push('    <button type="button" class="btn ghost sm" id="btnKopyalaTahminRapor">📋 Raporu Kopyala</button>');
+    h.push('    <span id="tahminKopyaStatus" style="font-size:12.5px; color:var(--gain); font-weight:600; display:none;">✓ Kopyalandı!</span>');
+    h.push('  </div>');
+
+    // RAPOR METİN KUTUSU
+    if(tahminState.raporAcik){
+      h.push('  <div class="tahmin-report-box" id="tahminRaporMetin">' + attr(raporMetni) + '</div>');
+    }
+
+    // AYLIK DETAYLI TABLO
+    if(tahminState.tabloAcik){
+      h.push('  <div style="display:flex; flex-direction:column; gap:8px;">');
+      h.push('    <div style="font-size:13px; font-weight:700; color:var(--ink); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">');
+      h.push('      <span>📊 ' + (activeTab === 'usd' ? 'Dolar' : (activeTab === 'eur' ? 'Euro' : 'Birleşik')) + ' Sigortası - ' + activeVade + ' Aylık Simülasyon Çizelgesi</span>');
+      h.push('      <span style="font-size:11.5px; color:var(--muted); font-weight:normal;">(Başlangıç: ' + startLabel + ' ➔ Bitiş: ' + endLabel + ')</span>');
+      h.push('    </div>');
+      h.push('    <div class="tscroll" style="border:1px solid var(--line); border-radius:10px; max-height:480px; overflow-y:auto;">');
+      h.push('      <table><thead>');
+      h.push('        <tr>');
+      h.push('          <th class="l">Dönem</th>');
+      h.push('          <th>Ay No</th>');
+      h.push('          <th>Durum</th>');
+      if (activeTab === 'all') {
+        h.push('          <th class="sep">Tahmini $ Kuru</th>');
+        h.push('          <th>Tahmini € Kuru</th>');
+      } else {
+        h.push('          <th class="sep">Alış / Tahmini Kuru</th>');
+      }
+      h.push('          <th class="sep">O Ay Ekleme</th>');
+      h.push('          <th>O Ay Cepten ₺</th>');
+      if (activeTab === 'all') {
+        h.push('          <th class="sep">Toplam $</th>');
+        h.push('          <th>Toplam €</th>');
+      } else {
+        h.push('          <th class="sep">Toplam Döviz</th>');
+      }
+      h.push('          <th class="sep">Cepten Toplam ₺</th>');
+      h.push('          <th>Portföy Değeri (₺)</th>');
+      h.push('          <th>Net Kâr (₺)</th>');
+      h.push('          <th>Getiri %</th>');
+      h.push('        </tr>');
+      h.push('      </thead><tbody>');
+
+      activeTimeline.forEach(function(row){
+        var isMile = (row.m % 12 === 0) || (row.m === activeVade);
+        var trStyle = isMile ? ' style="background:var(--accent-soft); font-weight:600;"' : '';
+        h.push('        <tr' + trStyle + '>');
+        h.push('          <td class="l">' + (isMile ? '⭐ ' : '') + row.label + '</td>');
+        h.push('          <td>' + row.m + '. Ay</td>');
+
+        // Durum Rozeti
+        var badgeHtml = '';
+        if (row.isActual) {
+          badgeHtml = '<span class="badge-actual">✓ Gerçekleşti</span>';
+        } else if (row.m === activeVade) {
+          badgeHtml = '<span class="badge-final">🏆 Vade Sonu</span>';
+        } else {
+          badgeHtml = '<span class="badge-projected">🔮 Tahmin</span>';
+        }
+        h.push('          <td>' + badgeHtml + '</td>');
+
+        // Kur Sütunları
+        if (activeTab === 'all') {
+          h.push('          <td class="sep">' + fmt(row.usdRate, 2) + ' ₺</td>');
+          h.push('          <td>' + fmt(row.eurRate, 2) + ' ₺</td>');
+        } else {
+          h.push('          <td class="sep">' + fmt(row.rate, 2) + ' ₺</td>');
+        }
+
+        // O Ay Ekleme Sütunu (Undefined hatası düzeltildi!)
+        h.push('          <td class="sep">' + row.addAmountText + '</td>');
+        h.push('          <td>' + fmt(row.netTl, 0) + ' ₺</td>');
+
+        // Toplam Döviz
+        if (activeTab === 'all') {
+          h.push('          <td class="sep" style="color:var(--accent);">' + fmt(row.cumUsd, 0) + ' $</td>');
+          h.push('          <td style="color:var(--brass);">' + fmt(row.cumEur, 0) + ' €</td>');
+        } else {
+          var curColor = activeTab === 'usd' ? 'var(--accent)' : 'var(--brass)';
+          h.push('          <td class="sep" style="color:' + curColor + ';">' + fmt(row.cumAmount, 0) + ' ' + row.curSym + '</td>');
+        }
+
+        // Finansal Büyüme Değerleri
+        h.push('          <td class="sep">' + fmt(row.cumNetTl, 0) + ' ₺</td>');
+        h.push('          <td style="font-weight:700; color:var(--gain);">' + fmt(row.pVal, 0) + ' ₺</td>');
+        h.push('          <td style="color:var(--gain);">+' + fmt(row.profit, 0) + ' ₺</td>');
+        h.push('          <td><span class="pill up">+%' + fmt(row.roi, 0) + '</span></td>');
+        h.push('        </tr>');
+      });
+
+      h.push('      </tbody></table>');
+      h.push('    </div>');
+      h.push('  </div>');
+    }
+
+    h.push('</div>'); // end tahmin-body
   }
 
   root.innerHTML = h.join("");
@@ -2052,42 +2564,82 @@ function bindTahminEvents(root, raporMetni){
   }
   if(!tahminState.accordionAcik) return;
 
+  // TAB SEÇİMİ (USD, EUR, ALL)
+  var tabs = root.querySelectorAll(".tahmin-tab[data-ttab]");
+  for(var t=0; t<tabs.length; t++)(function(tabBtn){
+    tabBtn.onclick = function(){
+      tahminState.activeTab = tabBtn.getAttribute("data-ttab");
+      renderTahmin();
+    };
+  })(tabs[t]);
+
+  // Vade butonları
   var vBtns = root.querySelectorAll("[data-setvade]");
   for(var i=0; i<vBtns.length; i++)(function(btn){
     btn.onclick = function(){
-      tahminState.vadeAy = parseInt(btn.getAttribute("data-setvade"), 10) || 60;
+      var v = parseInt(btn.getAttribute("data-setvade"), 10) || 60;
+      if (tahminState.activeTab === "usd") {
+        tahminState.usd.vadeAy = v;
+      } else if (tahminState.activeTab === "eur") {
+        tahminState.eur.vadeAy = v;
+      }
       renderTahmin();
     };
   })(vBtns[i]);
 
+  // Dolar preset butonları
   var uBtns = root.querySelectorAll("[data-setusd]");
   for(var u=0; u<uBtns.length; u++)(function(btn){
     btn.onclick = function(){
-      tahminState.aylikUsd = parseFloat(btn.getAttribute("data-setusd")) || 250;
+      tahminState.usd.aylikMiktar = parseFloat(btn.getAttribute("data-setusd")) || 250;
       renderTahmin();
     };
   })(uBtns[u]);
 
+  // Euro preset butonları
   var eBtns = root.querySelectorAll("[data-seteur]");
   for(var e=0; e<eBtns.length; e++)(function(btn){
     btn.onclick = function(){
-      tahminState.aylikEur = parseFloat(btn.getAttribute("data-seteur")) || 150;
+      tahminState.eur.aylikMiktar = parseFloat(btn.getAttribute("data-seteur")) || 150;
       renderTahmin();
     };
   })(eBtns[e]);
 
+  // Artış preset butonları
   var aBtns = root.querySelectorAll("[data-setartis]");
   for(var a=0; a<aBtns.length; a++)(function(btn){
     btn.onclick = function(){
-      tahminState.yillikArtis = parseFloat(btn.getAttribute("data-setartis")) || 30;
+      var val = parseFloat(btn.getAttribute("data-setartis")) || 30;
+      if (tahminState.activeTab === "usd") {
+        tahminState.usd.yillikArtis = val;
+      } else if (tahminState.activeTab === "eur") {
+        tahminState.eur.yillikArtis = val;
+      }
       renderTahmin();
     };
   })(aBtns[a]);
 
+  // Vergi preset butonları
+  var txBtns = root.querySelectorAll("[data-settax]");
+  for(var tx=0; tx<txBtns.length; tx++)(function(btn){
+    btn.onclick = function(){
+      var tVal = parseFloat(btn.getAttribute("data-settax")) || 27;
+      if (tahminState.activeTab === "usd") {
+        tahminState.usd.taxRate = tVal;
+      } else if (tahminState.activeTab === "eur") {
+        tahminState.eur.taxRate = tVal;
+      }
+      renderTahmin();
+    };
+  })(txBtns[tx]);
+
+  // Input alanları
   var vadeInp = document.getElementById("tahminVadeInp");
   if(vadeInp){
     vadeInp.onchange = function(){
-      tahminState.vadeAy = Math.max(1, parseInt(this.value, 10) || 60);
+      var v = Math.max(1, parseInt(this.value, 10) || 60);
+      if (tahminState.activeTab === "usd") tahminState.usd.vadeAy = v;
+      else if (tahminState.activeTab === "eur") tahminState.eur.vadeAy = v;
       renderTahmin();
     };
   }
@@ -2095,7 +2647,7 @@ function bindTahminEvents(root, raporMetni){
   var usdInp = document.getElementById("tahminUsdInp");
   if(usdInp){
     usdInp.onchange = function(){
-      tahminState.aylikUsd = Math.max(0, parseFloat(this.value) || 0);
+      tahminState.usd.aylikMiktar = Math.max(0, parseFloat(this.value) || 0);
       renderTahmin();
     };
   }
@@ -2103,7 +2655,7 @@ function bindTahminEvents(root, raporMetni){
   var eurInp = document.getElementById("tahminEurInp");
   if(eurInp){
     eurInp.onchange = function(){
-      tahminState.aylikEur = Math.max(0, parseFloat(this.value) || 0);
+      tahminState.eur.aylikMiktar = Math.max(0, parseFloat(this.value) || 0);
       renderTahmin();
     };
   }
@@ -2111,7 +2663,25 @@ function bindTahminEvents(root, raporMetni){
   var artisInp = document.getElementById("tahminArtisInp");
   if(artisInp){
     artisInp.onchange = function(){
-      tahminState.yillikArtis = Math.max(0, parseFloat(this.value) || 0);
+      var aVal = Math.max(0, parseFloat(this.value) || 0);
+      if (tahminState.activeTab === "usd") tahminState.usd.yillikArtis = aVal;
+      else if (tahminState.activeTab === "eur") tahminState.eur.yillikArtis = aVal;
+      renderTahmin();
+    };
+  }
+
+  var artisUsdInp = document.getElementById("tahminArtisUsdInp");
+  if(artisUsdInp){
+    artisUsdInp.onchange = function(){
+      tahminState.usd.yillikArtis = Math.max(0, parseFloat(this.value) || 0);
+      renderTahmin();
+    };
+  }
+
+  var artisEurInp = document.getElementById("tahminArtisEurInp");
+  if(artisEurInp){
+    artisEurInp.onchange = function(){
+      tahminState.eur.yillikArtis = Math.max(0, parseFloat(this.value) || 0);
       renderTahmin();
     };
   }
@@ -2119,15 +2689,9 @@ function bindTahminEvents(root, raporMetni){
   var taxInp = document.getElementById("tahminTaxInp");
   if(taxInp){
     taxInp.onchange = function(){
-      tahminState.vergiDilimi = Math.max(0, Math.min(100, parseFloat(this.value) || 0));
-      renderTahmin();
-    };
-  }
-
-  var mevcutCb = document.getElementById("tahminMevcutCb");
-  if(mevcutCb){
-    mevcutCb.onchange = function(){
-      tahminState.mevcutDahil = this.checked;
+      var tVal = Math.max(0, Math.min(100, parseFloat(this.value) || 0));
+      if (tahminState.activeTab === "usd") tahminState.usd.taxRate = tVal;
+      else if (tahminState.activeTab === "eur") tahminState.eur.taxRate = tVal;
       renderTahmin();
     };
   }
@@ -2169,6 +2733,7 @@ function bindTahminEvents(root, raporMetni){
     };
   }
 }
+
 
 /* ---------- belge deposu (IndexedDB) ---------- */
 var DB_NAME="doviz-defteri-docs", DB_STORE="files", dbP=null;
