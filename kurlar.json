@@ -1,20 +1,20 @@
 {
-  "tarih": "19.10.2026",
-  "guncellenme": "2026-10-20T00:02:59.621Z",
+  "tarih": "20.10.2026",
+  "guncellenme": "2026-10-20T23:32:37.144Z",
   "usd": {
     "kod": "USD",
     "isim": "ABD DOLARI",
-    "efektifAlis": 49.4286,
-    "efektifSatis": 49.6267,
-    "dovizAlis": 49.4632,
-    "dovizSatis": 49.5523
+    "efektifAlis": 49.4542,
+    "efektifSatis": 49.6524,
+    "dovizAlis": 49.4889,
+    "dovizSatis": 49.578
   },
   "eur": {
     "kod": "EUR",
     "isim": "EURO",
-    "efektifAlis": 55.4288,
-    "efektifSatis": 55.6509,
-    "dovizAlis": 55.4677,
-    "dovizSatis": 55.5676
+    "efektifAlis": 55.4802,
+    "efektifSatis": 55.7025,
+    "dovizAlis": 55.5191,
+    "dovizSatis": 55.6191
   }
 }
